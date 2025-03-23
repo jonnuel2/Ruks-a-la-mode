@@ -323,10 +323,12 @@ export default function Page(props: { params: Params }) {
             </SwiperSlide>
           ))}
         </Swiper>
-        <div className="flex flex-col lg:items-start items-center lg:w-2/5 w-full lg:mt-0 mt-10">
+        <div className="flex flex-col items-start lg:w-2/5 w-full lg:mt-0 mt-10">
+          {/* name */}
           <p className="lg:text-4xl text-2xl font-medium tracking-wider lg:text-left text-center">
             {product?.data?.name}
           </p>
+          {/* price */}
           <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
             {formatPrice(
               currency,
@@ -335,6 +337,7 @@ export default function Page(props: { params: Params }) {
                 orderDetails.quantity
             )}
           </p>
+          {/*  */}
           <p className="mt-6 tracking-wider lg:text-base font-medium text-sm">
             {product?.data?.description
               .split("- ")
@@ -346,7 +349,7 @@ export default function Page(props: { params: Params }) {
           </p>
           {/* COLORS */}
           <p className="mt-4 mb-2">Color: {selectedColor?.name}</p>
-          <div className="flex w-full items-center justify-center">
+          <div className="flex w-full items-center justify-start">
             <div className="grid grid-cols-10 gap-1.5">
               {product?.data?.colors.map((color: any, i: number) => (
                 <div
@@ -354,7 +357,7 @@ export default function Page(props: { params: Params }) {
                     color?.name === selectedColor?.name
                       ? "border border-blue-950"
                       : ""
-                  } flex items-center justify-center w-6 h-6 rounded-full cursor-pointer p-0.5`}
+                  } flex items-start justify-center w-6 h-6 rounded-full cursor-pointer p-0.5`}
                   key={i}
                 >
                   <span
@@ -384,11 +387,12 @@ export default function Page(props: { params: Params }) {
           )}
           <div className="mt-6 w-full flex flex-col lg:items-start items-center justify-start">
             <div className="w-full flex flex-col lg:items-start items-center">
-              <div className="mb-4 text-sm w-full flex flex-col lg:items-start items-center">
+              {/* size */}
+              <div className="mb-4 text-sm w-full flex flex-col items-start">
                 <p className="mb-2 ">Size</p>
 
                 <select
-                  className="border text-sm border-dark outline-none bg-transparent p-2 lg:w-3/4 w-2/3"
+                  className="border text-sm border-dark outline-none bg-transparent p-2 lg:w-3/4 w-full"
                   onChange={(e) =>
                     setMeasurement({ ...measurement, size: e.target.value })
                   }
@@ -398,11 +402,12 @@ export default function Page(props: { params: Params }) {
                   ))}
                 </select>
               </div>
-              <div className="text-sm w-full flex flex-col lg:items-start items-center">
+              {/* length */}
+              <div className="text-sm w-full flex flex-col items-start">
                 <p className="mb-2 ">Length</p>
 
                 <select
-                  className="border text-sm border-dark outline-none bg-transparent p-2 lg:w-3/4 w-2/3"
+                  className="border text-sm border-dark outline-none bg-transparent p-2 lg:w-3/4 w-full"
                   onChange={(e) =>
                     setMeasurement({ ...measurement, length: e.target.value })
                   }
@@ -413,7 +418,9 @@ export default function Page(props: { params: Params }) {
                 </select>
               </div>
             </div>
-            <div className="mt-6 w-full flex flex-col lg:items-start items-center">
+
+            {/* custome size */}
+            <div className="mt-6 w-full flex flex-col items-start">
               {openCustom ? (
                 <CustomMeasurement
                   measurement={measurement}
@@ -440,11 +447,11 @@ export default function Page(props: { params: Params }) {
             measurement={measurement}
             setMeasurement={setMeasurement}
           /> */}
-          <div className="flex lg:flex-row flex-col items-center lg:mt-10 mt-6 lg:space-x-3 w-full">
+          <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
             {isProductInCart ? (
               <></>
             ) : (
-              <div className="flex flex-col lg:items-start items-center">
+              <div className="flex flex-col items-start">
                 <div className="w-40 py-2 px-3 border-dark border ">
                   <Incrementer
                     leftClick={() =>
@@ -472,6 +479,7 @@ export default function Page(props: { params: Params }) {
               </div>
             )}
 
+            {/* add to cart */}
             {isProductInCart ? (
               <Incrementer
                 leftClick={handleLeftClick}
@@ -480,7 +488,7 @@ export default function Page(props: { params: Params }) {
               />
             ) : (
               <div
-                className="flex items-center justify-center lg:w-1/2 border lg:mt-0 mt-5 bg-dark p-2 cursor-pointer"
+                className="flex items-center justify-center w-full lg:w-1/2 border bg-dark p-2 cursor-pointer"
                 onClick={addToBag}
               >
                 <svg
@@ -501,7 +509,7 @@ export default function Page(props: { params: Params }) {
               </div>
             )}
           </div>
-          <div className="flex items-center lg:flex-row flex-col lg:space-y-0 space-y-3 lg:space-x-6 mt-6 lg:mt-8">
+          <div className="flex items-start lg:items-center lg:flex-row flex-col lg:space-y-0 space-y-3 lg:space-x-6 mt-6 lg:mt-8">
             {more?.map((m) => (
               <Link key={m.text} href={m.url}>
                 <div className="flex items-center space-x-2">
@@ -534,21 +542,24 @@ const CustomMeasurement = ({
   setOpenCustom: any;
 }) => (
   <div className="flex flex-col lg:items-start items-center w-full">
-    <p
-      className="font-bold underline lg:text-sm text-xs cursor-pointer mb-3"
-      onClick={() => setOpenCustom(false)}
-    >
-      ✕
-    </p>
+    <div className="flex items-start w-full">
+      <button
+        onClick={() => setOpenCustom(false)}
+        className="mb-3 py-2 px-4 border border-gray-300 text-gray-600 hover:bg-gray-100 font-medium "
+      >
+        X
+      </button>
+    </div>
+
     {Object.keys(measurement?.custom)?.map((m) => (
       <div
         key={m}
-        className="flex items-center justify-between mb-4 lg:w-[60%] w-full"
+        className="flex flex-col lg:flex-row items-start lg:items-center gap-2 justify-between mb-4 lg:w-[60%] w-full"
       >
         <p className="capitalize lg:text-sm text-xs">{m}</p>
         <div className="flex items-center justify-start">
           <input
-            className="bg-transparent lg:text-sm text-xs border-dark border mr-3 px-3 outline-none"
+            className="bg-transparent lg:text-sm text-xs h-[24px] border-dark border mr-3 px-3 outline-none"
             value={measurement[m]}
             onChange={(e) => {
               const inputValue = e.target.value;

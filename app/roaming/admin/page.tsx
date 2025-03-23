@@ -89,7 +89,12 @@ export default function Page() {
       icon: <FaCogs />,
       roles: ["super"],
     },
-    { key: "content", label: "Content", icon: <FaImages />, roles: ["super"] },
+    { 
+      key: "content",
+       label: "Content",
+      icon: <FaImages />, 
+      roles: ["super"] 
+    },
     {
       key: "analytics",
       label: "Analytics",
@@ -117,7 +122,8 @@ export default function Page() {
       case "analytics":
         return <Analytics />;
       default:
-        return <div>Select a view</div>;
+        // return <div>Select a view</div>;
+        return <Orders />;
     }
   };
 

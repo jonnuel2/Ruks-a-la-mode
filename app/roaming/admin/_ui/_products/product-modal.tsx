@@ -401,7 +401,7 @@ export default function ProductModal({
                     className="p-2 border text-xs rounded w-full"
                   />
                   <input
-                    type="text"
+                    type="number"
                     placeholder="Stock"
                     value={color.stock}
                     onChange={(e) => {
@@ -414,7 +414,7 @@ export default function ProductModal({
                         );
                       }
                     }}
-                    className="p-2 border text-xs rounded w-full"
+                    className="no-spinner p-2 border text-xs rounded w-full"
                   />
                   <button
                     type="button"
