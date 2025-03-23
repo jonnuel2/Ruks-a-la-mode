@@ -2,6 +2,8 @@
 
 import { formatPrice } from "@/helpers/functions";
 import { useAppContext } from "@/helpers/store";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import Image from "next/image";
 
 type ProductComponentProps = {
@@ -11,6 +13,8 @@ type ProductComponentProps = {
   product: any;
 };
 
+
+
 export default function Product({
   product,
   viewProduct,
@@ -18,6 +22,12 @@ export default function Product({
   const context = useAppContext();
 
   const { exchangeRates, currency } = context;
+  const router = useRouter();
+
+  // Function to handle viewing a product
+  // const viewProduct = (id: string) => {
+  //   router.push(`/shop/${id}`);
+  // };
 
   return (
     <div

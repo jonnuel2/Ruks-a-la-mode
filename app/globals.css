@@ -7,6 +7,17 @@
   --foreground: #171717;
 }
 
+@layer utilities {
+  .no-spinner::-webkit-inner-spin-button,
+  .no-spinner::-webkit-outer-spin-button {
+    @apply appearance-none;
+  }
+
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

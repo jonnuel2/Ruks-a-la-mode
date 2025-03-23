@@ -16,26 +16,51 @@ export default function Page() {
 
   const { cart, setcart, currency, exchangeRates } = context;
 
+  // const getMeasurementString = (measurement: any) => {
+  //   if (measurement?.size) {
+  //     return Object?.entries(measurement)
+  //       .filter(([key, value]) => key !== "custom")
+  //       .map(
+  //         ([key, value]) =>
+  //           `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
+  //       )
+  //       .join(", ");
+  //   } else {
+  //     return Object?.entries(measurement?.custom)
+  //       .map(
+  //         ([key, value]) =>
+  //           `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
+  //       )
+  //       .join(", ");
+  //   }
+  // };
+
+  // Retrieve items from localStorage
   const getMeasurementString = (measurement: any) => {
+    if (!measurement) return "N/A"; // Handle undefined or null measurements
+
     if (measurement?.size) {
-      return Object?.entries(measurement)
-        .filter(([key, value]) => key !== "custom")
-        .map(
-          ([key, value]) =>
-            `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
-        )
-        .join(", ");
-    } else {
-      return Object?.entries(measurement?.custom)
+      return Object.entries(measurement)
+        .filter(([key]) => key !== "custom")
         .map(
           ([key, value]) =>
             `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
         )
         .join(", ");
     }
+
+    if (measurement?.custom) {
+      return Object.entries(measurement.custom)
+        .map(
+          ([key, value]) =>
+            `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
+        )
+        .join(", ");
+    }
+
+    return "N/A"; // Default return if no valid measurements exist
   };
 
-  // Retrieve items from localStorage
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       const storedCart = localStorage.getItem("cart");
@@ -45,6 +70,11 @@ export default function Page() {
       }
     }
   }, []);
+
+   // Function to handle viewing a product
+   const viewProduct = (id: string) => {
+    router.push(`/shop/${id}`);
+  };
 
   return (
     <div className="flex flex-col items-center w-full px-6">
@@ -95,7 +125,10 @@ export default function Page() {
                           <></>
                         )}
                         <div className="flex flex-col items-start lg:space-y-2 space-y-1">
-                          <span className="lg:text-sm font-semibold text-xs lg:mt-0 mt-3 capitalize">
+                        <span 
+                            onClick={() => viewProduct(c?.item?.id)}
+                            className="lg:text-sm font-semibold text-blue text-xs lg:mt-0 mt-3 capitalize cursor-pointer hover:underline"
+                          >
                             {c?.item?.name}
                           </span>
                           <span className="lg:text-sm font-light text-xs lg:mt-0 mt-3 capitalize">

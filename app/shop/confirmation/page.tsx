@@ -189,10 +189,10 @@ function Confirmation() {
   return (
     <div className="flex flex-col items-center lg:pb-16">
       <p className={` text-center lg:text-6xl text-3xl mt-28`}>
-        WE'LL BE IN TOUCH!
+      Thank you for your purchase! 
       </p>
       <p className={` text-center text-lg font-semibold mt-8 lg:w-2/3`}>
-        Product Details & Shipping Information Have Been Forwarded to {email}
+      A confirmation email has been sent to {email} with your order details. We appreciate your business! 
       </p>
     </div>
   );

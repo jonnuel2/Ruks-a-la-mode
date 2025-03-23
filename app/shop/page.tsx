@@ -30,7 +30,7 @@ function ShopPage() {
     queryFn: () => getAllActiveProducts(),
   });
 
-  const products: any = allProducts?.products;
+  const products: any = allProducts?.products ?? [];
 
   // Extract unique categories
   const categories: string[] = products

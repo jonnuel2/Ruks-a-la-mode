@@ -93,6 +93,10 @@ export default function CheckoutBox({
                   <p className="font-extralight tracking-wide text-[9px]">
                     Color - {c?.item?.color?.name}
                   </p>
+                  <p className="font-medium tracking-wide text-xs mt-1">
+                    Quantity:{" "}
+                    <span className="font-semibold">{c?.quantity}</span>
+                  </p>
                 </div>
               </div>
               <p className="lg:text-base text-sm lg:mt-0 mt-4">
