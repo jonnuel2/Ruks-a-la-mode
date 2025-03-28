@@ -58,14 +58,21 @@ var abuja_list = [
 interface AbjCityDropdownProps {
   setabjCity: (abjCity: string) => void;
   abjCity: string;
+  setShippingFee: (value: undefined) => void;
 }
 
 const AbjCityDropdown: React.FC<AbjCityDropdownProps> = ({
   setabjCity,
   abjCity,
+  setShippingFee,
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    setabjCity(e?.target?.value);
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCity = e.target.value;
+    if (selectedCity !== abjCity) {
+      setShippingFee(undefined); // Reset only if the city is different
+    }
+    setabjCity(selectedCity);
+  };
 
   return (
     <div className="mb-4">
