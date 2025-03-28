@@ -15,6 +15,8 @@ import { formatPrice } from "@/helpers/functions";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -23,6 +25,9 @@ import { getProduct } from "@/helpers/api-controller";
 import { Blocks } from "react-loader-spinner";
 
 type Params = Promise<{ slug: string }>;
+
+
+
 
 export default function Page(props: { params: Params }) {
   const [openCustom, setOpenCustom] = useState(false);
@@ -227,7 +232,16 @@ export default function Page(props: { params: Params }) {
         !length &&
         !Object?.entries(custom)?.some(([_, value]) => value !== "")
       ) {
-        return alert("Incomplete Measurement Parameters");
+        // return alert("Incomplete Measurement Parameters");
+        toast.error("Incomplete Measurement Parameters", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
       }
 
       let filteredMeasurement;
@@ -251,7 +265,18 @@ export default function Page(props: { params: Params }) {
       let color = { ...product?.data?.colors[0] };
 
       if (product?.data?.colors?.length > 1) {
-        if (selectedColor?.name === "") return alert("Please choose a color");
+        // if (selectedColor?.name === "") return alert("Please choose a color");
+        if (selectedColor?.name === "") {
+          toast.warning("Please choose a color", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          return;
+        }
 
         color = { ...selectedColor };
       }
@@ -289,7 +314,15 @@ export default function Page(props: { params: Params }) {
         JSON.stringify({ ...cart, items: [...cart?.items, itemData] })
       );
 
-      alert("Cart Updated");
+      // alert("Cart Updated");
+      toast.success("Cart Updated Successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -306,19 +339,26 @@ export default function Page(props: { params: Params }) {
 
   return (
     <div className={`flex flex-col w-full lg:px-24 px-8  text-black/80 `}>
+      <ToastContainer />
       <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           // navigation
           pagination={{ clickable: true }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
-          className="h-full lg:w-[600px] w-full flex items-center justify-center"
+          className="h-full lg:w-[570px] w-full flex items-center justify-center"
         >
           {product?.data?.images?.map((image: any, i: number) => (
             <SwiperSlide key={i}>
               <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] relative lg:mt-0 mt-8">
                 {image ? (
-                  <Image priority alt="merch" src={image} fill={true} />
+                  <Image
+                    priority
+                    alt="merch"
+                    src={image}
+                    fill
+                    style={{ objectFit: "cover" }} // or "contain"
+                  />
                 ) : (
                   <></>
                 )}
@@ -340,7 +380,7 @@ export default function Page(props: { params: Params }) {
                 orderDetails.quantity
             )}
           </p>
-          {/*  */}
+          {/* Description */}
           <p className="mt-6 tracking-wider lg:text-base font-medium text-sm">
             {product?.data?.description
               .split("- ")
@@ -450,6 +490,8 @@ export default function Page(props: { params: Params }) {
             measurement={measurement}
             setMeasurement={setMeasurement}
           /> */}
+
+          {/* add to cart (increment) */}
           <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
             {isProductInCart ? (
               <></>
