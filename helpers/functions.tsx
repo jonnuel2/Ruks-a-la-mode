@@ -1,4 +1,6 @@
 import { ProductProps } from "@/helpers/types";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   abujaDeliveryFees,
   countryGroups,
@@ -60,7 +62,20 @@ function getScalingFactor(quantity: number) {
     (s) => quantity >= s.min && s.max >= quantity
   )?.sf;
 
-  return sf ? sf : alert("Too many items to ship.");
+  // return sf ? sf : alert("Too many items to ship.");
+  if (sf) {
+    return sf;
+  } else {
+    toast.error("Too many items to ship.", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+    return null; // or some default value
+  }
 }
 
 export function getShippingFee(address: any, weights: any[], type?: any) {
@@ -83,16 +98,39 @@ export function getShippingFee(address: any, weights: any[], type?: any) {
   if (country?.toLowerCase() === "nigeria") {
     if (state?.toLowerCase() === "abuja") {
       if (!abujaDeliveryFees?.hasOwnProperty(city?.toLowerCase())) {
-        return alert("Invalid Abuja City.");
+        // return alert("Invalid Abuja City.");
+        toast.error("Invalid Abuja City.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       } else {
         return abujaDeliveryFees[city];
+        
+        return null; // or some default value
       }
     }
 
     let fee: any = nigeriaDeliveryFees?.find(
       (n) => weight >= n.min && weight < n.max
     );
-    return fee ? fee[type] : alert("Overweight");
+    // return fee ? fee[type] : alert("Overweight");
+    if (fee) {
+      return fee[type]; // or fee[region]
+    } else {
+      toast.error("Overweight items cannot be shipped.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return null; // or some default value
+    }
   }
 
   if (type === "standard") {
@@ -124,7 +162,20 @@ export function getShippingFee(address: any, weights: any[], type?: any) {
         (i: any) => weight >= i.min && weight < i.max
       );
       console.log(region, country?.toLowerCase());
-      return fee ? fee[region] : alert("Overweight");
+      // return fee ? fee[region] : alert("Overweight");
+      if (fee) {
+        return fee[region]; // or fee[region]
+      } else {
+        toast.error("Overweight items cannot be shipped.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return null; // or some default value
+      }
     } else {
       let region = getRegionByCountry(country);
 
@@ -136,7 +187,20 @@ export function getShippingFee(address: any, weights: any[], type?: any) {
         (i: any) => weight >= i.min && weight < i.max
       );
 
-      return fee ? fee[region] : alert("Overweight");
+      // return fee ? fee[region] : alert("Overweight");
+      if (fee) {
+        return fee[region]; // or fee[region]
+      } else {
+        toast.error("Overweight items cannot be shipped.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return null; // or some default value
+      }
     }
   }
 
@@ -150,5 +214,18 @@ export function getShippingFee(address: any, weights: any[], type?: any) {
     (i: any) => weight >= i.min && weight < i.max
   );
 
-  return fee ? fee[region] : alert("Overweight");
+  // return fee ? fee[region] : alert("Overweight");
+  if (fee) {
+    return fee[region]; // or fee[region]
+  } else {
+    toast.error("Overweight items cannot be shipped.", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+    return null; // or some default value
+  }
 }

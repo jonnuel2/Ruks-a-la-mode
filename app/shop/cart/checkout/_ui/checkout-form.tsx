@@ -4,6 +4,8 @@ import { useState } from "react"
 import CountryDropdown from "./country-dropdown"
 import AbjCityDropdown from "./abj-city-dropdown"
 import Link from "next/link"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { formatPrice } from "@/helpers/functions";
 import { useAppContext } from "@/helpers/store";
 
@@ -39,6 +41,7 @@ const CheckoutForm = ({
 
   return (
     <>
+    <ToastContainer />
       <form className="mt-8 space-y-6">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-row space-x-4">
@@ -317,7 +320,16 @@ const CheckoutForm = ({
               shippingInfo.state === "" ||
               shippingInfo.phonenumber === ""
             ) {
-              return alert("We need some information to process your delivery.")
+              // return alert("We need some information to process your delivery.")
+              toast.error('We need some information to process your delivery.', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+              return; // Make sure to keep the return statement to prevent further execution
             }
             checkoutCart(shippingInfo)
           }}
