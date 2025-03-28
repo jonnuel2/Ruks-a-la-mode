@@ -180,6 +180,8 @@ const CheckoutForm = ({
                 <AbjCityDropdown
                   abjCity={shippingInfo.city}
                   setabjCity={(a) => setShippingInfo({ ...shippingInfo, city: a })}
+                  setShippingFee={setShippingFee}
+                 
                 />
               ) : (
                 <input
