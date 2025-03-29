@@ -14,8 +14,9 @@ export default function Page() {
   const { cart, currency, exchangeRates, setcart } = context;
   const router = useRouter();
 
-  const [shippingFee, setShippingFee] = useState(undefined);
+  const [shippingFee, setShippingFee] = useState<number | undefined>(undefined);
 
+  type ShippingType = "standard" | "express"; // Define the ShippingType type
   const [deliveryType, setDeliveryType] = useState<ShippingType>("standard");
 
   const [discount, setDiscount] = useState(0);
@@ -96,7 +97,7 @@ export default function Page() {
             shippingFee={shippingFee}
             setShippingFee={setShippingFee}
             deliveryType={deliveryType}
-            setDeliveryType={(d) => setDeliveryType(d)}
+            setDeliveryType={(d) => setDeliveryType(d as ShippingType)}
           />
         </div>
         <CheckoutBox
