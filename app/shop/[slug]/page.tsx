@@ -488,7 +488,7 @@ export default function Page(props: { params: Params }) {
             setMeasurement={setMeasurement}
           /> */}
 
-          {/* add to cart (increment) */}
+          {/* add to cart */}
           <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
             {isProductInCart ? (
               <></>
@@ -500,7 +500,7 @@ export default function Page(props: { params: Params }) {
                       setOrderDetails({
                         ...orderDetails,
                         quantity:
-                          orderDetails.quantity > 0
+                          orderDetails.quantity > 1
                             ? orderDetails.quantity - 1
                             : orderDetails.quantity,
                       })
@@ -526,7 +526,7 @@ export default function Page(props: { params: Params }) {
               <Incrementer
                 leftClick={handleLeftClick}
                 rightClick={handleRightClick}
-                value={cart?.items ? cart?.items[itemIndex].quantity : 0}
+                value={cart?.items ? cart?.items[itemIndex].quantity : 1}
               />
             ) : (
               <div

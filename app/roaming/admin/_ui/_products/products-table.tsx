@@ -42,7 +42,7 @@ export default function ProductTable({
               </td>
               <td className="p-2 text-xs uppercase">{product.category}</td>
               <td className="p-2">
-                <div className="flex lg:flex-row flex-col items-center justify-center lg:space-y-0 space-y-1 space-x-0 lg:space-x-2">
+                <div className="flex lg:flex-row flex-col items-start justify-start lg:space-y-0 space-y-1 space-x-0 lg:space-x-2">
                   <button
                     onClick={() =>
                       setExpandedRow(
@@ -55,7 +55,7 @@ export default function ProductTable({
                   </button>
                   <button
                     onClick={() => onEdit(product)}
-                    className="text-yellow-500 text-xs hover:underline "
+                    className="text-yellow-500 text-xs hover:underline"
                   >
                     Edit
                   </button>
@@ -66,6 +66,7 @@ export default function ProductTable({
                 </div>
               </td>
             </tr>
+
             {expandedRow === product.id && (
               <tr>
                 <td colSpan={5}>

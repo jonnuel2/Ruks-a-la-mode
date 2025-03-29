@@ -89,7 +89,7 @@ export default function DiscountCodes() {
           <tr>
             <th className="px-4 py-2 border text-sm">Code</th>
             <th className="px-4 py-2 border text-sm">Rate</th>
-            <th className="px-4 py-2 border text-sm">Count</th>
+            <th className="px-4 py-2 border text-sm">Quantity</th>
             <th className="px-4 py-2 border text-sm">Duration</th>
             <th className="px-4 py-2 border text-sm">Status</th>
             <th className="px-4 py-2 border text-sm">Actions</th>

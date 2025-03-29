@@ -1,5 +1,5 @@
 import { ProductProps } from "@/helpers/types";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   abujaDeliveryFees,
@@ -10,18 +10,30 @@ import {
   standardInternationalDeliveryFees,
 } from "./shipping-fees";
 
-const abuja_cities: any = {
-  asokoro: 4500,
+// Type Definitions
+type ShippingTier = {
+  min: number;
+  max: number;
+  standard: number;
+  express: number;
 };
 
+type InternationalShippingTier = Omit<ShippingTier, 'standard' | 'express'> & {
+  [region: string]: number; // Index signature for regions
+};
+
+type ShippingType = 'standard' | 'express';
+
+// Constants
+const MAX_ALLOWED_WEIGHT_KG = 20;
+const BASE_WEIGHT = 1;
+
 export const slugify = (text: string) => {
-  return (
-    text
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]+/g, "") ?? ""
-  );
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "") ?? "";
 };
 
 export const formatPrice = (currency: string, price: number) => {
@@ -29,13 +41,8 @@ export const formatPrice = (currency: string, price: number) => {
     style: "currency",
     currency,
   });
-  const formattedPrice = formatter.format(price);
-  return formattedPrice;
+  return formatter.format(price);
 };
-
-// These options are needed to round to whole numbers if that's what you want.
-//minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
-//maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 
 export function groupMerchByCategory(
   merch: any[]
@@ -48,184 +55,100 @@ export function groupMerchByCategory(
     return acc;
   }, {});
 }
-function getRegionByCountry(country: any) {
+
+function getRegionByCountry(country: string): string {
+  const countryLower = country.toLowerCase();
   for (const [region, countries] of Object.entries(countryGroups)) {
-    if (countries.includes(country)) {
+    if (countries.includes(countryLower)) {
       return region;
     }
   }
-  return "Unknown Region";
+  return "UNKNOWN";
 }
 
-function getScalingFactor(quantity: number) {
-  let sf = scalingFactors?.find(
-    (s) => quantity >= s.min && s.max >= quantity
+function getScalingFactor(quantity: number): number | null {
+  const factor = scalingFactors?.find(
+    (s) => quantity >= s.min && quantity <= s.max
   )?.sf;
 
-  // return sf ? sf : alert("Too many items to ship.");
-  if (sf) {
-    return sf;
-  } else {
-    toast.error("Too many items to ship.", {
+  if (!factor) {
+    toast.error("Too many items to ship. Please contact us for bulk orders.", {
       position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
+      autoClose: 5000,
     });
-    return null; // or some default value
+    return null;
   }
+  return factor;
 }
 
-export function getShippingFee(address: any, weights: any[], type?: any) {
+export function getShippingFee(
+  address: { country: string; state?: string; city?: string },
+  weights: Array<{ quantity: number; weight: number }>,
+  type: ShippingType = 'standard'
+): number | null {
   const { state, country, city } = address;
-  console.log(state, country, city, type, weights);
 
-  let cartWeight = weights?.reduce(
-    (sum: number, item: any) => item?.quantity * item?.weight + sum,
-    0
-  );
-  let baseWeight = 1;
-  let sf = getScalingFactor(
-    weights?.reduce((sum: number, item: any) => item?.quantity + sum, 0)
-  );
-
-  let weight = sf ? (baseWeight + cartWeight) * sf : cartWeight;
-
-  console.log(cartWeight, weight);
-
-  if (country?.toLowerCase() === "nigeria") {
-    if (state?.toLowerCase() === "abuja") {
-      if (!abujaDeliveryFees?.hasOwnProperty(city?.toLowerCase())) {
-        // return alert("Invalid Abuja City.");
-        toast.error("Invalid Abuja City.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      } else {
-        return abujaDeliveryFees[city];
-        
-        return null; // or some default value
-      }
-    }
-
-    let fee: any = nigeriaDeliveryFees?.find(
-      (n) => weight >= n.min && weight < n.max
+  try {
+    // 1. Calculate ACTUAL total weight (sum of all items' total weights)
+    const totalUnscaledWeight = weights.reduce(
+      (sum, item) => sum + (item.weight * item.quantity),
+      0
     );
-    // return fee ? fee[type] : alert("Overweight");
-    if (fee) {
-      return fee[type]; // or fee[region]
-    } else {
-      toast.error("Overweight items cannot be shipped.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      return null; // or some default value
-    }
-  }
 
-  if (type === "standard") {
-    if (
-      ["united kingdom", "united states", "canada", "france"].includes(
-        country.toLowerCase()
-      )
-    ) {
-      let region;
-      switch (country.trim().toLowerCase()) {
-        case "united kingdom":
-          region = "UK";
-          break;
-        case "united states":
-          region = "US";
-          break;
-        case "canada":
-          region = "CAN";
-          break;
-        case "france":
-          region = "FRA";
-          break;
-        default:
-          region = "US";
-          break;
-      }
-
-      let fee: any = standardInternationalDeliveryFees?.find(
-        (i: any) => weight >= i.min && weight < i.max
+    // 2. Immediate weight check (before scaling)
+    if (totalUnscaledWeight > MAX_ALLOWED_WEIGHT_KG) {
+      toast.error(
+        `Order exceeds maximum shippable weight (${MAX_ALLOWED_WEIGHT_KG}kg). Please reduce quantity or contact us.`,
+        { position: "top-right", autoClose: 5000 }
       );
-      console.log(region, country?.toLowerCase());
-      // return fee ? fee[region] : alert("Overweight");
-      if (fee) {
-        return fee[region]; // or fee[region]
-      } else {
-        toast.error("Overweight items cannot be shipped.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return null; // or some default value
-      }
-    } else {
-      let region = getRegionByCountry(country);
-
-      if (region === "UNKNOWN") {
-        return alert("We don't deliver to this location yet.");
-      }
-
-      let fee: any = expressInternationalDeliveryFees?.find(
-        (i: any) => weight >= i.min && weight < i.max
-      );
-
-      // return fee ? fee[region] : alert("Overweight");
-      if (fee) {
-        return fee[region]; // or fee[region]
-      } else {
-        toast.error("Overweight items cannot be shipped.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return null; // or some default value
-      }
+      return null;
     }
-  }
 
-  let region = getRegionByCountry(country);
+    // 3. Get scaling factor
+    const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
+    const sf = getScalingFactor(itemCount);
+    if (!sf) return null;
 
-  if (region === "UNKNOWN") {
-    return alert("We don't deliver to this location yet.");
-  }
+    // 4. Calculate final scaled weight
+    const totalWeight = (BASE_WEIGHT + totalUnscaledWeight) * (sf || 1);
 
-  let fee: any = expressInternationalDeliveryFees?.find(
-    (i: any) => weight >= i.min && weight < i.max
-  );
+    // Nigeria shipping
+    if (country.toLowerCase() === "nigeria") {
+      if (state?.toLowerCase() === "abuja") {
+        const cityKey = city?.toLowerCase() || "";
+        if (!(cityKey in abujaDeliveryFees)) {
+          toast.error("Invalid Abuja City.");
+          return null;
+        }
+        return abujaDeliveryFees[cityKey];
+      }
 
-  // return fee ? fee[region] : alert("Overweight");
-  if (fee) {
-    return fee[region]; // or fee[region]
-  } else {
-    toast.error("Overweight items cannot be shipped.", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-    return null; // or some default value
+      const feeTier = (nigeriaDeliveryFees as ShippingTier[]).find(
+        (tier) => totalWeight >= tier.min && totalWeight < tier.max
+      ) || nigeriaDeliveryFees[nigeriaDeliveryFees.length - 1];
+      
+      return feeTier[type];
+    }
+
+    // International shipping
+    const region = getRegionByCountry(country);
+    if (region === "UNKNOWN") {
+      toast.error("We don't deliver to this location yet.");
+      return null;
+    }
+
+    const feeTable = type === "standard" 
+      ? (standardInternationalDeliveryFees as InternationalShippingTier[])
+      : (expressInternationalDeliveryFees as unknown as InternationalShippingTier[]);
+
+    const feeTier = feeTable.find(
+      (tier) => totalWeight >= tier.min && totalWeight < tier.max
+    ) || feeTable[feeTable.length - 1];
+
+    return feeTier[region];
+  } catch (error) {
+    console.error("Shipping calculation error:", error);
+    toast.error("Error calculating shipping. Please try again.");
+    return null;
   }
 }

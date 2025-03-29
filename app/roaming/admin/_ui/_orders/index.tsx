@@ -153,19 +153,27 @@ export default function Orders() {
           <table className="min-w-full table-auto bg-white shadow rounded">
             <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-2 border lg:text-sm text-xs">
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
                   Order ID
                 </th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
                   Customer
                 </th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">Date</th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">Total</th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">Status</th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                  Date
+                </th>
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                  Total
+                </th>
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                  Status
+                </th>
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
                   Discount
                 </th>
-                <th className="px-4 py-2 border lg:text-sm text-xs">Actions</th>
+                <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -184,9 +192,36 @@ export default function Orders() {
                       </p>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-xs border">
+                  {/* <td className="px-4 py-2 text-xs border">
                     {order?.data?.createdAt}
+                  </td> */}
+                  <td className="px-4 py-2 text-xs border">
+                    {order?.data?.updatedAt ? (
+                      <>
+                        {new Date(order.data.updatedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                        <br />
+                        {new Date(order.data.updatedAt).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            hour12: true,
+                          }
+                        )}
+                      </>
+                    ) : (
+                      "N/A"
+                    )}
                   </td>
+
                   <td className="px-4 py-2 text-xs border">
                     {order?.data?.price}
                   </td>

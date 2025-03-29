@@ -192,7 +192,7 @@ function Confirmation() {
       Thank you for your purchase! 
       </p>
       <p className={` text-center text-lg font-semibold mt-8 lg:w-2/3`}>
-      A confirmation email has been sent to {email} with your order details. We appreciate your business! 
+      A confirmation email has been sent to {email} with your order details. We appreciate you! 
       </p>
     </div>
   );
