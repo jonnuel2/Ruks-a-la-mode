@@ -562,6 +562,7 @@ export default function Page(props: { params: Params }) {
                 value={cart?.items ? cart?.items[itemIndex].quantity : 0}
               />
             ) : product?.data?.colors?.some((color:any) => color?.stock !== "") ? (
+              
               <div
                 className="flex items-center justify-center w-full lg:w-1/2 border bg-dark p-2 cursor-pointer"
                 onClick={addToBag}
