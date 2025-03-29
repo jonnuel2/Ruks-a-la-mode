@@ -333,6 +333,8 @@ export default function Page(props: { params: Params }) {
       </div>
     );
   }
+  console.log("checkiii", product?.data);
+
 
   console.log("art?.items?.length >>>>", product?.data?.colors?.length);
   console.log("product?.data?.colors >>>>", product?.data);
