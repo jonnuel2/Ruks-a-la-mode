@@ -8,7 +8,7 @@ import { formatPrice } from "@/helpers/functions";
 import Link from "next/link";
 import { useEffect } from "react";
 import { FaX } from "react-icons/fa6";
-import { AiFillDelete } from "react-icons/ai";
+import { AiOutlineDelete } from "react-icons/ai";
 
 export default function Page() {
   const context = useAppContext();
@@ -253,7 +253,7 @@ export default function Page() {
                         )}
                       </td>
                       <td className="px-4 mt-3 font-light text-xs lg:text-sm lg:w-1/12">
-                        <AiFillDelete
+                        <AiOutlineDelete
                           size={25}
                           className="cursor-pointer"
                           onClick={() => {

@@ -69,7 +69,7 @@ export default function AddDiscountModal({
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Count</label>
+            <label className="block text-sm font-medium mb-2">Quantity</label>
             <input
               type="text"
               value={discountInfo?.count}

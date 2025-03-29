@@ -186,11 +186,13 @@ const Deliveries = () => {
       <table className="min-w-full table-auto bg-white shadow rounded">
         <thead className="bg-gray-200">
           <tr>
-            <th className="px-4 py-2 border text-xs">Delivery ID</th>
-            <th className="px-4 py-2 border text-xs">Customer Name</th>
-            <th className="px-4 py-2 border text-xs">Delivery Information</th>
-            <th className="px-4 py-2 border text-xs">Status</th>
-            <th className="px-4 py-2 border text-xs">Actions</th>
+            <th className="px-4 py-2 border text-xs text-left">Delivery ID</th>
+            <th className="px-4 py-2 border text-xs text-left">Customer Name</th>
+            <th className="px-4 py-2 border text-xs text-left">Delivery Information</th>
+            <th className="px-4 py-2 border text-xs text-left">Product</th>
+            <th className="px-4 py-2 border text-xs text-left">Details</th>
+            <th className="px-4 py-2 border text-xs text-left">Status</th>
+            <th className="px-4 py-2 border text-xs text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -203,11 +205,36 @@ const Deliveries = () => {
                   delivery?.data?.shippingInfo?.surname}
               </td>
               <td className="px-4 py-2 border text-xs">
-                {delivery?.data?.shippingInfo?.address},{" "}
-                {delivery?.data?.shippingInfo?.city},{" "}
-                {delivery?.data?.shippingInfo?.state},{" "}
-                {delivery?.data?.shippingInfo?.country},{" "}
+                {delivery?.data?.shippingInfo?.address},{" "} <br />
+                {delivery?.data?.shippingInfo?.city},{" "} <br />
+                {delivery?.data?.shippingInfo?.state},{" "} <br />
+                {delivery?.data?.shippingInfo?.country},{" "} <br />
                 {delivery?.data?.shippingInfo?.phonenumber}
+              </td>
+              {/* Products Column */}
+              <td className="px-4 py-2 border text-xs">
+                {delivery.data.items.map((item: any, index: number) => (
+                  <div key={index} className="mb-2 last:mb-0">
+                    <div className="font-medium">{item.item.name}</div>
+                    <div>Qty: {item.quantity}</div>
+                  </div>
+                ))}
+              </td>
+                 {/* Details Column */}
+              <td className="px-4 py-2 border text-xs">
+                {delivery.data.items.map((item: any, index: number) => (
+                  <div key={index} className="mb-2 last:mb-0">
+                    <div>
+                      Size: {item.item.measurement?.size || 'N/A'}
+                    </div>
+                    <div>
+                      Color: {item.item.color?.name || 'N/A'}
+                    </div>
+                    <div>
+                      Price: {item.item.price}
+                    </div>
+                  </div>
+                ))}
               </td>
               <td className="px-4 py-2 border text-xs capitalize">
                 <span className={`px-2 py-1 rounded text-yellow-500`}>

@@ -256,330 +256,300 @@ export default function ProductModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg lg:w-1/2 h-5/6 overflow-y-scroll">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ">
+      <div className="bg-white p-6 rounded-lg lg:w-1/2 overflow-y-scroll">
         <h2 className="text-lg lg:text-sm font-bold mb-4">
           {product ? "Edit Product" : "Add New Product"}
         </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 overflow-y-scroll">
-            <input
-              type="text"
-              placeholder="Name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full p-2 border rounded text-xs"
-              required
-            />
-            <textarea
-              placeholder="Description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="w-full p-2 border rounded text-xs"
-              required
-            />
-            <input
-              type="text"
-              value={formData.price}
-              onChange={(e) => {
-                const inputValue = e.target.value;
-                if (/^\d*$/.test(inputValue)) {
-                  setFormData({ ...formData, price: inputValue });
+        <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto p-2">
+  <div className="space-y-3">
+    {/* Basic Fields */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label className="block text-xs mb-1">Product Name</label>
+        <input
+          type="text"
+          placeholder="Enter product name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className="w-full p-2 border rounded text-xs"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-xs mb-1">Price (₦)</label>
+        <input
+          type="text"
+          value={formData.price}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            if (/^\d*$/.test(inputValue)) {
+              setFormData({ ...formData, price: inputValue });
+            }
+          }}
+          placeholder="Enter price"
+          className="w-full p-2 border text-xs rounded"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-xs mb-1">Weight (kg)</label>
+        <input
+          type="text"
+          placeholder="Enter weight"
+          value={formData.weight}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            if (/^\d*\.?\d*$/.test(inputValue)) {
+              setFormData({ ...formData, weight: inputValue });
+            }
+          }}
+          className="w-full p-2 text-xs border rounded"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-xs mb-1">Category</label>
+        <input
+          type="text"
+          placeholder="Enter category"
+          value={formData.category}
+          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+          className="w-full p-2 text-xs border rounded"
+          required
+        />
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-xs mb-1">Description</label>
+      <textarea
+        placeholder="Enter product description"
+        value={formData.description}
+        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        className="w-full p-2 border rounded text-xs min-h-[80px]"
+        required
+      />
+    </div>
+
+    {/* Images Section */}
+    <div className="border-t pt-3">
+      <p className="text-xs font-medium mb-2">Images</p>
+      <div className="space-y-2">
+        {formData?.images?.map((image: any, index: number) => (
+          <div key={index} className="flex gap-2">
+            {formData?.id ? (
+              <input
+                type="text"
+                placeholder="Image URL"
+                value={image}
+                onChange={(e) => handleImageChange(index, e.target.value)}
+                className="flex-1 p-2 border text-xs rounded"
+              />
+            ) : (
+              <input
+                type="file"
+                onChange={(e) =>
+                  e.target.files
+                    ? handleImageChange(index, e.target.files[0])
+                    : null
                 }
-              }}
-              placeholder="Price"
-              className="w-full p-2 border text-xs rounded"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Weight"
-              value={formData.weight}
-              onChange={(e) => {
-                const inputValue = e.target.value;
-                // Allow decimals (e.g., 0.4, 12.75)
-                if (/^\d*\.?\d*$/.test(inputValue)) {
-                  setFormData({ ...formData, weight: inputValue });
-                }
-              }}
-              className="w-full p-2 text-xs border rounded"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Category"
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
-              className="w-full p-2 text-xs border rounded"
-              required
-            />
-            {/* <input
-              type="text"
-              value={formData.quantity}
-              onChange={(e) => {
-                const inputValue = e.target.value;
-                if (/^\d*$/.test(inputValue)) {
-                  setFormData({ ...formData, quantity: inputValue });
-                }
-              }}
-              placeholder="Quantity"
-              className="w-full p-2 text-xs border rounded"
-              required
-            /> */}
-
-            {/* Images Input */}
-            <div>
-              <p className="font-medium">Images</p>
-              {formData?.images?.map((image: any, index: number) => (
-                <div key={index} className="flex gap-2 mt-2">
-                  {formData?.id ? (
-                    <input
-                      type="text"
-                      placeholder="Image Url"
-                      value={image}
-                      onChange={(e) => handleImageChange(index, e.target.value)}
-                      className="p-2 border text-xs rounded w-full"
-                    />
-                  ) : (
-                    <input
-                      type="file"
-                      placeholder="Choose Image(s)"
-                      onChange={(e) =>
-                        e.target.files
-                          ? handleImageChange(index, e.target.files[0])
-                          : null
-                      }
-                      className="p-2 border text-xs rounded w-full"
-                    />
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="text-xs"
-                  >
-                    ❌
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleAddImage}
-                className="mt-2 text-blue-500 text-xs"
-              >
-                + Add Image
-              </button>
-            </div>
-
-            {/* Colors */}
-            <div>
-              <p className="font-medium text-xs">Colors</p>
-              {formData.colors.map((color: any, index: number) => (
-                <div key={index} className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    placeholder="Color"
-                    value={color.name}
-                    onChange={(e) =>
-                      handleColorChange(index, "name", e.target.value)
-                    }
-                    className="p-2 border text-xs rounded w-full"
-                  />
-                  <input
-                    type="text"
-                    placeholder="HexCode"
-                    value={color.hexCode}
-                    onChange={(e) =>
-                      handleColorChange(index, "hexCode", e.target.value)
-                    }
-                    className="p-2 border text-xs rounded w-full"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Stock"
-                    value={color.stock}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (/^\d*$/.test(inputValue)) {
-                        handleColorChange(
-                          index,
-                          "stock",
-                          parseFloat(inputValue)
-                        );
-                      }
-                    }}
-                    className="no-spinner p-2 border text-xs rounded w-full"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveColor(index)}
-                    className="text-xs"
-                  >
-                    ❌
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleAddColor}
-                className="mt-2 text-blue-500 text-xs"
-              >
-                + Add Color
-              </button>
-            </div>
-
-            {/* Material Options */}
-            {/* <div>
-              <p className="font-medium">Material Options</p>
-              {formData?.materialOptions?.map(
-                (material: any, index: number) => (
-                  <div key={index} className="flex gap-2 mt-2">
-                    <input
-                      type="text"
-                      placeholder="Material Name"
-                      value={material.name}
-                      onChange={(e) =>
-                        handleMaterialChange(index, "name", e.target.value)
-                      }
-                      className="p-2 border text-xs rounded w-full"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      value={material.price}
-                      onChange={(e) =>
-                        handleMaterialChange(
-                          index,
-                          "price",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className="p-2 border text-xs rounded w-full"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Stock"
-                      value={material.stock}
-                      onChange={(e) =>
-                        handleMaterialChange(
-                          index,
-                          "stock",
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className="p-2 border text-xs rounded w-full"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMaterial(index)}
-                      className="text-xs"
-                    >
-                      ❌
-                    </button>
-                  </div>
-                )
-              )}
-              <button
-                type="button"
-                onClick={handleAddMaterial}
-                className="mt-2 text-blue-500 text-xs"
-              >
-                + Add Material
-              </button>
-            </div> */}
-
-            {/* Components */}
-            <div>
-              <p className="font-medium">Components</p>
-              {formData?.components?.map((component: any, index: number) => (
-                <div key={index} className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    placeholder="Component Name"
-                    value={component.name}
-                    onChange={(e) =>
-                      handleComponentChange(index, "name", e.target.value)
-                    }
-                    className="p-2 border text-xs rounded w-full"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Price"
-                    value={component.price}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (/^\d*$/.test(inputValue)) {
-                        handleComponentChange(
-                          index,
-                          "price",
-                          parseFloat(inputValue)
-                        );
-                      }
-                    }}
-                    className="p-2 border text-xs rounded w-full"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Weight"
-                    value={component.weight}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      if (/^\d*\.?\d*$/.test(inputValue)) {
-                        handleComponentChange(
-                          index,
-                          "weight",
-                          parseFloat(inputValue)
-                        );
-                      }
-                    }}
-                    className="p-2 border text-xs rounded w-full"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveComponent(index)}
-                    className="text-xs"
-                  >
-                    ❌
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleAddComponent}
-                className="mt-2 text-blue-500 text-xs"
-              >
-                + Add component
-              </button>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
+                className="flex-1 p-1 border text-xs rounded"
+              />
+            )}
             <button
               type="button"
-              onClick={onClose}
-              className="bg-gray-500 text-white px-4 py-2 rounded mr-2 text-xs"
+              onClick={() => handleRemoveImage(index)}
+              className="text-xs bg-gray-100 px-2 rounded"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-green-500 text-white px-4 py-2 rounded text-xs"
-            >
-              {loading ? (
-                <TailSpin width={20} height={20} />
-              ) : product ? (
-                "Save Changes"
-              ) : (
-                "Add Product"
-              )}
+              Remove
             </button>
           </div>
-        </form>
+        ))}
+        <button
+          type="button"
+          onClick={handleAddImage}
+          className="text-xs text-blue-500 mt-1"
+        >
+          + Add Image
+        </button>
+      </div>
+    </div>
+
+    {/* Colors Section */}
+    <div className="border-t pt-3">
+      <p className="text-xs font-medium mb-2">Colors</p>
+      <div className="space-y-2">
+        {formData.colors.map((color: any, index: number) => (
+          <div key={index} className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-xs block mb-1">Color Name</label>
+              <input
+                type="text"
+                placeholder="Color name"
+                value={color.name}
+                onChange={(e) =>
+                  handleColorChange(index, "name", e.target.value)
+                }
+                className="w-full p-2 border text-xs rounded"
+              />
+            </div>
+            <div>
+              <label className="text-xs block mb-1">Hex Code</label>
+              <input
+                type="text"
+                placeholder="#FFFFFF"
+                value={color.hexCode}
+                onChange={(e) =>
+                  handleColorChange(index, "hexCode", e.target.value)
+                }
+                className="w-full p-2 border text-xs rounded"
+              />
+            </div>
+            <div>
+              <label className="text-xs block mb-1">Stock</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Qty"
+                  value={color.stock}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    if (/^\d*$/.test(inputValue)) {
+                      handleColorChange(
+                        index,
+                        "stock",
+                        parseFloat(inputValue)
+                      );
+                    }
+                  }}
+                  className="no-spinner w-full p-2 border text-xs rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveColor(index)}
+                  className="text-xs bg-gray-100 px-2 rounded"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handleAddColor}
+          className="text-xs text-blue-500 mt-1"
+        >
+          + Add Color
+        </button>
+      </div>
+    </div>
+
+    {/* Components Section */}
+    <div className="border-t pt-3">
+      <p className="text-xs font-medium mb-2">Components</p>
+      <div className="space-y-2">
+        {formData?.components?.map((component: any, index: number) => (
+          <div key={index} className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-xs block mb-1">Name</label>
+              <input
+                type="text"
+                placeholder="Component name"
+                value={component.name}
+                onChange={(e) =>
+                  handleComponentChange(index, "name", e.target.value)
+                }
+                className="w-full p-2 border text-xs rounded"
+              />
+            </div>
+            <div>
+              <label className="text-xs block mb-1">Price</label>
+              <input
+                type="text"
+                placeholder="Price"
+                value={component.price}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (/^\d*$/.test(inputValue)) {
+                    handleComponentChange(
+                      index,
+                      "price",
+                      parseFloat(inputValue)
+                    );
+                  }
+                }}
+                className="w-full p-2 border text-xs rounded"
+              />
+            </div>
+            <div>
+              <label className="text-xs block mb-1">Weight</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Weight"
+                  value={component.weight}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    if (/^\d*\.?\d*$/.test(inputValue)) {
+                      handleComponentChange(
+                        index,
+                        "weight",
+                        parseFloat(inputValue)
+                      );
+                    }
+                  }}
+                  className="w-full p-2 border text-xs rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveComponent(index)}
+                  className="text-xs bg-gray-100 px-2 rounded"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={handleAddComponent}
+          className="text-xs text-blue-500 mt-1"
+        >
+          + Add component
+        </button>
+      </div>
+    </div>
+
+    {/* Form Actions */}
+    <div className="flex justify-end gap-2 pt-4 border-t">
+      <button
+        type="button"
+        onClick={onClose}
+        className="px-3 py-1 text-xs bg-gray-200 rounded"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        className="px-3 py-1 text-xs bg-green-500 text-white rounded"
+      >
+        {loading ? (
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            Processing...
+          </span>
+        ) : product ? (
+          "Save Changes"
+        ) : (
+          "Add Product"
+        )}
+      </button>
+    </div>
+  </div>
+</form>
       </div>
     </div>
   );

@@ -43,6 +43,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           Customer: {order?.data?.shippingInfo?.email}
         </p>
         <p className="mb-2 text-xs">Order Date: {order?.data?.createdAt}</p>
+      
+
         <p className="mb-2 text-xs capitalize">Status: {order?.data?.status}</p>
         <p className="mb-4 text-sm">
           Total: {formatPrice("NGN", order?.data?.price)}
@@ -64,11 +66,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
         <table className="min-w-full table-auto bg-white shadow rounded mb-4">
           <thead className="bg-gray-200">
             <tr>
-              <th className="px-4 py-2 border text-xs">Product</th>
-              <th className="px-4 py-2 border text-xs">Quantity</th>
-              <th className="px-4 py-2 border text-xs">Price</th>
-              <th className="px-4 py-2 border text-xs">Size</th>
-              <th className="px-4 py-2 border text-xs">Color</th>
+              <th className="px-4 py-2 border text-xs text-left">Product</th>
+              <th className="px-4 py-2 border text-xs text-left">Quantity</th>
+              <th className="px-4 py-2 border text-xs text-left">Price</th>
+              <th className="px-4 py-2 border text-xs text-left">Size</th>
+              <th className="px-4 py-2 border text-xs text-left">Color</th>
             </tr>
           </thead>
           <tbody>
