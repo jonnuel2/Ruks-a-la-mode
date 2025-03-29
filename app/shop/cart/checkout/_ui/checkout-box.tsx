@@ -94,6 +94,14 @@ export default function CheckoutBox({
                     Color - {c?.item?.color?.name}
                   </p>
                   <p className="font-medium tracking-wide text-xs mt-1">
+                    Weight:{" "}
+                    <span className="font-semibold">
+                      {c?.item?.weight
+                        ? `${c?.item?.weight * c?.quantity} kg`
+                        : "N/A"}
+                    </span>
+                  </p>
+                  <p className="font-medium tracking-wide text-xs mt-1">
                     Quantity:{" "}
                     <span className="font-semibold">{c?.quantity}</span>
                   </p>

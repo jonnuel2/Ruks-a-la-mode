@@ -186,11 +186,11 @@ const Deliveries = () => {
       <table className="min-w-full table-auto bg-white shadow rounded">
         <thead className="bg-gray-200">
           <tr>
-            <th className="px-4 py-2 border text-xs">Delivery ID</th>
-            <th className="px-4 py-2 border text-xs">Customer Name</th>
-            <th className="px-4 py-2 border text-xs">Delivery Information</th>
-            <th className="px-4 py-2 border text-xs">Status</th>
-            <th className="px-4 py-2 border text-xs">Actions</th>
+            <th className="px-4 py-2 border text-xs text-left">Delivery ID</th>
+            <th className="px-4 py-2 border text-xs text-left">Customer Name</th>
+            <th className="px-4 py-2 border text-xs text-left">Delivery Information</th>
+            <th className="px-4 py-2 border text-xs text-left">Status</th>
+            <th className="px-4 py-2 border text-xs text-left">Actions</th>
           </tr>
         </thead>
         <tbody>

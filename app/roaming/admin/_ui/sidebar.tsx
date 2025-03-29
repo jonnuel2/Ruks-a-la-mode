@@ -52,7 +52,7 @@ const Sidebar = ({
               <span className="mr-2">
                 <FaExclamationTriangle />
               </span>
-              Logout
+              Log Out
             </button>
           </li>
         </ul>

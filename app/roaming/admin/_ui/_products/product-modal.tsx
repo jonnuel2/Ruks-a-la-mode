@@ -256,8 +256,8 @@ export default function ProductModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg lg:w-1/2 h-5/6 overflow-y-scroll">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center ">
+      <div className="bg-white p-6 rounded-lg lg:w-1/2 overflow-y-scroll">
         <h2 className="text-lg lg:text-sm font-bold mb-4">
           {product ? "Edit Product" : "Add New Product"}
         </h2>
