@@ -333,6 +333,8 @@ export default function Page(props: { params: Params }) {
       </div>
     );
   }
+  console.log("checkiii", product?.data);
+
 
   return (
     <div className={`flex flex-col w-full lg:px-24 px-8  text-black/80 `}>
