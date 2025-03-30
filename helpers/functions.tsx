@@ -1,6 +1,6 @@
 import { ProductProps } from "@/helpers/types";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   abujaDeliveryFees,
   countryGroups,
@@ -18,22 +18,24 @@ type ShippingTier = {
   express: number;
 };
 
-type InternationalShippingTier = Omit<ShippingTier, 'standard' | 'express'> & {
+type InternationalShippingTier = Omit<ShippingTier, "standard" | "express"> & {
   [region: string]: number; // Index signature for regions
 };
 
-type ShippingType = 'standard' | 'express';
+type ShippingType = "standard" | "express";
 
 // Constants
 const MAX_ALLOWED_WEIGHT_KG = 20;
 const BASE_WEIGHT = 1;
 
 export const slugify = (text: string) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "") ?? "";
+  return (
+    text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "") ?? ""
+  );
 };
 
 export const formatPrice = (currency: string, price: number) => {
@@ -84,14 +86,14 @@ function getScalingFactor(quantity: number): number | null {
 export function getShippingFee(
   address: { country: string; state?: string; city?: string },
   weights: Array<{ quantity: number; weight: number }>,
-  type: ShippingType = 'standard'
+  type: ShippingType = "standard"
 ): number | null {
   const { state, country, city } = address;
 
   try {
     // 1. Calculate ACTUAL total weight (sum of all items' total weights)
     const totalUnscaledWeight = weights.reduce(
-      (sum, item) => sum + (item.weight * item.quantity),
+      (sum, item) => sum + item.weight * item.quantity,
       0
     );
 
@@ -110,7 +112,8 @@ export function getShippingFee(
     if (!sf) return null;
 
     // 4. Calculate final scaled weight
-    const totalWeight = (BASE_WEIGHT + totalUnscaledWeight) * (sf || 1);
+    // const totalWeight = (BASE_WEIGHT + totalUnscaledWeight) * (sf || 1);
+    const totalWeight = totalUnscaledWeight * (sf || 1);
 
     // Nigeria shipping
     if (country.toLowerCase() === "nigeria") {
@@ -123,12 +126,28 @@ export function getShippingFee(
         return abujaDeliveryFees[cityKey];
       }
 
-      const feeTier = (nigeriaDeliveryFees as ShippingTier[]).find(
-        (tier) => totalWeight >= tier.min && totalWeight < tier.max
-      ) || nigeriaDeliveryFees[nigeriaDeliveryFees.length - 1];
-      
+      // const feeTier = (nigeriaDeliveryFees as ShippingTier[]).find(
+      //   (tier) => totalWeight >= tier.min && totalWeight < tier.max
+      // ) || nigeriaDeliveryFees[nigeriaDeliveryFees.length - 1];
+
+      // With this (strict tier bounds):
+      const feeTier =
+        (nigeriaDeliveryFees as ShippingTier[]).find(
+          (tier) => totalWeight > tier.min && totalWeight <= tier.max
+        ) || nigeriaDeliveryFees[0]; // Fallback to first tier
+
       return feeTier[type];
+
+      console.log({
+        inputWeights: weights,
+        totalUnscaledWeight,
+        scalingFactor: sf,
+        calculatedWeight: totalWeight,
+        selectedTier: feeTier
+      });
     }
+
+    
 
     // International shipping
     const region = getRegionByCountry(country);
@@ -137,13 +156,15 @@ export function getShippingFee(
       return null;
     }
 
-    const feeTable = type === "standard" 
-      ? (standardInternationalDeliveryFees as InternationalShippingTier[])
-      : (expressInternationalDeliveryFees as unknown as InternationalShippingTier[]);
+    const feeTable =
+      type === "standard"
+        ? (standardInternationalDeliveryFees as InternationalShippingTier[])
+        : (expressInternationalDeliveryFees as unknown as InternationalShippingTier[]);
 
-    const feeTier = feeTable.find(
-      (tier) => totalWeight >= tier.min && totalWeight < tier.max
-    ) || feeTable[feeTable.length - 1];
+    const feeTier =
+      feeTable.find(
+        (tier) => totalWeight >= tier.min && totalWeight < tier.max
+      ) || feeTable[feeTable.length - 1];
 
     return feeTier[region];
   } catch (error) {
