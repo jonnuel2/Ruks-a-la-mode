@@ -216,17 +216,17 @@ export function getShippingFee(
     // Handle special cases for US/CAN and UK
     if (region === "US_CAN") {
       if (country.toLowerCase() === "united states") {
-        return feeTier["US"] || feeTier["US_CAN"];
+        return "US" in feeTier ? feeTier["US"] : feeTier["US_CAN"];
       }
       if (country.toLowerCase() === "canada") {
-        return feeTier["CAN"] || feeTier["US_CAN"];
+        return "CAN" in feeTier ? feeTier["CAN"] : feeTier["US_CAN"];
       }
     }
     else if (region === "UK") {
-      return feeTier["UK"] || feeTier["EUROPE"];
+      return feeTier["UK"] || ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
     }
     else if (region === "EUROPE" && country.toLowerCase() === "france") {
-      return feeTier["FRA"] || feeTier["EUROPE"];
+      return "FRA" in feeTier ? feeTier["FRA"] : ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
     }
 
     return feeTier[region as keyof typeof feeTier] || null;
