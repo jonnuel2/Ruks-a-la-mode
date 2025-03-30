@@ -80,6 +80,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 90500,
     ARAB: 96000,
     ASIA: 107000,
+    CARIBBEANS: 107000,
   },
   {
     min: 2,
@@ -91,6 +92,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 113000,
     ARAB: 119500,
     ASIA: 127000,
+    CARIBBEANS: 137000,
   },
   {
     min: 2.5,
@@ -102,6 +104,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 133000,
     ARAB: 142500,
     ASIA: 149500,
+    CARIBBEANS: 164500,
   },
   {
     min: 3,
@@ -113,6 +116,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 152500,
     ARAB: 164500,
     ASIA: 172000,
+    CARIBBEANS: 192000,
   },
   {
     min: 3.5,
@@ -124,6 +128,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 172500,
     ARAB: 188000,
     ASIA: 195000,
+    CARIBBEANS: 221000,
   },
   {
     min: 4,
@@ -135,6 +140,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 192500,
     ARAB: 210500,
     ASIA: 218000,
+    CARIBBEANS: 249000,
   },
   {
     min: 4.5,
@@ -146,6 +152,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 213500,
     ARAB: 234500,
     ASIA: 242000,
+    CARIBBEANS: 278000,
   },
   {
     min: 5,
@@ -157,6 +164,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 227500,
     ARAB: 248500,
     ASIA: 256000,
+    CARIBBEANS: 300000,
   },
   {
     min: 5.5,
@@ -168,6 +176,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 248500,
     ARAB: 269500,
     ASIA: 277000,
+    CARIBBEANS: 329000,
   },
   {
     min: 6,
@@ -179,6 +188,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 264500,
     ARAB: 286000,
     ASIA: 293000,
+    CARIBBEANS: 353000,
   },
   {
     min: 6.5,
@@ -190,6 +200,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 280500,
     ARAB: 302000,
     ASIA: 309000,
+    CARIBBEANS: 376000,
   },
   {
     min: 7,
@@ -201,6 +212,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 296000,
     ARAB: 317000,
     ASIA: 324000,
+    CARIBBEANS: 399000,
   },
   {
     min: 7.5,
@@ -212,6 +224,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 312000,
     ARAB: 333000,
     ASIA: 340500,
+    CARIBBEANS: 423000,
   },
   {
     min: 8,
@@ -223,6 +236,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 327000,
     ARAB: 348000,
     ASIA: 355500,
+    CARIBBEANS: 446000,
   },
   {
     min: 8.5,
@@ -234,6 +248,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 343000,
     ARAB: 364000,
     ASIA: 371500,
+    CARIBBEANS: 470000,
   },
   {
     min: 9,
@@ -245,6 +260,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 359000,
     ARAB: 380000,
     ASIA: 387500,
+    CARIBBEANS: 494000,
   },
   {
     min: 9.5,
@@ -256,6 +272,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 361000,
     ARAB: 383000,
     ASIA: 390000,
+    CARIBBEANS: 504000,
   },
   {
     min: 10,
@@ -267,6 +284,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 396100,
     ARAB: 420300,
     ASIA: 428000,
+    CARIBBEANS: 553000,
   },
   {
     min: 11,
@@ -278,6 +296,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 431200,
     ARAB: 457600,
     ASIA: 466000,
+    CARIBBEANS: 602000,
   },
   {
     min: 12,
@@ -289,6 +308,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 466300,
     ARAB: 494900,
     ASIA: 504000,
+    CARIBBEANS: 652000,
   },
   {
     min: 13,
@@ -300,6 +320,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 501400,
     ARAB: 532200,
     ASIA: 542000,
+    CARIBBEANS: 701000,
   },
   {
     min: 14,
@@ -311,6 +332,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 536500,
     ARAB: 569500,
     ASIA: 570000,
+    CARIBBEANS: 751000,
   },
   {
     min: 15,
@@ -322,6 +344,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 542800,
     ARAB: 563600,
     ASIA: 571600,
+    CARIBBEANS: 778000,
   },
   {
     min: 16,
@@ -333,6 +356,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 576100,
     ARAB: 598200,
     ASIA: 606700,
+    CARIBBEANS: 826000,
   },
   {
     min: 17,
@@ -344,6 +368,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 609200,
     ARAB: 632800,
     ASIA: 641800,
+    CARIBBEANS: 874000,
   },
   {
     min: 18,
@@ -355,6 +380,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 642700,
     ARAB: 667400,
     ASIA: 676900,
+    CARIBBEANS: 922000,
   },
   {
     min: 19,
@@ -366,6 +392,7 @@ const expressInternationalDeliveryFees = [
     AFRICA: 676000,
     ARAB: 702000,
     ASIA: 712000,
+    CARIBBEANS: 970000,
   },
 ];
 

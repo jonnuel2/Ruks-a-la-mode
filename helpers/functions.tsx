@@ -84,8 +84,6 @@ function getRegionByCountry(country: string): string | null {
     }
   }
 
-  
-
   // Handle common alternative names
   const countryAliases: Record<string, string> = {
     "usa": "United States",
@@ -116,6 +114,14 @@ function getScalingFactor(quantity: number): number | null {
     return null;
   }
   return factor;
+}
+
+function checkShippingSupport(region: string, type: ShippingType): boolean {
+  if (type === "standard") {
+    return standardInternationalDeliveryFees.some(tier => tier[region as keyof typeof tier] !== undefined);
+  } else {
+    return expressInternationalDeliveryFees.some(tier => tier[region as keyof typeof tier] !== undefined);
+  }
 }
 
 export function getShippingFee(
@@ -195,6 +201,40 @@ export function getShippingFee(
       return null;
     }
 
+    // Check if shipping type is supported for this region
+    // if (!checkShippingSupport(region, type)) {
+    //   toast.error(
+    //     `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}.`,
+    //     TOAST_CONFIG
+    //   );
+    //   return null;
+    // }
+    if (!checkShippingSupport(region, type)) {
+      const alternativeType = type === 'standard' ? 'express' : 'standard';
+      
+      if (checkShippingSupport(region, alternativeType)) {
+        toast.error(
+          `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
+          `Would you like to try ${alternativeType} shipping instead?`,
+          {
+            ...TOAST_CONFIG,
+            autoClose: 8000 // Longer display for more complex message
+          }
+        );
+      } else {
+        toast.warning(
+          // `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
+          `We don't currently deliver to ${country}. Please contact us.`,
+         
+          {
+            ...TOAST_CONFIG,
+            autoClose: 8000 // Longer display for more complex message
+          }
+        );
+      }
+      return null;
+    }
+
     // Apply scaling factor only for international
     const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
     const sf = getScalingFactor(itemCount) || 1;
@@ -229,7 +269,16 @@ export function getShippingFee(
       return "FRA" in feeTier ? feeTier["FRA"] : ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
     }
 
-    return feeTier[region as keyof typeof feeTier] || null;
+    const fee = feeTier[region as keyof typeof feeTier];
+    if (fee === undefined || fee === null) {
+      toast.error(
+        `Shipping to ${country} is currently unavailable. Please check back later.`,
+        TOAST_CONFIG
+      );
+      return null;
+    }
+
+    return fee;
 
   } catch (error) {
     console.error("Shipping calculation error:", error);
