@@ -59,8 +59,8 @@ export default function Page() {
     const response = await makePayment({
       email: shippingInfo?.email,
       price: discountPrice + shippingFee,
-      // callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
-        callbackUrl: `http://localhost:3000/shop/confirmation/?email=${
+      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
+        // callbackUrl: `http://localhost:3000/shop/confirmation/?email=${
         shippingInfo?.email
       }&quantity=${cart?.items?.reduce(
         (sum, item) => item.quantity + sum,
