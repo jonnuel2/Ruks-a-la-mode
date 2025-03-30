@@ -37,7 +37,7 @@ const CheckoutForm = ({
     phonenumber: "",
   })
 
-  const types = ["standard", "express", "freight"]
+  const types = ["standard", "express"]
 
   return (
     <>

@@ -58,13 +58,13 @@ const abujaDeliveryFees: any = {
 };
 
 const nigeriaDeliveryFees = [
-  { min: 0, max: 2, standard: 9000, express: 12000, freight: 15000  },
-  { min: 3, max: 5, standard: 14000, express: 17000, freight: 20000 },
-  { min: 6, max: 8, standard: 19000, express: 22000, freight: 25000 },
-  { min: 9, max: 11, standard: 24000, express: 27000, freight: 30000 },
-  { min: 12, max: 14, standard: 29000, express: 32000, freight: 35000 },
-  { min: 15, max: 17, standard: 34000, express: 37000, freight: 40000 },
-  { min: 18, max: 20, standard: 39000, express: 42000, freight: 45000 },
+  { min: 0, max: 2, standard: 9000, express: 12000 },
+  { min: 3, max: 5, standard: 14000, express: 17000 },
+  { min: 6, max: 8, standard: 19000, express: 22000 },
+  { min: 9, max: 11, standard: 24000, express: 27000 },
+  { min: 12, max: 14, standard: 29000, express: 32000 },
+  { min: 15, max: 17, standard: 34000, express: 37000 },
+  { min: 18, max: 20, standard: 39000, express: 42000 },
 ];
 
 const freightDeliveryFee = { min: 0, max: 5, fee: 50000 };

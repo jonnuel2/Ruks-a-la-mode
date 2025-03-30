@@ -20,7 +20,9 @@ type ShippingTier = {
   express: number;
 };
 
-type InternationalShippingTier = Omit<ShippingTier, "standard" | "express"> & {
+type InternationalShippingTier = {
+  min: number;
+  max: number;
   [region: string]: number;
 };
 
@@ -72,14 +74,36 @@ export function groupMerchByCategory(
 // ======================
 // Shipping Functions
 // ======================
-function getRegionByCountry(country: string): string {
-  const countryLower = country.toLowerCase();
+function getRegionByCountry(country: string): string | null {
+  const countryLower = country.toLowerCase().trim();
+  
+  // First check exact matches
   for (const [region, countries] of Object.entries(countryGroups)) {
-    if (countries.includes(countryLower)) {
+    if (countries.some(c => c.toLowerCase() === countryLower)) {
       return region;
     }
   }
-  return "UNKNOWN";
+
+  
+
+  // Handle common alternative names
+  const countryAliases: Record<string, string> = {
+    "usa": "United States",
+    "u.s.a": "United States",
+    "u.s.": "United States",
+    "america": "United States",
+    "uk": "United Kingdom",
+    "england": "United Kingdom",
+    "great britain": "United Kingdom",
+    "gb": "United Kingdom",
+    "ivory coast": "Cote D Ivoire",
+  };
+
+  if (countryLower in countryAliases) {
+    return getRegionByCountry(countryAliases[countryLower]);
+  }
+
+  return null;
 }
 
 function getScalingFactor(quantity: number): number | null {
@@ -106,8 +130,7 @@ export function getShippingFee(
     // 1. Calculate Total Weight (All Products Combined)
     // ======================
     const totalWeight = weights.reduce((sum, product) => {
-      const productTotalWeight = product.weight * product.quantity;
-      return sum + productTotalWeight;
+      return sum + (product.weight * product.quantity);
     }, 0);
 
     // Handle floating point precision
@@ -155,8 +178,20 @@ export function getShippingFee(
     // 4. International Shipping Calculation
     // ======================
     const region = getRegionByCountry(country);
-    if (region === "UNKNOWN") {
-      toast.error("We don't currently deliver to this country.", TOAST_CONFIG);
+    
+    if (!region) {
+      // Suggest similar countries if available
+      const allCountries = Object.values(countryGroups).flat();
+      const suggestions = allCountries.filter(c => 
+        c.toLowerCase().includes(country.toLowerCase()) ||
+        country.toLowerCase().includes(c.toLowerCase())
+      ).slice(0, 3);
+      
+      const message = suggestions.length 
+        ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(", ")}?`
+        : `We don't currently deliver to ${country}.`;
+      
+      toast.error(message, TOAST_CONFIG);
       return null;
     }
 
@@ -169,11 +204,32 @@ export function getShippingFee(
       ? standardInternationalDeliveryFees
       : expressInternationalDeliveryFees;
 
-    const feeTier = feeTable.find(
-      (tier) => scaledWeight > tier.min && scaledWeight <= tier.max
-    ) || feeTable[feeTable.length - 1];
+    const feeTier = feeTable.find(tier => 
+      scaledWeight > tier.min && scaledWeight <= tier.max
+    );
 
-    return feeTier[region as keyof typeof feeTier];
+    if (!feeTier) {
+      toast.error("Weight exceeds international shipping limits", TOAST_CONFIG);
+      return null;
+    }
+
+    // Handle special cases for US/CAN and UK
+    if (region === "US_CAN") {
+      if (country.toLowerCase() === "united states") {
+        return feeTier["US"] || feeTier["US_CAN"];
+      }
+      if (country.toLowerCase() === "canada") {
+        return feeTier["CAN"] || feeTier["US_CAN"];
+      }
+    }
+    else if (region === "UK") {
+      return feeTier["UK"] || feeTier["EUROPE"];
+    }
+    else if (region === "EUROPE" && country.toLowerCase() === "france") {
+      return feeTier["FRA"] || feeTier["EUROPE"];
+    }
+
+    return feeTier[region as keyof typeof feeTier] || null;
 
   } catch (error) {
     console.error("Shipping calculation error:", error);
