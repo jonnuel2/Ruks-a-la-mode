@@ -80,6 +80,9 @@ function getRegionByCountry(country: string): string | null {
   // First check exact matches
   for (const [region, countries] of Object.entries(countryGroups)) {
     if (countries.some(c => c.toLowerCase() === countryLower)) {
+      // Special case for France in standard shipping
+      // if (countryLower === "france") return "FRA"; 
+
       return region;
     }
   }

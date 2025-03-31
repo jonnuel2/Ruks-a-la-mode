@@ -42,70 +42,104 @@ function Confirmation() {
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>();
   const [discount, setdiscount] = useState("");
 
-  const orderItemsHTML = cart?.items
-    ?.map(
-      (item: any) => `
-    <tr>
-      <td>${item.item?.name}</td>
-      <td>${item.quantity}</td>
-      <td>${item.item.price}</td>
-    </tr>
-  `
-    )
-    .join("");
+  // Format price as currency
+  const formatCurrency = (amount: string) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(parseInt(amount || '0'));
+  };
+
+  // Helper function to extract measurement/size information
+  const getMeasurementString = (measurement: any) => {
+    if (!measurement) return null;
+    
+    // Check for direct size property first
+    if (measurement.size) {
+      return measurement.size;
+    }
+    
+    // Check for custom measurements
+    if (measurement.custom && typeof measurement.custom === 'object') {
+      const entries = Object.entries(measurement.custom);
+      if (entries.length > 0) {
+        return entries.map(([key, value]) => 
+          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+        ).join(", ");
+      }
+    }
+    
+    // Check for direct measurements (like length, width, etc.)
+    const standardMeasurements = Object.entries(measurement)
+      .filter(([key]) => !['custom'].includes(key))
+      .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`);
+    
+    if (standardMeasurements.length > 0) {
+      return standardMeasurements.join(", ");
+    }
+    
+    return null;
+  };
+
+  const orderItemsHTML = cart?.items?.map((item: any) => {
+    const measurement = getMeasurementString(item.item?.measurement);
+    const color = item.item?.color?.name || item?.color?.name;
+    
+    return `
+      <tr>
+        <td>${item.item?.name || 'N/A'}</td>
+        <td>${measurement || 'One Size'}</td>
+        <td>${color || 'Standard'}</td>
+        <td>${item.quantity || 1}</td>
+        <td>${item.item?.price ? formatCurrency(item.item.price) : 'N/A'}</td>
+      </tr>
+    `;
+  }).join("");
 
   const templateParams = {
     user_name: shippingInfo?.firstname + " " + shippingInfo?.surname,
-    order_id: "12345",
+    order_id: reference || "N/A",
     order_date: today,
-    order_total: price,
+    order_total: price || "0",
+    formatted_order_total: formatCurrency(price || "0"),
     shipping_name: shippingInfo?.firstname + " " + shippingInfo?.surname,
-    shipping_address:
-      shippingInfo?.address +
-      " " +
-      shippingInfo?.city +
-      " " +
+    shipping_address: [
+      shippingInfo?.address,
+      shippingInfo?.city,
+      shippingInfo?.state,
       shippingInfo?.country,
+      shippingInfo?.zipCode
+    ].filter(Boolean).join(", "),
+    customer_email: shippingInfo?.email || email || "N/A",
+    customer_phone: shippingInfo?.phonenumber || "N/A",
     order_items: orderItemsHTML,
-    to_mail: shippingInfo?.email,
+    to_mail: shippingInfo?.email || email,
   };
 
   const sendEmail = async () => {
     setIsMessageSending(true);
     emailjs.init({
       publicKey: process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY,
-      // Do not allow headless browsers
       blockHeadless: true,
       limitRate: {
-        // Set the limit rate for the application
         id: "app",
-        // Allow 1 request per 10s
         throttle: 10000,
       },
     });
-    await emailjs
-      .send(
+    
+    try {
+      await emailjs.send(
         process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID ?? "",
         process.env.NEXT_PUBLIC_EMAIL_JS_ORDER_TEMPLATE_ID ?? "",
-        templateParams,
-        {
-          publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
-        }
-      )
-      .then(
-        () => {
-          setIsMessageSending(false);
-          console.log("SUCCESS!");
-        },
-        (error) => {
-          console.log("FAILED...", error);
-        }
+        templateParams
       );
+      setIsMessageSending(false);
+      console.log("Email sent successfully!");
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setIsMessageSending(false);
+    }
   };
-
-  // const updateStocksMutation = useMutation({
-  //   mutationFn: (items: any) => updateProductsStock(items)
-  // })
 
   const createOrderMutation = useMutation({
     mutationFn: (order: any) => createOrder(order),
@@ -120,58 +154,57 @@ function Confirmation() {
 
   const verifyPayment = async () => {
     setIsVerifying(true);
-    console.log(cart);
     if (!reference || !email || !quantity || !price) {
       return alert("Incomplete verification parameters");
     }
 
-    const verificationResponse = await verifyTransaction(reference);
-    console.log(verificationResponse);
+    try {
+      const verificationResponse = await verifyTransaction(reference);
+      console.log(verificationResponse);
 
-    if (verificationResponse?.message === "Verification successful") {
-      if (
-        shippingInfo?.address &&
-        shippingInfo?.city &&
-        shippingInfo?.phonenumber
-      ) {
-        createOrderMutation.mutate({
-          items: cart?.items,
-          shippingInfo,
-          createdAt: today,
-          txref: reference,
-          price: parseInt(price),
-          discount: cart?.discount,
-        });
+      if (verificationResponse?.message === "Verification successful") {
+        if (shippingInfo?.address && shippingInfo?.city && shippingInfo?.phonenumber) {
+          createOrderMutation.mutate({
+            items: cart?.items,
+            shippingInfo,
+            createdAt: today,
+            txref: reference,
+            price: parseInt(price),
+            discount: cart?.discount,
+          });
+        }
       }
+    } catch (error) {
+      console.error("Payment verification failed:", error);
+    } finally {
+      setIsVerifying(false);
     }
-    setIsVerifying(false);
   };
 
-  // Retrieve items from localStorage
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       const storedCart = localStorage.getItem("cart");
       if (storedCart) {
-        console.log(JSON.parse(storedCart));
-        setCart(JSON.parse(storedCart));
-        localStorage.setItem(
-          "cart",
-          JSON.stringify({ items: [], discount: "" })
-        );
+        const parsedCart = JSON.parse(storedCart);
+        setCart(parsedCart);
+        console.log("Cart items with measurements:", parsedCart.items.map((item: any) => ({
+          name: item.item?.name,
+          measurement: item.item?.measurement,
+          color: item.item?.color || item.color
+        })));
+        localStorage.setItem("cart", JSON.stringify({ items: [], discount: "" }));
       }
+      
       const storedInfo = localStorage.getItem("shippingInfo");
       if (storedInfo) {
-        console.log(JSON.parse(storedInfo));
         setShippingInfo(JSON.parse(storedInfo));
         localStorage.setItem("shippingInfo", JSON.stringify({}));
       }
     }
   }, []);
 
-  // Verify payment and update orders
   useEffect(() => {
-    if (cart?.items) {
-      (";n");
+    if (cart?.items?.length > 0) {
       verifyPayment();
     }
   }, [reference, email, quantity, price, cart?.items, shippingInfo]);
@@ -179,20 +212,21 @@ function Confirmation() {
   if (createOrderMutation.isPending || isMessageSending || isVerifying) {
     return (
       <div className="flex flex-col items-center space-y-5">
-        <p className={`text-center`}>
+        <p className="text-center">
           PLEASE STAY ON THIS PAGE AS WE CONFIRM YOUR ORDER
-        </p>{" "}
-        <Blocks />{" "}
+        </p>
+        <Blocks />
       </div>
     );
   }
+
   return (
     <div className="flex flex-col items-center lg:pb-16">
-      <p className={` text-center lg:text-6xl text-3xl mt-28`}>
-      Thank you for your purchase! 
+      <p className="text-center lg:text-6xl text-3xl mt-28">
+        Thank you for your purchase! 
       </p>
-      <p className={` text-center text-lg font-semibold mt-8 lg:w-2/3`}>
-      A confirmation email has been sent to {email} with your order details. We appreciate you! 
+      <p className="text-center text-lg font-semibold mt-8 lg:w-2/3">
+        A confirmation email has been sent to {email} with your order details. We appreciate you! 
       </p>
     </div>
   );

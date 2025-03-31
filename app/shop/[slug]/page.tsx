@@ -240,17 +240,130 @@ export default function Page(props: { params: Params }) {
     return product?.data?.price ?? 0;
   };
 
+  // const addToBag = () => {
+  //   if (product) {
+  //     console.log("adding");
+  //     const { size, custom, length } = measurement;
+
+  //     if (
+  //       !size &&
+  //       !length &&
+  //       !Object?.entries(custom)?.some(([_, value]) => value !== "")
+  //     ) {
+  //       // return alert("Incomplete Measurement Parameters");
+  //       toast.error("Incomplete Measurement Parameters", {
+  //         position: "top-right",
+  //         autoClose: 3000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //       });
+  //       return;
+  //     }
+
+  //     let filteredMeasurement;
+
+  //     if (
+  //       Object.entries(measurement?.custom).some(([_, value]) => value !== "")
+  //     ) {
+  //       filteredMeasurement = Object.fromEntries(
+  //         Object.entries(measurement?.custom).filter(
+  //           ([_, value]) => value !== ""
+  //         )
+  //       );
+  //     } else {
+  //       filteredMeasurement = Object.fromEntries(
+  //         Object.entries(measurement).filter(
+  //           ([_, value]) => typeof value !== "object"
+  //         )
+  //       );
+  //     }
+
+  //     let color = { ...product?.data?.colors[0] };
+
+  //     // if (product?.data?.colors?.length > 1) {
+  //     //   if (selectedColor?.name === "") return alert("Please choose a color");
+  //     //   if (selectedColor?.name === "") {
+  //     //     toast.warning("Please choose a color", {
+  //     //       position: "top-right",
+  //     //       autoClose: 3000,
+  //     //       hideProgressBar: false,
+  //     //       closeOnClick: true,
+  //     //       pauseOnHover: true,
+  //     //       draggable: true,
+  //     //     });
+
+  //     //   color = { ...selectedColor };
+  //     // }
+  //     if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+  //       toast.warning("Please choose a color", {
+  //         position: "top-right",
+  //         autoClose: 3000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //       });
+  //       return;
+  //     }
+
+  //     const itemData: any = {
+  //       item: {
+  //         name: product?.data?.name,
+  //         price: getPrice(),
+  //         id: product?.id,
+  //         image: product?.data?.images[0],
+  //         stock:
+  //           product?.data?.colors?.find((c: any) => c?.name === color?.name)
+  //             ?.stock ?? 10,
+  //         measurement: filteredMeasurement,
+  //         color,
+  //         weight: product?.data?.weight,
+  //       },
+  //       quantity: orderDetails?.quantity,
+  //     };
+  //     if (selectedPart?.name) {
+  //       itemData.item["selectedPart"] = selectedPart;
+  //       itemData.item["name"] += ` (${selectedPart?.name})`;
+  //     }
+  //     if (selectedMaterial?.name) {
+  //       itemData.item["selectedMaterial"] = selectedMaterial;
+  //       itemData.item["name"] += ` (${selectedMaterial?.name})`;
+  //     }
+  //     if (product?.data?.colors?.length > 1) {
+  //       itemData.item["name"] += ` (${selectedColor?.name})`;
+  //     }
+  //     setcart({ ...cart, items: [...cart?.items, itemData] });
+
+  //     localStorage.setItem(
+  //       "cart",
+  //       JSON.stringify({ ...cart, items: [...cart?.items, itemData] })
+  //     );
+
+  //     // alert("Cart Updated");
+  //     toast.success("Cart Updated Successfully!", {
+  //       position: "top-right",
+  //       autoClose: 3000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //     });
+  //   }
+  // };
+
   const addToBag = () => {
     if (product) {
       console.log("adding");
       const { size, custom, length } = measurement;
-
+  
+      // Validate measurements
       if (
         !size &&
         !length &&
         !Object?.entries(custom)?.some(([_, value]) => value !== "")
       ) {
-        // return alert("Incomplete Measurement Parameters");
         toast.error("Incomplete Measurement Parameters", {
           position: "top-right",
           autoClose: 3000,
@@ -261,12 +374,23 @@ export default function Page(props: { params: Params }) {
         });
         return;
       }
-
+  
+      // Validate color selection for multi-color products
+      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+        toast.warning("Please choose a color", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
+  
+      // Prepare measurements
       let filteredMeasurement;
-
-      if (
-        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
-      ) {
+      if (Object.entries(measurement?.custom).some(([_, value]) => value !== "")) {
         filteredMeasurement = Object.fromEntries(
           Object.entries(measurement?.custom).filter(
             ([_, value]) => value !== ""
@@ -279,69 +403,57 @@ export default function Page(props: { params: Params }) {
           )
         );
       }
-
-      let color = { ...product?.data?.colors[0] };
-
-      // if (product?.data?.colors?.length > 1) {
-      //   if (selectedColor?.name === "") return alert("Please choose a color");
-      //   if (selectedColor?.name === "") {
-      //     toast.warning("Please choose a color", {
-      //       position: "top-right",
-      //       autoClose: 3000,
-      //       hideProgressBar: false,
-      //       closeOnClick: true,
-      //       pauseOnHover: true,
-      //       draggable: true,
-      //     });
-
-      //   color = { ...selectedColor };
-      // }
-      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
-        toast.warning("Please choose a color", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      }
-
+  
+      // Use the SELECTED color, not the first one
+      const color = product?.data?.colors?.length > 1 
+        ? selectedColor 
+        : product?.data?.colors[0]; // Fallback to first color if product has only one color
+  
+      // Prepare cart item
       const itemData: any = {
         item: {
           name: product?.data?.name,
           price: getPrice(),
           id: product?.id,
           image: product?.data?.images[0],
-          stock:
-            product?.data?.colors?.find((c: any) => c?.name === color?.name)
-              ?.stock ?? 10,
+          stock: color?.stock ?? 10,
           measurement: filteredMeasurement,
-          color,
+          color: { // Store the complete color object
+            name: color?.name,
+            hexCode: color?.hexCode,
+            stock: color?.stock
+          },
           weight: product?.data?.weight,
         },
         quantity: orderDetails?.quantity,
       };
+  
+      // Add part info if selected
       if (selectedPart?.name) {
         itemData.item["selectedPart"] = selectedPart;
         itemData.item["name"] += ` (${selectedPart?.name})`;
       }
+  
+      // Add material info if selected
       if (selectedMaterial?.name) {
         itemData.item["selectedMaterial"] = selectedMaterial;
         itemData.item["name"] += ` (${selectedMaterial?.name})`;
       }
+  
+      // Add color to name if multiple colors exist
       if (product?.data?.colors?.length > 1) {
-        itemData.item["name"] += ` (${selectedColor?.name})`;
+        itemData.item["name"] += ` (${color?.name})`;
       }
-      setcart({ ...cart, items: [...cart?.items, itemData] });
-
-      localStorage.setItem(
-        "cart",
-        JSON.stringify({ ...cart, items: [...cart?.items, itemData] })
-      );
-
-      // alert("Cart Updated");
+  
+      // Update cart
+      const updatedCart = { 
+        ...cart, 
+        items: [...cart?.items, itemData] 
+      };
+      
+      setcart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+  
       toast.success("Cart Updated Successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -619,7 +731,7 @@ export default function Page(props: { params: Params }) {
                   </svg>
                   <p className="text-xs text-lightgrey">
                     {!selectedColor?.name
-                      ? "Select a Color"
+                      ? "Add to Bag"
                       : selectedColor?.stock <= 0
                       ? "Out of Stock"
                       : "Add To Bag"}
