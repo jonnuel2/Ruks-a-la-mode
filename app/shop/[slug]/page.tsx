@@ -465,6 +465,8 @@ export default function Page(props: { params: Params }) {
     }
   };
 
+  
+
   if (isLoading) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
@@ -632,49 +634,46 @@ export default function Page(props: { params: Params }) {
           /> */}
 
           {/* add to cart */}
-          <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
-            {isProductInCart ? (
-              <></>
-            ) : (
-              <div className="flex flex-col items-start">
-                <div className="w-40 py-2 px-3 border-dark border ">
-                  <Incrementer
-                    leftClick={() =>
-                      setOrderDetails({
-                        ...orderDetails,
-                        quantity:
-                          orderDetails.quantity > 1
-                            ? orderDetails.quantity - 1
-                            : orderDetails.quantity,
-                      })
-                    }
-                    rightClick={() =>
-                      setOrderDetails({
-                        ...orderDetails,
-                        quantity:
-                          selectedColor?.stock &&
-                          orderDetails.quantity < selectedColor?.stock
-                            ? orderDetails.quantity + 1
-                            : orderDetails.quantity,
-                      })
-                    }
-                    value={orderDetails?.quantity}
-                  />
-                </div>
+         {/* add to cart */}
+         <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
+            {/* Quantity selector */}
+            <div className="flex flex-col items-start">
+              <div className="w-40 py-2 px-3 border-dark border">
+                <Incrementer
+                  leftClick={() => {
+                    setOrderDetails({
+                      ...orderDetails,
+                      quantity: Math.max(1, orderDetails.quantity - 1),
+                    });
+                  }}
+                  rightClick={() => {
+                    setOrderDetails({
+                      ...orderDetails,
+                      quantity:
+                        selectedColor?.stock &&
+                        orderDetails.quantity < selectedColor?.stock
+                          ? orderDetails.quantity + 1
+                          : orderDetails.quantity,
+                    });
+                  }}
+                  value={orderDetails.quantity}
+                />
               </div>
-            )}
+            </div>
 
-            {/* add to cart */}
-            {/* {isProductInCart ? (
-              <Incrementer
-                leftClick={handleLeftClick}
-                rightClick={handleRightClick}
-                value={cart?.items ? cart?.items[itemIndex].quantity : 1}
-              />
-            ) : (
+            {/* Add to Bag button - always enabled */}
+            <div className="relative group w-full">
               <div
-                className="flex items-center justify-center w-full lg:w-1/2 border bg-dark p-2 cursor-pointer"
-                onClick={addToBag}
+                className={`flex items-center justify-center w-full lg:w-[50%] border py-2 h-[40px] px-4 text-nowrap ${
+                  !selectedColor?.name || selectedColor?.stock <= 0
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-dark hover:bg-gray-800 cursor-pointer"
+                }`}
+                onClick={
+                  !selectedColor?.name || selectedColor?.stock <= 0
+                    ? undefined
+                    : addToBag
+                }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -690,62 +689,22 @@ export default function Page(props: { params: Params }) {
                     d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                   />
                 </svg>
-                <p className="text-xs text-lightgrey">Add To Bag</p>
+                <p className="text-xs text-lightgrey">
+                  {!selectedColor?.name
+                    ? "Add to Bag"
+                    : selectedColor?.stock <= 0
+                    ? "Out of Stock"
+                    : "Add To Bag"}
+                </p>
               </div>
-            )} */}
-            {isProductInCart ? (
-              <Incrementer
-                leftClick={handleLeftClick}
-                rightClick={handleRightClick}
-                value={cart?.items ? cart?.items[itemIndex].quantity : 0}
-              />
-            ) : (
-              <div className="relative group">
-                {" "}
-                {/* Tooltip container */}
-                <div
-                  className={`flex items-center justify-center w-full border py-2 h-[40px] px-4 text-nowrap ${
-                    !selectedColor?.name || selectedColor?.stock <= 0
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-dark hover:bg-gray-800 cursor-pointer"
-                  }`}
-                  onClick={
-                    !selectedColor?.name || selectedColor?.stock <= 0
-                      ? undefined
-                      : addToBag
-                  }
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="#f5f5f5"
-                    className="size-5 mr-2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                    />
-                  </svg>
-                  <p className="text-xs text-lightgrey">
-                    {!selectedColor?.name
-                      ? "Add to Bag"
-                      : selectedColor?.stock <= 0
-                      ? "Out of Stock"
-                      : "Add To Bag"}
-                  </p>
+              {!selectedColor?.name && (
+                <div className="absolute z-10 hidden group-hover:block bg-black text-white text-xs p-2 rounded mt-1 whitespace-nowrap">
+                  Please select a color
                 </div>
-                {/* Tooltip (shown only when button is disabled due to no color selection) */}
-                {!selectedColor?.name && (
-                  <div className="absolute z-10 hidden group-hover:block bg-black text-white text-xs p-2 rounded mt-1 whitespace-nowrap">
-                    Please select a color
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
+
 
           {/* other items */}
           <div className="flex items-start lg:items-center lg:flex-row flex-col lg:space-y-0 space-y-3 lg:space-x-6 mt-6 lg:mt-8">

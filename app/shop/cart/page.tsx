@@ -163,7 +163,7 @@ export default function Page() {
                       <td className="px-4 lg:w-[30%] lg:block hidden">
                         <div className="flex items-start">
                           <div className="mt-4 lg:w-40 w-16 p-1 lg:p-2 border-dark/70 border">
-                            <Incrementer
+                            {/* <Incrementer
                               leftClick={() => {
                                 const modifiedCart = { ...cart };
                                 if (c.quantity > 1) {
@@ -197,7 +197,31 @@ export default function Page() {
                                 }
                               }}
                               value={c?.quantity}
-                            />
+                            /> */}
+
+
+
+<Incrementer
+  leftClick={() => {
+    const modifiedCart = { ...cart };
+    if (modifiedCart.items[i].quantity > 1) {
+      modifiedCart.items[i].quantity -= 1;
+    } else {
+      modifiedCart.items.splice(i, 1); // Remove just this specific item
+    }
+    setcart(modifiedCart);
+    localStorage.setItem("cart", JSON.stringify(modifiedCart));
+  }}
+  rightClick={() => {
+    const modifiedCart = { ...cart };
+    if (!c?.item?.stock || c?.quantity < c?.item?.stock) {
+      modifiedCart.items[i].quantity += 1;
+    }
+    setcart(modifiedCart);
+    localStorage.setItem("cart", JSON.stringify(modifiedCart));
+  }}
+  value={c?.quantity}
+/>
                           </div>
                         </div>
                       </td>
@@ -210,7 +234,7 @@ export default function Page() {
                         )}
                       </td>
                       <td className="px-4 mt-3 font-light text-xs lg:text-sm lg:w-1/12">
-                        <AiOutlineDelete
+                        {/* <AiOutlineDelete
                           size={25}
                           className="cursor-pointer"
                           onClick={() => {
@@ -224,7 +248,20 @@ export default function Page() {
                               JSON.stringify(updatedCart)
                             );
                           }}
-                        />
+                        /> */}
+                        <AiOutlineDelete
+  size={25}
+  className="cursor-pointer"
+  onClick={() => {
+    // Create a new array without this specific item instance
+    const newItems = [...cart.items];
+    newItems.splice(i, 1); // Remove just this specific item at index i
+    
+    const updatedCart = { ...cart, items: newItems };
+    setcart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  }}
+/>
                       </td>
                     </tr>
                   ))}
