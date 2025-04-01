@@ -16,35 +16,24 @@ type OrderDetailsProps = {
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
   const getMeasurementString = (measurement: any) => {
-    if (!measurement) return "N/A";
-    
-    try {
-      // Handle standard measurements
-      if (measurement.size) {
-        return Object.entries(measurement)
-          .filter(([key]) => key !== "custom")
-          .map(
-            ([key, value]) =>
-              `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
-          )
-          .join(", ");
-      }
-      
-      // Handle custom measurements
-      if (measurement.custom && typeof measurement.custom === 'object') {
-        return Object.entries(measurement.custom)
-          .map(
-            ([key, value]) =>
-              `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
-          )
-          .join(", ");
-      }
-      
-      return "N/A";
-    } catch (error) {
-      console.error("Error processing measurements:", error);
-      return "N/A";
-    }
+    if (!measurement) return null;
+
+    // Handle both standard measurements (size/length) and custom measurements
+    const entries = measurement.custom 
+      ? Object.entries(measurement.custom)
+      : Object.entries(measurement).filter(([key]) => key !== "custom");
+
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="flex flex-col">
+        {entries.map(([key, value]) => (
+          <p key={key} className="font-extralight tracking-wide text-[9px]">
+            {`${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`}
+          </p>
+        ))}
+      </div>
+    );
   };
 
   return (
