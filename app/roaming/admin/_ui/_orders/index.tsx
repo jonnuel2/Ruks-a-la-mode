@@ -39,7 +39,7 @@ export default function Orders() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('oldest');
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("oldest");
   const [addingTailor, setAddingTailor] = useState(false);
   const itemsPerPage = 12;
 
@@ -48,36 +48,38 @@ export default function Orders() {
   // Improved date parsing function that handles multiple formats
   const parseDate = (dateString: string | undefined): Date | null => {
     if (!dateString) return null;
-    
+
     // Try parsing as ISO string first
     let date = new Date(dateString);
     if (!isNaN(date.getTime())) return date;
-    
+
     // Handle "DD/MM/YYYY, HH:mm" format (e.g., "16/03/2025, 19:32")
-    const europeanFormat = dateString.match(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/);
+    const europeanFormat = dateString.match(
+      /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/
+    );
     if (europeanFormat) {
       const [_, day, month, year, hours, minutes] = europeanFormat;
       // Construct ISO format: YYYY-MM-DDTHH:mm:00
       date = new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
       if (!isNaN(date.getTime())) return date;
     }
-    
+
     // Try adding time component if missing
-    if (!dateString.includes('T')) {
+    if (!dateString.includes("T")) {
       date = new Date(`${dateString}T00:00:00`);
       if (!isNaN(date.getTime())) return date;
     }
-    
+
     // Try replacing space with T if it's in format "YYYY-MM-DD HH:MM:SS"
-    if (dateString.includes(' ')) {
-      date = new Date(dateString.replace(' ', 'T'));
+    if (dateString.includes(" ")) {
+      date = new Date(dateString.replace(" ", "T"));
       if (!isNaN(date.getTime())) return date;
     }
-    
+
     // Try parsing as timestamp
     const timestamp = Date.parse(dateString);
     if (!isNaN(timestamp)) return new Date(timestamp);
-    
+
     return null;
   };
 
@@ -86,28 +88,32 @@ export default function Orders() {
 
     return orders
       .filter((order: any) => {
-        const statusMatch = 
+        const statusMatch =
           filter.toLowerCase() === "all" ||
           order?.data?.status?.toLowerCase() === filter.toLowerCase();
-        
-        const searchMatch = 
-          order?.data?.shippingInfo?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+
+        const searchMatch =
+          order?.data?.shippingInfo?.email
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
           order?.id?.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
         return statusMatch && searchMatch;
       })
       .sort((a: any, b: any) => {
-        const dateA = parseDate(a.data?.updatedAt || a.data?.createdAt)?.getTime() || 0;
-        const dateB = parseDate(b.data?.updatedAt || b.data?.createdAt)?.getTime() || 0;
+        const dateA =
+          parseDate(a.data?.updatedAt || a.data?.createdAt)?.getTime() || 0;
+        const dateB =
+          parseDate(b.data?.updatedAt || b.data?.createdAt)?.getTime() || 0;
 
         // Secondary sort by ID if dates are equal
         if (dateA === dateB) {
-          return sortOrder === 'newest' 
-            ? b.id.localeCompare(a.id) 
+          return sortOrder === "newest"
+            ? b.id.localeCompare(a.id)
             : a.id.localeCompare(b.id);
         }
 
-        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
       });
   }, [orders, filter, searchQuery, sortOrder]);
 
@@ -138,35 +144,11 @@ export default function Orders() {
   };
 
   const toggleSortOrder = () => {
-    setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
+    setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"));
     setCurrentPage(1);
   };
 
-  const formatDisplayDate = (dateString: string | undefined) => {
-    const date = parseDate(dateString);
-    if (!date) return "N/A";
-    
-    try {
-      return (
-        <>
-          {date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
-          <br />
-          {date.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })}
-        </>
-      );
-    } catch (e) {
-      console.error("Date formatting error:", e);
-      return "N/A";
-    }
-  };
+  
 
   // Debugging effect - logs date sorting information
   useEffect(() => {
@@ -179,11 +161,66 @@ export default function Orders() {
           id: order.id,
           date: dateStr,
           parsed: parseDate(dateStr),
-          status: order.data?.status
+          status: order.data?.status,
         });
       });
     }
   }, [filteredOrders]);
+
+  // const formatDateTime = (dateString: string) => {
+  //   const months = [
+  //     "Jan",
+  //     "Feb",
+  //     "Mar",
+  //     "Apr",
+  //     "May",
+  //     "Jun",
+  //     "Jul",
+  //     "Aug",
+  //     "Sep",
+  //     "Oct",
+  //     "Nov",
+  //     "Dec",
+  //   ];
+
+  //   const [datePart, timePart] = dateString.split(",");
+  //   const [day, month, year] = datePart.trim().split("/").map(Number);
+  //   const [time, period] = timePart.trim().split(" ");
+
+  //   let [hours, minutes] = time.split(":").map(Number);
+
+  //   const suffix =
+  //     day === 1 || day === 21 || day === 31
+  //       ? "st"
+  //       : day === 2 || day === 22
+  //       ? "nd"
+  //       : day === 3 || day === 23
+  //       ? "rd"
+  //       : "th";
+
+  //   return `${months[month - 1]} ${day}${suffix}, ${year} at ${
+  //     hours % 12 || 12
+  //   }:${minutes.toString().padStart(2, "0")} ${period}`;
+  // };
+
+  const formatDate = (dateString: string) => {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+  
+    const dateParts = dateString.split(",")[0].split("/");
+    const day = parseInt(dateParts[0]);
+    const monthIndex = parseInt(dateParts[1]) - 1;
+    const year = parseInt(dateParts[2]);
+  
+    const suffix =
+      day === 1 || day === 21 || day === 31 ? "st" :
+      day === 2 || day === 22 ? "nd" :
+      day === 3 || day === 23 ? "rd" : "th";
+  
+    return `${months[monthIndex]} ${day}${suffix}, ${year}`;
+  };
 
   return (
     <div>
@@ -243,9 +280,9 @@ export default function Orders() {
         >
           <span>Sort by Date:</span>
           <span className="font-medium">
-            {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+            {sortOrder === "newest" ? "Newest First" : "Oldest First"}
           </span>
-          <span>{sortOrder === 'newest' ? '↓' : '↑'}</span>
+          <span>{sortOrder === "newest" ? "↓" : "↑"}</span>
         </button>
       </div>
 
@@ -261,18 +298,30 @@ export default function Orders() {
             <table className="min-w-full table-auto bg-white shadow rounded">
               <thead className="bg-gray-200">
                 <tr>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Order ID</th>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Customer</th>
-                  <th 
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Order ID
+                  </th>
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Customer
+                  </th>
+                  <th
                     className="px-4 py-2 border lg:text-sm text-xs text-left cursor-pointer hover:bg-gray-300"
                     onClick={toggleSortOrder}
                   >
-                    Date {sortOrder === 'newest' ? '↓' : '↑'}
+                    Date {sortOrder === "newest" ? "↓" : "↑"}
                   </th>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Total</th>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Status</th>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Discount</th>
-                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">Actions</th>
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Total
+                  </th>
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Status
+                  </th>
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Discount
+                  </th>
+                  <th className="px-4 py-2 border lg:text-sm text-xs text-left">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -292,16 +341,20 @@ export default function Orders() {
                       </div>
                     </td>
                     <td className="px-4 py-2 text-xs border">
-                      {formatDisplayDate(order?.data?.updatedAt || order?.data?.createdAt)}
+                      {/* {order?.data?.updatedAt || order?.data?.createdAt} */}
+                      {order?.data?.createdAt
+                        ? formatDate(order?.data?.createdAt)
+                        : ""}
+                      {/* {formatDate(order?.data?.updatedAt || order?.data?.createdAt) || "N/A"} */}
                     </td>
                     <td className="px-4 py-2 text-xs border">
-  {order?.data?.price
-    ? order.data.price.toLocaleString("en-US", {
-        style: "currency",
-        currency: order.data.currency || "NGN", // Fallback to USD if currency is missing
-      })
-    : "N/A"}
-</td>
+                      {order?.data?.price
+                        ? order.data.price.toLocaleString("en-US", {
+                            style: "currency",
+                            currency: order.data.currency || "NGN", // Fallback to USD if currency is missing
+                          })
+                        : "N/A"}
+                    </td>
                     <td className="px-4 py-2 text-xs border">
                       <span
                         className={`px-2 py-1 rounded capitalize ${
@@ -336,15 +389,20 @@ export default function Orders() {
                         {order?.data?.status === "producing" && (
                           <button
                             className="bg-green-500 text-white px-2 py-1 rounded lg:text-xs text-[10px] hover:bg-green-600"
-                            onClick={() => handleStatusChange(order.id, "ready")}
+                            onClick={() =>
+                              handleStatusChange(order.id, "ready")
+                            }
                           >
                             Ready
                           </button>
                         )}
-                        {(order?.data?.status === "producing" || order?.data?.status === "pending") && (
+                        {(order?.data?.status === "producing" ||
+                          order?.data?.status === "pending") && (
                           <button
                             className="bg-red-500 text-white px-2 py-1 rounded lg:text-xs text-[10px] hover:bg-red-600"
-                            onClick={() => handleStatusChange(order.id, "canceled")}
+                            onClick={() =>
+                              handleStatusChange(order.id, "canceled")
+                            }
                           >
                             Cancel
                           </button>

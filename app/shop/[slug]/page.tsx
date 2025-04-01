@@ -803,7 +803,8 @@ const CustomMeasurement = ({
             onChange={(e) => {
               const inputValue = e.target.value;
               // Allow decimals (e.g., 0.4, 12.75)
-              if (/^\d*\.?\d*$/.test(inputValue)) {
+              if (/^[\d'.]*$/.test(inputValue)) {
+                
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: inputValue },
