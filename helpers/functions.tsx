@@ -127,6 +127,169 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
   }
 }
 
+// export function getShippingFee(
+//   address: { country: string; state?: string; city?: string },
+//   weights: Array<{ quantity: number; weight: number }>,
+//   type: ShippingType = "standard"
+// ): number | null {
+//   const { state, country, city } = address;
+
+//   try {
+//     // ======================
+//     // 1. Calculate Total Weight (All Products Combined)
+//     // ======================
+//     const totalWeight = weights.reduce((sum, product) => {
+//       return sum + (product.weight * product.quantity);
+//     }, 0);
+
+//     // Handle floating point precision
+//     const preciseWeight = parseFloat(totalWeight.toFixed(2));
+
+//     // ======================
+//     // 2. Validate Weight Limit
+//     // ======================
+//     if (preciseWeight > MAX_ALLOWED_WEIGHT_KG) {
+//       toast.error(
+//         `Total order weight (${preciseWeight}kg) exceeds maximum ${MAX_ALLOWED_WEIGHT_KG}kg limit.`,
+//         TOAST_CONFIG
+//       );
+//       return null;
+//     }
+
+//     // ======================
+//     // 3. Nigeria Shipping Calculation
+//     // ======================
+//     if (country.toLowerCase() === "nigeria") {
+//       // Abuja special cases
+//       if (state?.toLowerCase() === "abuja") {
+//         const cityKey = city?.toLowerCase() || "";
+//         if (!abujaDeliveryFees[cityKey]) {
+//           toast.error("Delivery not available for this area of Abuja.", TOAST_CONFIG);
+//           return null;
+//         }
+//         return abujaDeliveryFees[cityKey];
+//       }
+
+//       // Find correct tier for calculated weight
+//       const feeTier = nigeriaDeliveryFees.find(tier => 
+//         preciseWeight > tier.min && preciseWeight <= tier.max
+//       );
+
+//       if (!feeTier) {
+//         // Fallback to highest tier if no match found
+//         return nigeriaDeliveryFees[nigeriaDeliveryFees.length - 1][type];
+//       }
+
+//       return feeTier[type];
+//     }
+
+//     // ======================
+//     // 4. International Shipping Calculation
+//     // ======================
+//     const region = getRegionByCountry(country);
+    
+//     if (!region) {
+//       // Suggest similar countries if available
+//       const allCountries = Object.values(countryGroups).flat();
+//       const suggestions = allCountries.filter(c => 
+//         c.toLowerCase().includes(country.toLowerCase()) ||
+//         country.toLowerCase().includes(c.toLowerCase())
+//       ).slice(0, 3);
+      
+//       const message = suggestions.length 
+//         ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(", ")}?`
+//         : `We don't currently deliver to ${country}.`;
+      
+//       toast.error(message, TOAST_CONFIG);
+//       return null;
+//     }
+
+//     // Check if shipping type is supported for this region
+//     // if (!checkShippingSupport(region, type)) {
+//     //   toast.error(
+//     //     `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}.`,
+//     //     TOAST_CONFIG
+//     //   );
+//     //   return null;
+//     // }
+//     if (!checkShippingSupport(region, type)) {
+//       const alternativeType = type === 'standard' ? 'express' : 'standard';
+      
+//       if (checkShippingSupport(region, alternativeType)) {
+//         toast.error(
+//           `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
+//           `Would you like to try ${alternativeType} shipping instead?`,
+//           {
+//             ...TOAST_CONFIG,
+//             autoClose: 8000 // Longer display for more complex message
+//           }
+//         );
+//       } else {
+//         toast.warning(
+//           // `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
+//           `We don't currently deliver to ${country}. Please contact us.`,
+         
+//           {
+//             ...TOAST_CONFIG,
+//             autoClose: 8000 // Longer display for more complex message
+//           }
+//         );
+//       }
+//       return null;
+//     }
+
+//     // Apply scaling factor only for international
+//     const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
+//     const sf = getScalingFactor(itemCount) || 1;
+//     const scaledWeight = preciseWeight * sf;
+
+//     const feeTable = type === "standard"
+//       ? standardInternationalDeliveryFees
+//       : expressInternationalDeliveryFees;
+
+//     const feeTier = feeTable.find(tier => 
+//       scaledWeight > tier.min && scaledWeight <= tier.max
+//     );
+
+//     if (!feeTier) {
+//       toast.error("Weight exceeds international shipping limits", TOAST_CONFIG);
+//       return null;
+//     }
+
+//     // Handle special cases for US/CAN and UK
+//     if (region === "US_CAN") {
+//       if (country.toLowerCase() === "united states") {
+//         return "US" in feeTier ? (feeTier["US"] as number | null) : (feeTier["US_CAN"] as number | null);
+//       }
+//       if (country.toLowerCase() === "canada") {
+//         return "CAN" in feeTier ? feeTier["CAN"] : feeTier["US_CAN"];
+//       }
+//     }
+//     else if (region === "UK") {
+//       return feeTier["UK"] || ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
+//     }
+//     else if (region === "EUROPE" && country.toLowerCase() === "france") {
+//       return "FRA" in feeTier ? feeTier["FRA"] : ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
+//     }
+
+//     const fee = feeTier[region as keyof typeof feeTier];
+//     if (fee === undefined || fee === null) {
+//       toast.error(
+//         `Shipping to ${country} is currently unavailable. Please check back later.`,
+//         TOAST_CONFIG
+//       );
+//       return null;
+//     }
+
+//     return fee;
+
+//   } catch (error) {
+//     console.error("Shipping calculation error:", error);
+//     toast.error("Failed to calculate shipping. Please try again.", TOAST_CONFIG);
+//     return null;
+//   }
+// }
+
 export function getShippingFee(
   address: { country: string; state?: string; city?: string },
   weights: Array<{ quantity: number; weight: number }>,
@@ -136,13 +299,18 @@ export function getShippingFee(
 
   try {
     // ======================
-    // 1. Calculate Total Weight (All Products Combined)
+    // 1. Calculate Total Weight Using Correct Formula
     // ======================
-    const totalWeight = weights.reduce((sum, product) => {
+    const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
+    const sf = getScalingFactor(itemCount) || 1;
+    
+    // Calculate the sum of (weight × quantity) for all items
+    const weightedSum = weights.reduce((sum, product) => {
       return sum + (product.weight * product.quantity);
     }, 0);
-
-    // Handle floating point precision
+    
+    // Apply the scaling formula: Total Weight = 1 + (weightedSum × scalingFactor)
+    const totalWeight = 1 + (weightedSum * sf);
     const preciseWeight = parseFloat(totalWeight.toFixed(2));
 
     // ======================
@@ -204,14 +372,6 @@ export function getShippingFee(
       return null;
     }
 
-    // Check if shipping type is supported for this region
-    // if (!checkShippingSupport(region, type)) {
-    //   toast.error(
-    //     `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}.`,
-    //     TOAST_CONFIG
-    //   );
-    //   return null;
-    // }
     if (!checkShippingSupport(region, type)) {
       const alternativeType = type === 'standard' ? 'express' : 'standard';
       
@@ -221,34 +381,27 @@ export function getShippingFee(
           `Would you like to try ${alternativeType} shipping instead?`,
           {
             ...TOAST_CONFIG,
-            autoClose: 8000 // Longer display for more complex message
+            autoClose: 8000
           }
         );
       } else {
         toast.warning(
-          // `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
           `We don't currently deliver to ${country}. Please contact us.`,
-         
           {
             ...TOAST_CONFIG,
-            autoClose: 8000 // Longer display for more complex message
+            autoClose: 8000
           }
         );
       }
       return null;
     }
 
-    // Apply scaling factor only for international
-    const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
-    const sf = getScalingFactor(itemCount) || 1;
-    const scaledWeight = preciseWeight * sf;
-
     const feeTable = type === "standard"
       ? standardInternationalDeliveryFees
       : expressInternationalDeliveryFees;
 
     const feeTier = feeTable.find(tier => 
-      scaledWeight > tier.min && scaledWeight <= tier.max
+      preciseWeight > tier.min && preciseWeight <= tier.max
     );
 
     if (!feeTier) {
@@ -289,3 +442,7 @@ export function getShippingFee(
     return null;
   }
 }
+
+
+
+
