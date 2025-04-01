@@ -259,7 +259,7 @@ export function getShippingFee(
     // Handle special cases for US/CAN and UK
     if (region === "US_CAN") {
       if (country.toLowerCase() === "united states") {
-        return "US" in feeTier ? feeTier["US"] : feeTier["US_CAN"];
+        return "US" in feeTier ? (feeTier["US"] as number | null) : (feeTier["US_CAN"] as number | null);
       }
       if (country.toLowerCase() === "canada") {
         return "CAN" in feeTier ? feeTier["CAN"] : feeTier["US_CAN"];
