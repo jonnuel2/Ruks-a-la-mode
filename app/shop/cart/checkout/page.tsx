@@ -60,7 +60,7 @@ export default function Page() {
       email: shippingInfo?.email,
       price: discountPrice + shippingFee,
       callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
-        // callbackUrl: `http://localhost:3000/shop/confirmation/?email=${
+        // callbackUrl: `http://localhost:3000/shop/confirmation/?email=${ß
         shippingInfo?.email
       }&quantity=${cart?.items?.reduce(
         (sum, item) => item.quantity + sum,
