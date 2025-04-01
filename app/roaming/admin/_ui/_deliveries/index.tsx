@@ -50,17 +50,62 @@ const Deliveries = () => {
     },
   });
 
+  // Format price as currency
+  const formatCurrency = (amount: string) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(parseInt(amount || '0'));
+  };
+
+
+  const getMeasurementString = (measurement: any) => {
+    if (!measurement) return null;
+    
+    // Check for direct size property first
+    if (measurement.size) {
+      return measurement.size;
+    }
+    
+    // Check for custom measurements
+    if (measurement.custom && typeof measurement.custom === 'object') {
+      const entries = Object.entries(measurement.custom);
+      if (entries.length > 0) {
+        return entries.map(([key, value]) => 
+          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+        ).join(", ");
+      }
+    }
+    
+    // Check for direct measurements (like length, width, etc.)
+    const standardMeasurements = Object.entries(measurement)
+      .filter(([key]) => !['custom'].includes(key))
+      .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`);
+    
+    if (standardMeasurements.length > 0) {
+      return standardMeasurements.join(", ");
+    }
+    
+    return null;
+  };
+
+
   const orderItemsHTML = deliveryInfo?.items
     ?.map(
-      (item: any) => `
-    <tr>
-      <td>${item.item?.name}</td>
-      <td>${item.quantity}</td>
-      <td>${item.item.price}</td>
-    </tr>
-  `
-    )
-    .join("");
+      (item: any) => {
+        const measurement = getMeasurementString(item.item?.measurement);
+        const color = item.item?.color?.name || item?.color?.name;
+        
+        return `
+          <tr>
+            <td>${item.item?.name || 'N/A'}</td>
+            <td>${measurement || 'One Size'}</td>
+            <td>${color || 'Standard'}</td>
+            <td>${item.quantity || 1}</td>
+            <td>${item.item?.price ? formatCurrency(item.item.price) : 'N/A'}</td>
+          </tr>
+        `;
+      }).join("");
 
   const templateParams = {
     user_name:
