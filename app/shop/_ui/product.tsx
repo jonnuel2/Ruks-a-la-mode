@@ -33,8 +33,8 @@ export default function Product({
     <div
       className={`${""} transition-transform duration-300 ease-out cursor-pointer hover:scale-105 flex flex-col items-center mb-8 relative`}
     >
-      <div onClick={viewProduct} className="w-fit">
-        <div className="relative lg:h-96 w-32 h-40 lg:w-80">
+      <div onClick={viewProduct} className="w-full flex flex-col items-start lg:items-center">
+        <div className="relative lg:h-96 w-full h-60 lg:w-80">
           {product?.data?.images[0] ? (
             <Image
               priority
@@ -51,7 +51,7 @@ export default function Product({
             <p className="text-xs uppercase opacity-60">NEW</p>
           </div> */}
         </div>
-        <p className="lg:text-base mt-6 text-xs lg:w-auto w-32 font-medium uppercase mb-2 text-center text-dark">
+        <p className="lg:text-base mt-6 text-xs lg:w-auto w-32 font-medium uppercase mb-2 text-left lg:text-center text-dark">
           {product?.data?.name}
         </p>
         <p className="lg:text-base text-xs font-light text-center text-dark">

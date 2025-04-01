@@ -102,7 +102,7 @@ function ShopPage() {
     );
 
   return (
-    <div className="w-screen flex flex-col items-center justify-start">
+    <div className="w-screen flex flex-col items-center justify-start px-4 lg:px-0">
       {/* FilterBox: Pass callbacks to update filters */}
       <FilterBox
         clearFilter={() => {

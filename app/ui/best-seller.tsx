@@ -28,7 +28,7 @@ export default function BestSeller() {
     );
 
   return (
-    <div className="w-full flex flex-col items-center justify-start mt-10 lg:mt-14">
+    <div className="w-full flex flex-col items-center justify-start mt-10 lg:mt-14 px-4 lg:px-0">
       <CategoryGrid items={products?.slice(0, 4)} viewProduct={viewProduct} />
     </div>
   );

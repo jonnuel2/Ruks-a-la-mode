@@ -478,7 +478,7 @@ export default function Page(props: { params: Params }) {
   console.log("product?.data?.colors >>>>", product?.data);
 
   return (
-    <div className={`flex flex-col w-full lg:px-24 px-8  text-black/80 `}>
+    <div className={`flex flex-col w-full lg:px-24 px-4  text-black/80 `}>
       <ToastContainer />
       <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
         <Swiper
@@ -704,7 +704,7 @@ export default function Page(props: { params: Params }) {
                 {" "}
                 {/* Tooltip container */}
                 <div
-                  className={`flex items-center justify-center w-full border py-2 h-[40px] px-12 text-nowrap ${
+                  className={`flex items-center justify-center w-full border py-2 h-[40px] px-4 text-nowrap ${
                     !selectedColor?.name || selectedColor?.stock <= 0
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-dark hover:bg-gray-800 cursor-pointer"
