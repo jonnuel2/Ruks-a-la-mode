@@ -34,7 +34,7 @@ export default function Header() {
 
 
   // Fixed handleCurrencyChange with client-side check
-  const handleCurrencyChange = (e) => {
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCurrency = e.target.value;
     setCurrency(selectedCurrency);
     if (typeof window !== 'undefined') {
