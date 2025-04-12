@@ -7,7 +7,7 @@ import { useAppContext } from "@/helpers/store";
 // import { bungee, inter } from "@/styles/fonts";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import PartSelector from "../_ui/part-selector";
 import MaterialSelector from "../_ui/material-selector";
 import Button from "@/app/ui/button";
@@ -27,6 +27,7 @@ import { Blocks } from "react-loader-spinner";
 type Params = Promise<{ slug: string }>;
 
 export default function Page(props: { params: Params }) {
+  const swiperRef = useRef<any>(null);
   const [openCustom, setOpenCustom] = useState(false);
   const params = use(props.params);
   const { slug } = params;
@@ -357,7 +358,7 @@ export default function Page(props: { params: Params }) {
     if (product) {
       console.log("adding");
       const { size, custom, length } = measurement;
-  
+
       // Validate measurements
       if (
         !size &&
@@ -374,7 +375,7 @@ export default function Page(props: { params: Params }) {
         });
         return;
       }
-  
+
       // Validate color selection for multi-color products
       if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
         toast.warning("Please choose a color", {
@@ -387,10 +388,12 @@ export default function Page(props: { params: Params }) {
         });
         return;
       }
-  
+
       // Prepare measurements
       let filteredMeasurement;
-      if (Object.entries(measurement?.custom).some(([_, value]) => value !== "")) {
+      if (
+        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
+      ) {
         filteredMeasurement = Object.fromEntries(
           Object.entries(measurement?.custom).filter(
             ([_, value]) => value !== ""
@@ -403,12 +406,13 @@ export default function Page(props: { params: Params }) {
           )
         );
       }
-  
+
       // Use the SELECTED color, not the first one
-      const color = product?.data?.colors?.length > 1 
-        ? selectedColor 
-        : product?.data?.colors[0]; // Fallback to first color if product has only one color
-  
+      const color =
+        product?.data?.colors?.length > 1
+          ? selectedColor
+          : product?.data?.colors[0]; // Fallback to first color if product has only one color
+
       // Prepare cart item
       const itemData: any = {
         item: {
@@ -418,42 +422,43 @@ export default function Page(props: { params: Params }) {
           image: product?.data?.images[0],
           stock: color?.stock ?? 10,
           measurement: filteredMeasurement,
-          color: { // Store the complete color object
+          color: {
+            // Store the complete color object
             name: color?.name,
             hexCode: color?.hexCode,
-            stock: color?.stock
+            stock: color?.stock,
           },
           weight: product?.data?.weight,
         },
         quantity: orderDetails?.quantity,
       };
-  
+
       // Add part info if selected
       if (selectedPart?.name) {
         itemData.item["selectedPart"] = selectedPart;
         itemData.item["name"] += ` (${selectedPart?.name})`;
       }
-  
+
       // Add material info if selected
       if (selectedMaterial?.name) {
         itemData.item["selectedMaterial"] = selectedMaterial;
         itemData.item["name"] += ` (${selectedMaterial?.name})`;
       }
-  
+
       // Add color to name if multiple colors exist
-      if (product?.data?.colors?.length > 1) {
-        itemData.item["name"] += ` (${color?.name})`;
-      }
-  
+      // if (product?.data?.colors?.length > 1) {
+      //   itemData.item["name"] += ` (${color?.name})`;
+      // }
+
       // Update cart
-      const updatedCart = { 
-        ...cart, 
-        items: [...cart?.items, itemData] 
+      const updatedCart = {
+        ...cart,
+        items: [...cart?.items, itemData],
       };
-      
+
       setcart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
-  
+
       toast.success("Cart Updated Successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -465,7 +470,7 @@ export default function Page(props: { params: Params }) {
     }
   };
 
-  
+
 
   if (isLoading) {
     return (
@@ -479,35 +484,118 @@ export default function Page(props: { params: Params }) {
   console.log("art?.items?.length >>>>", product?.data?.colors?.length);
   console.log("product?.data?.colors >>>>", product?.data);
 
+  const handlePrev = () => {
+    if (!swiperRef.current) return;
+    
+    if (swiperRef.current.isBeginning) {
+      // If at first slide, go to last
+      swiperRef.current.slideTo(product?.data?.images?.length - 1, 500);
+    } else {
+      // Normal previous slide
+      swiperRef.current.slidePrev(500);
+    }
+  };
+  
+  const handleNext = () => {
+    if (!swiperRef.current) return;
+    
+    if (swiperRef.current.isEnd) {
+      // If at last slide, go to first
+      swiperRef.current.slideTo(0, 500);
+    } else {
+      // Normal next slide
+      swiperRef.current.slideNext(500);
+    }
+  };
+
   return (
     <div className={`flex flex-col w-full lg:px-24 px-4  text-black/80 `}>
       <ToastContainer />
       <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
-        <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          // navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          className="h-full lg:w-[570px] w-full flex items-center justify-center"
-        >
-          {product?.data?.images?.map((image: any, i: number) => (
-            <SwiperSlide key={i}>
-              <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] relative lg:mt-0 mt-8">
-                {image ? (
-                  <Image
-                    priority
-                    alt="merch"
-                    src={image}
-                    fill
-                    style={{ objectFit: "cover" }} // or "contain"
-                  />
-                ) : (
-                  <></>
-                )}
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <div className="relative lg:w-[570px] w-full">
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            navigation={{
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            }}
+            pagination={{ clickable: true }}
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+              waitForTransition: true, // Prevents skipping
+            }}
+            speed={500} // Smooth transition speed
+            className="h-full w-full"
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            preventInteractionOnTransition={true} // Prevents interruptions
+          >
+            {product?.data?.images?.map((image: any, i: number) => (
+              <SwiperSlide key={i}>
+                <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] relative lg:mt-0 mt-8">
+                  {image && (
+                    <Image
+                      priority
+                      alt="merch"
+                      src={image}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          {/* Custom Navigation Arrows */}
+          <button
+            className="custom-swiper-button-prev absolute left-4 top-1/2 z-10 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 h-12 w-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle previous slide
+              handlePrev();
+              
+            }}
+            aria-label="Previous slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          <button
+            className="custom-swiper-button-next absolute right-4 top-1/2 z-10 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 h-12 w-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+             
+            }}
+            aria-label="Next slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
         <div className="flex flex-col items-start lg:w-2/5 w-full lg:mt-0 mt-10">
           {/* name */}
           <p className="lg:text-4xl text-2xl font-medium tracking-wider lg:text-left text-center">
@@ -634,8 +722,8 @@ export default function Page(props: { params: Params }) {
           /> */}
 
           {/* add to cart */}
-         {/* add to cart */}
-         <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
+          {/* add to cart */}
+          <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
             {/* Quantity selector */}
             <div className="flex flex-col items-start">
               <div className="w-40 py-2 px-3 border-dark border">
@@ -705,7 +793,6 @@ export default function Page(props: { params: Params }) {
             </div>
           </div>
 
-
           {/* other items */}
           <div className="flex items-start lg:items-center lg:flex-row flex-col lg:space-y-0 space-y-3 lg:space-x-6 mt-6 lg:mt-8">
             {more?.map((m) => (
@@ -763,7 +850,6 @@ const CustomMeasurement = ({
               const inputValue = e.target.value;
               // Allow decimals (e.g., 0.4, 12.75)
               if (/^[\d'.]*$/.test(inputValue)) {
-                
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: inputValue },

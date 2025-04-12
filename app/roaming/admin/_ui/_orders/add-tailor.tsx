@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 
+
 interface AddTailorProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (tailorInfo: any) => void;
   tailorInfo: {
     name: string;
-    phone: string;
+    message: string;
   };
   setTailorInfo: (value: any) => void;
 }
@@ -20,11 +21,17 @@ export default function AddTailorModal({
   tailorInfo,
   setTailorInfo,
 }: AddTailorProps) {
+
+  
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Submit the current data
     onSubmit(tailorInfo);
+    // 
+    // setTailorInfo({ name: "", phone: "" });
     onClose(); // Close the modal after submission
   };
 
@@ -50,15 +57,15 @@ export default function AddTailorModal({
 
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">
-              Phone Number
+              Message
             </label>
             <input
               type="text"
-              value={tailorInfo?.phone}
+              value={tailorInfo?.message}
               onChange={(e) =>
                 setTailorInfo({
                   ...tailorInfo,
-                  phone: e.target.value,
+                  message: e.target.value,
                 })
               }
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"

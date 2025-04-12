@@ -46,42 +46,94 @@ export default function Orders() {
   const orders = allOrders?.orders;
 
   // Improved date parsing function that handles multiple formats
-  const parseDate = (dateString: string | undefined): Date | null => {
+  // const parseDate = (dateString: string | undefined): Date | null => {
+  //   if (!dateString) return null;
+
+  //   // Try parsing as ISO string first
+  //   let date = new Date(dateString);
+  //   if (!isNaN(date.getTime())) return date;
+
+  //   // Handle "DD/MM/YYYY, HH:mm" format (e.g., "16/03/2025, 19:32")
+  //   const europeanFormat = dateString.match(
+  //     /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/
+  //   );
+  //   if (europeanFormat) {
+  //     const [_, day, month, year, hours, minutes] = europeanFormat;
+  //     // Construct ISO format: YYYY-MM-DDTHH:mm:00
+  //     date = new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
+  //     if (!isNaN(date.getTime())) return date;
+  //   }
+
+  //   // Try adding time component if missing
+  //   if (!dateString.includes("T")) {
+  //     date = new Date(`${dateString}T00:00:00`);
+  //     if (!isNaN(date.getTime())) return date;
+  //   }
+
+  //   // Try replacing space with T if it's in format "YYYY-MM-DD HH:MM:SS"
+  //   if (dateString.includes(" ")) {
+  //     date = new Date(dateString.replace(" ", "T"));
+  //     if (!isNaN(date.getTime())) return date;
+  //   }
+
+  //   // Try parsing as timestamp
+  //   const timestamp = Date.parse(dateString);
+  //   if (!isNaN(timestamp)) return new Date(timestamp);
+
+  //   return null;
+  // };
+  const parseDateTime = (dateString: string | undefined): Date | null => {
     if (!dateString) return null;
 
-    // Try parsing as ISO string first
-    let date = new Date(dateString);
-    if (!isNaN(date.getTime())) return date;
-
-    // Handle "DD/MM/YYYY, HH:mm" format (e.g., "16/03/2025, 19:32")
+    // Handle European format "DD/MM/YYYY, HH:mm"
     const europeanFormat = dateString.match(
       /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/
     );
     if (europeanFormat) {
       const [_, day, month, year, hours, minutes] = europeanFormat;
-      // Construct ISO format: YYYY-MM-DDTHH:mm:00
-      date = new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
-      if (!isNaN(date.getTime())) return date;
+      return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
     }
 
-    // Try adding time component if missing
-    if (!dateString.includes("T")) {
-      date = new Date(`${dateString}T00:00:00`);
-      if (!isNaN(date.getTime())) return date;
-    }
-
-    // Try replacing space with T if it's in format "YYYY-MM-DD HH:MM:SS"
-    if (dateString.includes(" ")) {
-      date = new Date(dateString.replace(" ", "T"));
-      if (!isNaN(date.getTime())) return date;
-    }
-
-    // Try parsing as timestamp
-    const timestamp = Date.parse(dateString);
-    if (!isNaN(timestamp)) return new Date(timestamp);
+    // Handle ISO format
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) return date;
 
     return null;
   };
+
+  // const filteredOrders = useMemo(() => {
+  //   if (!orders) return [];
+
+  //   return orders
+  //     .filter((order: any) => {
+  //       const statusMatch =
+  //         filter.toLowerCase() === "all" ||
+  //         order?.data?.status?.toLowerCase() === filter.toLowerCase();
+
+  //       const searchMatch =
+  //         order?.data?.shippingInfo?.email
+  //           ?.toLowerCase()
+  //           .includes(searchQuery.toLowerCase()) ||
+  //         order?.id?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  //       return statusMatch && searchMatch;
+  //     })
+  //     .sort((a: any, b: any) => {
+  //       const dateA =
+  //         parseDate(a.data?.updatedAt || a.data?.createdAt)?.getTime() || 0;
+  //       const dateB =
+  //         parseDate(b.data?.updatedAt || b.data?.createdAt)?.getTime() || 0;
+
+  //       // Secondary sort by ID if dates are equal
+  //       if (dateA === dateB) {
+  //         return sortOrder === "newest"
+  //           ? b.id.localeCompare(a.id)
+  //           : a.id.localeCompare(b.id);
+  //       }
+
+  //       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+  //     });
+  // }, [orders, filter, searchQuery, sortOrder]);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
@@ -101,22 +153,24 @@ export default function Orders() {
         return statusMatch && searchMatch;
       })
       .sort((a: any, b: any) => {
-        const dateA =
-          parseDate(a.data?.updatedAt || a.data?.createdAt)?.getTime() || 0;
-        const dateB =
-          parseDate(b.data?.updatedAt || b.data?.createdAt)?.getTime() || 0;
+        // Always use createdAt for true chronological order
+        const dateA = parseDateTime(a.data?.createdAt); // Changed from parseDate to parseDateTime
+        const dateB = parseDateTime(b.data?.createdAt); // Changed from parseDate to parseDateTime
 
-        // Secondary sort by ID if dates are equal
-        if (dateA === dateB) {
-          return sortOrder === "newest"
-            ? b.id.localeCompare(a.id)
-            : a.id.localeCompare(b.id);
+        if (!dateA || !dateB) return 0;
+
+        // For oldest first: true chronological order (first created to last created)
+        if (sortOrder === "oldest") {
+          return dateA.getTime() - dateB.getTime();
         }
-
-        return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+        // For newest first: reverse chronological order (last created to first created)
+        else {
+          return dateB.getTime() - dateA.getTime();
+        }
       });
   }, [orders, filter, searchQuery, sortOrder]);
 
+  // Pagination logic
   const totalPages = Math.ceil(filteredOrders?.length / itemsPerPage);
   const paginatedOrders = filteredOrders?.slice(
     (currentPage - 1) * itemsPerPage,
@@ -148,21 +202,30 @@ export default function Orders() {
     setCurrentPage(1);
   };
 
-  
-
   // Debugging effect - logs date sorting information
+  // useEffect(() => {
+  //   if (filteredOrders?.length > 0) {
+  //     console.log("Date sorting debug:");
+  //     filteredOrders.forEach((order: any, index: number) => {
+  //       const dateStr = order.data?.updatedAt || order.data?.createdAt;
+  //       console.log({
+  //         position: index + 1,
+  //         id: order.id,
+  //         date: dateStr,
+  //         parsed: parseDate(dateStr),
+  //         status: order.data?.status,
+  //       });
+  //     });
+  //   }
+  // }, [filteredOrders]);
   useEffect(() => {
     if (filteredOrders?.length > 0) {
-      console.log("Date sorting debug:");
+      console.log("Sorted orders:");
       filteredOrders.forEach((order: any, index: number) => {
-        const dateStr = order.data?.updatedAt || order.data?.createdAt;
-        console.log({
-          position: index + 1,
-          id: order.id,
-          date: dateStr,
-          parsed: parseDate(dateStr),
-          status: order.data?.status,
-        });
+        console.log(
+          `${index + 1}. ${order.id} - ${order.data?.createdAt}`,
+          parseDateTime(order.data?.createdAt)
+        ); // Changed from parseDate to parseDateTime
       });
     }
   }, [filteredOrders]);
@@ -205,20 +268,34 @@ export default function Orders() {
 
   const formatDate = (dateString: string) => {
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
-  
+
     const dateParts = dateString.split(",")[0].split("/");
     const day = parseInt(dateParts[0]);
     const monthIndex = parseInt(dateParts[1]) - 1;
     const year = parseInt(dateParts[2]);
-  
+
     const suffix =
-      day === 1 || day === 21 || day === 31 ? "st" :
-      day === 2 || day === 22 ? "nd" :
-      day === 3 || day === 23 ? "rd" : "th";
-  
+      day === 1 || day === 21 || day === 31
+        ? "st"
+        : day === 2 || day === 22
+        ? "nd"
+        : day === 3 || day === 23
+        ? "rd"
+        : "th";
+
     return `${months[monthIndex]} ${day}${suffix}, ${year}`;
   };
 

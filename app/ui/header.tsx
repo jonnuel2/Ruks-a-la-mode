@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ShoppingBag from "../shop/_ui/shopping-bag";
 import { useAppContext } from "@/helpers/store";
 
@@ -22,6 +22,26 @@ export default function Header() {
 
   const { currencies, currency, setCurrency } = context;
 
+ // Fixed useEffect with client-side check
+ useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const savedCurrency = localStorage.getItem("selectedCurrency");
+    if (savedCurrency && currencies.includes(savedCurrency)) {
+      setCurrency(savedCurrency);
+    }
+  }
+}, [currencies, setCurrency]);
+
+
+  // Fixed handleCurrencyChange with client-side check
+  const handleCurrencyChange = (e) => {
+    const selectedCurrency = e.target.value;
+    setCurrency(selectedCurrency);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("selectedCurrency", selectedCurrency);
+    }
+  };
+
   const handleSearch = () => {
     if (search?.keyword !== "") {
       router.push(`/shop?search=${search.keyword}`);
@@ -38,7 +58,7 @@ export default function Header() {
             {/* logo */}
             <div className="lg:w-2/5 items-center justify-start flex lg:ml-0">
               <Link href="/" className="">
-                <p className="uppercase lg:font-bold font-black text-coffee text-xs lg:text-2xl tracking-wider">
+                <p className="uppercase font-bold text-coffee text-xs lg:text-2xl tracking-wider">
                   RUKS Á LA MODE
                 </p>
               </Link>
@@ -126,8 +146,12 @@ export default function Header() {
               <ShoppingBag />
               {/* currency */}
               <select
-                className="bg-transparent cursor-pointer lg:text-sm text-xs lg:ml-4 ml-2 lg:border border lg:border-dark border-dark/60 outline-none"
-                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-transparent cursor-pointer lg:text-sm text-xs lg:ml-4 ml-2 lg:border border lg:border-dark border-dark/60 outline-none appearance-none"
+                style={{ WebkitAppearance: 'menulist' }}
+                // onChange={(e) => setCurrency(e.target.value)}
+                onChange={handleCurrencyChange}
+                value={currency}
+                name="currency"
               >
                 {currencies?.map((c) => (
                   <option key={c}>{c}</option>
@@ -176,12 +200,12 @@ export default function Header() {
           {/* mobile search */}
           <div
             className={`
-              md:hidden absolute w-full z-10 bg-white border-t border-gray-200
+              md:hidden absolute w-full z-10 bg-white border-t flex items-center border-gray-200
               transition-all duration-300 ease-in-out overflow-hidden
               ${search.isOpen ? "h-14" : "h-0"}
             `}
           >
-            <div className="px-3 py-2 flex items-center">
+            <div className="px-3 py-2 flex items-center justify-between w-full">
               <input
                 type="text"
                 placeholder="Search products..."

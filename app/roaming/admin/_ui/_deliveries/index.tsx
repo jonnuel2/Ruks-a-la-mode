@@ -341,7 +341,7 @@ const Deliveries = () => {
         deliveryInfo={deliveryInfo}
         setDeliveryInfo={setDeliveryInfo}
       />
-      ;
+      
     </div>
   );
 };
