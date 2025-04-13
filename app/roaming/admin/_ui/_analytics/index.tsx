@@ -110,9 +110,30 @@ const Analytics = () => {
       </div> */}
 
       {/* Product Performance */}
-      <div className="mb-8 lg:w-1/3">
+      {/* <div className="mb-8 lg:w-1/3">
         <h3 className="text-xl font-bold mb-4">Product Performance</h3>
         {productPerformanceData ? <Pie data={productPerformanceData} /> : <></>}
+      </div> */}
+      <div className="mb-8 lg:w-1/3 flex flex-col lg:items-start items-center">
+        <h3 className="text-lg font-semibold mb-4">Product Performance</h3>
+        {productPerformanceData && (
+          <div className=" w-64 h-64 lg:mr-auto mmx-auto">
+            {" "}
+            {/* Small fixed size container */}
+            <Pie
+              data={productPerformanceData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false, // Allow custom dimensions
+                plugins: {
+                  legend: {
+                    position: "bottom", // Adjust legend position
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Traffic Analytics Placeholder */}

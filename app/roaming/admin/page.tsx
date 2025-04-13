@@ -138,62 +138,74 @@ export default function Page() {
   }, [user]);
 
   return (
-    <div className="flex lg:flex-row flex-col">
-      <div className="lg:hidden mb-8 flex flex-col items-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="#0e0e0e"
-          className="size-6 lg:hidden block"
-          onClick={() => setopen(!open)}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-          />
-        </svg>
-        {open && (
-          <div className="flex flex-col items-center space-y-2 mt-2">
-            {menuItems
-              ?.filter((m: any) => m?.roles?.includes(role))
-              .map((m) => (
-                <div
-                  key={m?.label}
-                  onClick={() => {
-                    setActiveView(m.key);
-                    setopen(false);
-                  }}
-                >
-                  <p className="uppercase font-bold text-gray-900">{m.label}</p>
-                </div>
-              ))}
+    <div className="flex lg:flex-row flex-col overflow-x-auto">
+  {/* Mobile Menu Button and Dropdown */}
+  <div className="lg:hidden bg-white mb-8 flex flex-col items-start relative">
+    {/* Hamburger Menu Icon */}
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="#0e0e0e"
+      className="size-12 lg:hidden block cursor-pointer p-2 w-10 h-10"
+      onClick={() => setopen(!open)}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+      />
+    </svg>
+
+    {/* Dropdown Menu */}
+    {open && (
+      <div className="flex absolute z-50 left-0 right-0 top-full bg-white flex-col items-start space-y-4 mt-0 px-6 py-4 shadow-xl border-t border-gray-200 cursor-pointer">
+        {menuItems
+          ?.filter((m: any) => m?.roles?.includes(role))
+          .map((m) => (
             <div
+              key={m?.label}
+              className="w-full py-2 hover:bg-gray-50 px-2 rounded"
               onClick={() => {
-                logout();
-                setuser(undefined);
+                setActiveView(m.key);
                 setopen(false);
               }}
             >
-              <p className="uppercase font-bold text-gray-900">LOGOUT</p>
+              <p className="uppercase font-bold text-gray-900">{m.label}</p>
             </div>
-          </div>
-        )}
+          ))}
+        <div
+          className="w-full py-2 hover:bg-gray-50 px-2 rounded"
+          onClick={() => {
+            logout();
+            setuser(undefined);
+            setopen(false);
+          }}
+        >
+          <p className="uppercase font-bold text-gray-900">LOGOUT</p>
+        </div>
       </div>
-      <Sidebar
-        activeView={activeView}
-        setActiveView={setActiveView}
-        menuItems={menuItems}
-        logout={() => {
-          setrole("");
-          logout();
-          setuser(undefined);
-        }}
-        role={role}
-      />
-      <MainArea>{renderView()}</MainArea>
-    </div>
+    )}
+  </div>
+
+  {/* Sidebar (hidden on mobile) */}
+  <div className="hidden lg:block">
+    <Sidebar
+      activeView={activeView}
+      setActiveView={setActiveView}
+      menuItems={menuItems}
+      logout={() => {
+        setrole("");
+        logout();
+        setuser(undefined);
+      }}
+      role={role}
+    />
+  </div>
+
+  {/* Main Content Area */}
+  <MainArea>{renderView()}</MainArea>
+</div>
   );
 }

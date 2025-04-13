@@ -196,7 +196,7 @@ const Deliveries = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Delivery Management</h2>
+      <h2 className="text-xl font-bold mb-4">Delivery</h2>
       {/* Filters and Search */}
       <div className="flex lg:flex-row flex-col items-start lg:items-center lg:justify-between mb-4">
         <div className="flex gap-2">

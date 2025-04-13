@@ -23,6 +23,7 @@ import "swiper/css/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { getProduct } from "@/helpers/api-controller";
 import { Blocks } from "react-loader-spinner";
+import { url } from "inspector";
 
 type Params = Promise<{ slug: string }>;
 
@@ -73,7 +74,8 @@ export default function Page(props: { params: Params }) {
   const more = [
     {
       text: "Size Guide",
-      url: "https://drive.google.com/file/d/1rz9N8QZTzkUZTjbRqL6xYoi5X2wOh6_z/view?usp=sharing",
+      // url: "https://drive.google.com/file/d/1rz9N8QZTzkUZTjbRqL6xYoi5X2wOh6_z/view?usp=sharing",
+      url: "/size-guide",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +95,8 @@ export default function Page(props: { params: Params }) {
     },
     {
       text: "Length Guide",
-      url: "https://drive.google.com/file/d/1rtkcLWXlncIHvlp5SpMZSQzelrN56H4h/view?usp=drivesdk",
+      // url: "https://drive.google.com/file/d/1rtkcLWXlncIHvlp5SpMZSQzelrN56H4h/view?usp=drivesdk",
+      url: "/length-guide",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -534,7 +537,7 @@ export default function Page(props: { params: Params }) {
           >
             {product?.data?.images?.map((image: any, i: number) => (
               <SwiperSlide key={i}>
-                <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] relative lg:mt-0 mt-8">
+                <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] md:h-[800px] relative lg:mt-0 mt-8">
                   {image && (
                     <Image
                       priority

@@ -91,8 +91,11 @@ export default function ContactForm() {
           from_email: messager.email,
           message: messager.message,
           to_email: 'support@ruksalamode.com',
+          reply_to: messager.email, // Important for reply functionality
         },
         'nQo6ev2cTJ3sZ4sBl'
+
+        
       );
 
       setStatus({ loading: false, error: false, success: true });

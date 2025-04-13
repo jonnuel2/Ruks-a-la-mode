@@ -7,8 +7,8 @@ import ShoppingBag from "../shop/_ui/shopping-bag";
 import { useAppContext } from "@/helpers/store";
 
 export default function Header() {
-  const routes = ["home", "shop", "contact-us"];
-  const paths = ["/", "/shop", "/contact-us"];
+  const routes = ["home", "about-us", "shop", "contact-us", "faqs"];
+  const paths = ["/", "/about-us", "/shop", "/contact-us", "/faqs"];
   const pathname = usePathname();
 
   const [open, setopen] = useState(false);
