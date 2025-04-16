@@ -144,6 +144,18 @@ export default function Header() {
               </div>
               {/* cart */}
               <ShoppingBag />
+              {/* authentication */}
+              <Link href="/auth/login">
+                <div className="hidden md:flex items-center justify-center lg:ml-4 ml-2  py-1.5 rounded-md cursor-pointer">
+                  <p className="text-xs font-medium text-dark">LOGIN /</p>
+                </div>
+              </Link>
+              {/* signup */}
+              <Link href="/auth/login">
+                <div className="hidden md:flex items-center justify-center  lg:border border lg:border-dark border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
+                  <p className="text-xs font-bold text-dark">Sign Up</p>
+                </div>
+              </Link>
               {/* currency */}
               <select
                 className="bg-transparent cursor-pointer lg:text-sm text-xs lg:ml-4 ml-2 lg:border border lg:border-dark border-dark/60 outline-none appearance-none"

@@ -52,60 +52,66 @@ const Deliveries = () => {
 
   // Format price as currency
   const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN'
-    }).format(parseInt(amount || '0'));
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(parseInt(amount || "0"));
   };
-
 
   const getMeasurementString = (measurement: any) => {
     if (!measurement) return null;
-    
+
     // Check for direct size property first
     if (measurement.size) {
       return measurement.size;
     }
-    
+
     // Check for custom measurements
-    if (measurement.custom && typeof measurement.custom === 'object') {
+    if (measurement.custom && typeof measurement.custom === "object") {
       const entries = Object.entries(measurement.custom);
       if (entries.length > 0) {
-        return entries.map(([key, value]) => 
-          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-        ).join(", ");
+        return entries
+          .map(
+            ([key, value]) =>
+              `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+          )
+          .join(", ");
       }
     }
-    
+
     // Check for direct measurements (like length, width, etc.)
     const standardMeasurements = Object.entries(measurement)
-      .filter(([key]) => !['custom'].includes(key))
-      .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`);
-    
+      .filter(([key]) => !["custom"].includes(key))
+      .map(
+        ([key, value]) =>
+          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+      );
+
     if (standardMeasurements.length > 0) {
       return standardMeasurements.join(", ");
     }
-    
+
     return null;
   };
 
-
   const orderItemsHTML = deliveryInfo?.items
-    ?.map(
-      (item: any) => {
-        const measurement = getMeasurementString(item.item?.measurement);
-        const color = item.item?.color?.name || item?.color?.name;
-        
-        return `
+    ?.map((item: any) => {
+      const measurement = getMeasurementString(item.item?.measurement);
+      const color = item.item?.color?.name || item?.color?.name;
+
+      return `
           <tr>
-            <td>${item.item?.name || 'N/A'}</td>
-            <td>${measurement || 'One Size'}</td>
-            <td>${color || 'Standard'}</td>
+            <td>${item.item?.name || "N/A"}</td>
+            <td>${measurement || "One Size"}</td>
+            <td>${color || "Standard"}</td>
             <td>${item.quantity || 1}</td>
-            <td>${item.item?.price ? formatCurrency(item.item.price) : 'N/A'}</td>
+            <td>${
+              item.item?.price ? formatCurrency(item.item.price) : "N/A"
+            }</td>
           </tr>
         `;
-      }).join("");
+    })
+    .join("");
 
   const templateParams = {
     user_name:
@@ -199,7 +205,7 @@ const Deliveries = () => {
       <h2 className="text-xl font-bold mb-4">Delivery</h2>
       {/* Filters and Search */}
       <div className="flex lg:flex-row flex-col items-start lg:items-center lg:justify-between mb-4">
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
             <button
               key={status.toLowerCase()}
@@ -217,6 +223,26 @@ const Deliveries = () => {
               {status}
             </button>
           ))}
+        </div> */}
+        <div>
+          <label className="mr-2 font-medium lg:text-sm text-xs">
+            Filter by Status:
+          </label>
+          <select
+            className="border rounded px-2 py-1 lg:text-sm text-xs"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value.toLowerCase());
+              setCurrentPage(1);
+            }}
+          >
+            <option value="" className="">All</option>
+            {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
+              <option key={status} value={status.toLowerCase()}>
+                {status}
+              </option>
+            ))}
+          </select>
         </div>
 
         <input
@@ -232,8 +258,12 @@ const Deliveries = () => {
         <thead className="bg-gray-200">
           <tr>
             <th className="px-4 py-2 border text-xs text-left">Delivery ID</th>
-            <th className="px-4 py-2 border text-xs text-left">Customer Name</th>
-            <th className="px-4 py-2 border text-xs text-left">Delivery Information</th>
+            <th className="px-4 py-2 border text-xs text-left">
+              Customer Name
+            </th>
+            <th className="px-4 py-2 border text-xs text-left">
+              Delivery Information
+            </th>
             <th className="px-4 py-2 border text-xs text-left">Product</th>
             <th className="px-4 py-2 border text-xs text-left">Details</th>
             <th className="px-4 py-2 border text-xs text-left">Status</th>
@@ -250,10 +280,10 @@ const Deliveries = () => {
                   delivery?.data?.shippingInfo?.surname}
               </td>
               <td className="px-4 py-2 border text-xs">
-                {delivery?.data?.shippingInfo?.address},{" "} <br />
-                {delivery?.data?.shippingInfo?.city},{" "} <br />
-                {delivery?.data?.shippingInfo?.state},{" "} <br />
-                {delivery?.data?.shippingInfo?.country},{" "} <br />
+                {delivery?.data?.shippingInfo?.address}, <br />
+                {delivery?.data?.shippingInfo?.city}, <br />
+                {delivery?.data?.shippingInfo?.state}, <br />
+                {delivery?.data?.shippingInfo?.country}, <br />
                 {delivery?.data?.shippingInfo?.phonenumber}
               </td>
               {/* Products Column */}
@@ -265,19 +295,13 @@ const Deliveries = () => {
                   </div>
                 ))}
               </td>
-                 {/* Details Column */}
+              {/* Details Column */}
               <td className="px-4 py-2 border text-xs">
                 {delivery.data.items.map((item: any, index: number) => (
                   <div key={index} className="mb-2 last:mb-0">
-                    <div>
-                      Size: {item.item.measurement?.size || 'N/A'}
-                    </div>
-                    <div>
-                      Color: {item.item.color?.name || 'N/A'}
-                    </div>
-                    <div>
-                      Price: {item.item.price}
-                    </div>
+                    <div>Size: {item.item.measurement?.size || "N/A"}</div>
+                    <div>Color: {item.item.color?.name || "N/A"}</div>
+                    <div>Price: {item.item.price}</div>
                   </div>
                 ))}
               </td>
@@ -341,7 +365,6 @@ const Deliveries = () => {
         deliveryInfo={deliveryInfo}
         setDeliveryInfo={setDeliveryInfo}
       />
-      
     </div>
   );
 };

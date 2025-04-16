@@ -59,6 +59,27 @@ export default function DiscountCodes() {
     currentPage * itemsPerPage
   );
 
+  // edit discount
+  const [isEditMode, setIsEditMode] = useState(false);  
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const handleEditDiscount = (code: string) => {
+    const discountToEdit = discounts?.find((discount: any) => discount.id === code);
+    if (discountToEdit) {
+      setNewDiscount({
+        code: discountToEdit.id,
+        rate: discountToEdit.data.rate,
+        count: discountToEdit.data.count,
+        duration: discountToEdit.data.duration,
+      });
+      setEditingId(code);
+      setIsModalOpen(true);
+      setIsEditMode(true);
+    }
+  };
+  
+
+
   const handleDeleteDiscount = (code: string) => {
     deleteDiscountMutation.mutate(code);
   };
@@ -119,6 +140,12 @@ export default function DiscountCodes() {
                   : "Inactive"}
               </td>
               <td className="px-4 py-2 border text-center text-xs">
+              <button
+                  className="bg-blue-500 text-white px-4 py-1 rounded text-xs mr-2"
+                  onClick={() => handleEditDiscount(discount?.id)} 
+                >
+                  Edit
+                </button>
                 <button
                   className="bg-red-500 text-white px-2 py-1 rounded text-xs mr-2"
                   onClick={() => handleDeleteDiscount(discount?.id)}

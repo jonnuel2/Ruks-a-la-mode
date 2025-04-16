@@ -32,6 +32,16 @@ export async function createDiscount(discount: any) {
   }
 }
 
+export async function updateDiscount(code: string, data: any) {
+  try {
+    const response = await axios.put(`/api/discounts/update-discount?code=${code}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating discount:', error);
+    throw error;
+  }
+}
+
 export async function deleteDiscount(code: any) {
   try {
     return await axios.delete(`/api/discounts/delete-discount?code=${code}`);
