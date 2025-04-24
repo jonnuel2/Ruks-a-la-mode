@@ -6,7 +6,7 @@ import { auth } from "@/helpers/utils/auth";
 import { useAppContext } from "@/helpers/store";
 import { useRouter } from "next/navigation";
 import Button from "@/app/ui/button";
-import { Radio } from "react-loader-spinner";
+import { FidgetSpinner, Radio } from "react-loader-spinner";
 
 export default function Page() {
   const [loginInfo, setLoginInfo] = useState({
@@ -49,9 +49,9 @@ export default function Page() {
 
   const [hidden, sethidden] = useState(false);
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full">
-      <p className="text-3xl font-bold mb-20">RUKS Á LA MODE</p>
-      <p className="text-lg font-semibold mb-12">LOGIN TO CONTINUE</p>
+    <div className="flex flex-col items-center justify-center w-full h-[70vh]">
+      <p className="text-3xl font-bold mb-20">LOGIN TO CONTINUE</p>
+      {/* <p className="text-lg font-semibold mb-12">LOGIN TO CONTINUE</p> */}
       <input
         placeholder="Email"
         className="px-3 py-1.5 text-[#0e0e0e] lg:w-72 w-72 text-xs bg-transparent border border-dark outline-none rounded-md"
@@ -78,12 +78,16 @@ export default function Page() {
       </div>
       <div
         onClick={() => {
-          handleSignIn();
+          if (!loading) handleSignIn();
         }}
-        className={`mt-2 lg:w-72 w-40 p-3 bg-black/85 rounded-md flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
+        className={`mt-2 lg:w-72 w-40 p-3 ${
+          loading ? "bg-gray-600" : "bg-black/85 hover:opacity-90"
+        } rounded-md flex items-center font-medium justify-center ${
+          loading ? "cursor-not-allowed" : "cursor-pointer"
+        }`}
       >
         {loading ? (
-          <Radio />
+          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         ) : (
           <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">LOGIN</p>
         )}

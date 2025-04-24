@@ -222,7 +222,7 @@ function Confirmation() {
 
   return (
     <div className="flex flex-col items-center lg:pb-16">
-      <p className="text-center lg:text-6xl text-3xl mt-28">
+      <p className="text-center lg:text-6xl text-3xl mt-28 capitalize">
         Thank you for your purchase! 
       </p>
       <p className="text-center text-lg font-semibold mt-8 lg:w-2/3">

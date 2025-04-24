@@ -71,7 +71,7 @@ export default function Header() {
                 {routes.map((r) => (
                   <Link key={r} href={r === "home" ? "/" : `/${r}`}>
                     <div className="cursor-pointer hover:bg-[#fea203] hover:bg-opacity-30">
-                      <p className="uppercase text-dark text-xs lg:text-sm tracking-wider cursor-pointer">
+                      <p className="uppercase text-dark text-xs lg:text-sm tracking-wider cursor-pointer whitespace-nowrap">
                         {r.replace("-", " ")}
                       </p>
                     </div>
@@ -141,19 +141,20 @@ export default function Header() {
                     d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                   />
                 </svg>
+                
               </div>
               {/* cart */}
               <ShoppingBag />
               {/* authentication */}
-              <Link href="/auth/login">
+              <Link href="/Auth/login">
                 <div className="hidden md:flex items-center justify-center lg:ml-4 ml-2  py-1.5 rounded-md cursor-pointer">
-                  <p className="text-xs font-medium text-dark">LOGIN /</p>
+                  <p className="text-xs font-medium text-dark whitespace-nowrap">LOGIN /</p>
                 </div>
               </Link>
               {/* signup */}
-              <Link href="/auth/login">
+              <Link href="/Auth/signup">
                 <div className="hidden md:flex items-center justify-center  lg:border border lg:border-dark border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
-                  <p className="text-xs font-bold text-dark">Sign Up</p>
+                  <p className="text-xs font-bold text-dark whitespace-nowrap">Sign Up</p>
                 </div>
               </Link>
               {/* currency */}

@@ -6,7 +6,7 @@ import { auth } from "@/helpers/utils/auth";
 import { useAppContext } from "@/helpers/store";
 import { useRouter } from "next/navigation";
 import Button from "@/app/ui/button";
-import { Radio } from "react-loader-spinner";
+import { FidgetSpinner, Radio } from "react-loader-spinner";
 
 export default function Page() {
   const [loginInfo, setLoginInfo] = useState({
@@ -76,18 +76,36 @@ export default function Page() {
           {hidden ? "SHOW" : "HIDE"}
         </p>
       </div>
-      <div
+      {/* <div
         onClick={() => {
           handleSignIn();
         }}
         className={`mt-2 lg:w-72 w-40 p-3 bg-black/85 rounded-md flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
       >
         {loading ? (
-          <Radio />
+          // <Radio />
+          <FidgetSpinner />
         ) : (
           <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">LOGIN</p>
         )}
-      </div>
+      </div> */}
+     <div
+  onClick={() => {
+    if (!loading) handleSignIn();
+  }}
+  className={`mt-2 lg:w-72 w-40 p-3 ${
+    loading ? "bg-gray-600" : "bg-black/85 hover:opacity-90"
+  } rounded-md flex items-center font-medium justify-center ${
+    loading ? "cursor-not-allowed" : "cursor-pointer"
+  }`}
+>
+  {loading ? (
+    <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+  ) : (
+    <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">LOGIN</p>
+  )}
+</div>
+
     </div>
   );
 }

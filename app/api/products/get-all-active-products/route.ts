@@ -5,7 +5,6 @@ export const revalidate = 60;
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch all products (filtering by quantity in Firestore is no longer possible)
     const productsDb = db.collection("products");
     let result: any = [];
     let snapshot = await productsDb.get();
@@ -20,19 +19,21 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Filter active products (where total color stock > 0)
     snapshot.forEach((doc) => {
       const product = doc.data();
-
-      // Calculate total stock from colors
       const totalStock = product.colors?.reduce(
         (sum: number, color: { stock: number }) => sum + (color.stock || 0),
         0
       );
 
-      if (totalStock > 0) {
-        result.push({ id: doc.id, data: { ...product } });
-      }
+      // Add product regardless of stock, we will check stock in frontend
+      result.push({
+        id: doc.id,
+        data: {
+          ...product,
+          totalStock, // Include total stock in the response
+        },
+      });
     });
 
     return NextResponse.json(
