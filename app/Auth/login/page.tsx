@@ -7,6 +7,8 @@ import { useAppContext } from "@/helpers/store";
 import { useRouter } from "next/navigation";
 import Button from "@/app/ui/button";
 import { FidgetSpinner, Radio } from "react-loader-spinner";
+import Link from "next/link";
+
 
 export default function Page() {
   const [loginInfo, setLoginInfo] = useState({
@@ -91,6 +93,18 @@ export default function Page() {
         ) : (
           <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">LOGIN</p>
         )}
+      </div>
+
+      {/* Login Link */}
+      <div className="mt-4">
+        <Link href="signup">
+          <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
+            <p className="text-xs font-bold text-dark whitespace-nowrap">
+              Don't have an account?{" "}
+              <span className="text-blue-600">Create account</span>
+            </p>
+          </div>
+        </Link>
       </div>
     </div>
   );

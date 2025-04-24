@@ -22,7 +22,7 @@ export default function Product({
 
   return (
     <div
-      className={`transition-transform duration-300 ease-out cursor-pointer hover:scale-105 flex flex-col items-center mb-8 relative ${isOutOfStock ? 'opacity-50 pointer-events-none' : ''}`}
+      className={`transition-transform duration-300 ease-out cursor-pointer hover:scale-105 flex flex-col items-center mb-8 relative ${isOutOfStock ? 'opacity-50' : ''}`} //add this to the class if you want to disable clicking => "pointer-events-none"
     >
       <div onClick={viewProduct} className="w-full flex flex-col items-start lg:items-center">
         <div className="relative sm:h-96 w-full h-60 sm:w-80">
@@ -38,7 +38,7 @@ export default function Product({
           )}
 
           {isOutOfStock && (
-            <div className="absolute top-2 left-2 px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full shadow-md">
+            <div className="absolute top-2 left-2 px-3 py-1 bg-[#bb3a00] text-white text-xs font-semibold rounded-full shadow-md">
               OUT OF STOCK
             </div>
           )}

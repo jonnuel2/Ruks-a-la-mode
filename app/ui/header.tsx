@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import ShoppingBag from "../shop/_ui/shopping-bag";
 import { useAppContext } from "@/helpers/store";
 
+
 export default function Header() {
   const routes = ["home", "about-us", "shop", "contact-us", "faqs"];
   const paths = ["/", "/about-us", "/shop", "/contact-us", "/faqs"];
