@@ -262,3 +262,40 @@ export async function getTopSellers() {
     return err;
   }
 }
+
+//login 
+export async function login(email: string, password: string) {
+  try {
+    const response = await axios.post(`/api/auth/login`, {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+}
+
+//signup
+export async function signup(
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  confirmPassword: string
+) {
+  try {
+    const response = await axios.post(`/api/auth/signup`, {
+      firstName,
+      lastName,
+      email,
+      password,
+      confirmPassword,
+    });
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+}
+
+
