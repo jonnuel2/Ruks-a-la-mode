@@ -6,7 +6,7 @@ export async function PUT(req: NextRequest) {
   const now = DateTime.now().toLocaleString(DateTime.DATETIME_SHORT);
   try {
     const body = await req.json();
-    const { id, name, phone } = body;
+    const { id, name, description } = body;
 
     // Ensure the order ID is provided
     if (!id) {
@@ -30,7 +30,7 @@ export async function PUT(req: NextRequest) {
 
     // Update order in Firestore
     await orderRef.update({
-      tailors: firebase.firestore.FieldValue.arrayUnion({ name, phone }),
+      tailors: firebase.firestore.FieldValue.arrayUnion({ name, description }),
       updatedAt: now,
     });
 
