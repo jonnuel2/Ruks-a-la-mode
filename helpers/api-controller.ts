@@ -281,6 +281,7 @@ export async function signup(
   firstName: string,
   lastName: string,
   email: string,
+  phoneNumber: string,
   password: string,
   confirmPassword: string
 ) {
@@ -289,6 +290,7 @@ export async function signup(
       firstName,
       lastName,
       email,
+      phoneNumber,
       password,
       confirmPassword,
     });
