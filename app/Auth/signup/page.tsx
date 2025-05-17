@@ -1,19 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
-import { auth } from "@/helpers/utils/auth";
+import { signup } from "@/helpers/api-controller";
 import { useAppContext } from "@/helpers/store";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify"; // ✅ import Toastify
+import 'react-toastify/dist/ReactToastify.css'; // ✅ import default styles
+
+interface UserData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  [key: string]: any;
+}
 
 export default function Page() {
   const [signupInfo, setSignupInfo] = useState({
     firstName: "",
     lastName: "",
+    phoneNumber: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -26,34 +34,44 @@ export default function Page() {
   const router = useRouter();
   const { setuser } = context;
 
-  onAuthStateChanged(auth, (u) => {
-    if (u) {
-      setuser(u);
-    }
-  });
+  const handleSignUp = async () => {
+    const { firstName, lastName, email, phoneNumber, password, confirmPassword } = signupInfo;
 
-  const handleSignUp = () => {
-    const { firstName, lastName, email, password, confirmPassword } =
-      signupInfo;
-
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      alert("Please fill out all fields.");
+    if (!firstName || !lastName ||  !email || !phoneNumber || !password || !confirmPassword) {
+      toast.error("Please fill out all fields.");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        router.push("/roaming/admin");
-      })
-      .catch((err) => alert(err.message))
-      .finally(() => setLoading(false));
+    try {
+      console.log("Sending request to signup API...");
+      const response = await signup(firstName, lastName, email, phoneNumber, password, confirmPassword);
+      console.log("Received response:", response);
+
+      if (response.success) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        setuser(response.user);
+
+        toast.success("Signup successful! Redirecting...");
+        setTimeout(() => {
+          router.push("/");
+        }, 1500); // Give the toast some time to show before redirect
+      } else {
+        toast.error(response.message || "Signup failed. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Error during signup:", error);
+      toast.error(error.response?.data?.message || "An error occurred during signup.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle =
@@ -90,6 +108,18 @@ export default function Page() {
         }
         type="email"
       />
+
+      <input
+        placeholder="Phone Number"
+        className={inputStyle}
+        value={signupInfo.phoneNumber}
+        onChange={(e) =>
+          setSignupInfo({ ...signupInfo, phoneNumber: e.target.value })
+        }
+        type="number"
+      />
+
+      
 
       <div className="flex px-3 py-1.5 text-[#0e0e0e] items-center rounded-md justify-center space-x-2 lg:w-72 w-72 mb-6 bg-transparent border border-dark">
         <input
@@ -138,7 +168,7 @@ export default function Page() {
 
       {/* Login Link */}
       <div className="mt-4">
-        <Link href="login">
+        <Link href="/auth/login">
           <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Already have an account?{" "}
@@ -147,6 +177,9 @@ export default function Page() {
           </div>
         </Link>
       </div>
+
+      {/* ✅ Toast container */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover />
     </div>
   );
 }

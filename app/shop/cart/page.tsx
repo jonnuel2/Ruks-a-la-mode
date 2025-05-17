@@ -52,15 +52,15 @@ export default function Page() {
     router.push(`/shop/${id}`);
   };
 
-// delete items
+  // delete items
   const handleDeleteItem = (index: number, itemName: string) => {
     const newItems = [...cart.items];
     newItems.splice(index, 1);
     const updatedCart = { ...cart, items: newItems };
-    
+
     setcart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    
+
     toast.success(`"${itemName}" removed from cart`, {
       position: "top-right",
       autoClose: 3000,
@@ -75,7 +75,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-col items-center w-full px-6">
-      <ToastContainer 
+      <ToastContainer
         position="top-right"
         autoClose={3000}
         newestOnTop
@@ -372,14 +372,33 @@ export default function Page() {
                 *Taxes, discounts and shipping calculated at checkout
               </p>
             </div>
-            <div
+            {/* <div
               onClick={() => router.push("cart/checkout")}
               className="mt-2 lg:w-96 w-40 p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 cursor-pointer"
             >
               <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
                 Check out
               </p>
-            </div>
+            </div> */}
+           <div
+  onClick={() => {
+    const token = typeof window !== "undefined" && localStorage.getItem("token");
+
+    if (!token) {
+      // Store intended route to redirect after login
+      localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
+      router.push("/auth/login");
+    } else {
+      router.push("/shop/cart/checkout");
+    }
+  }}
+  className="mt-2 lg:w-96 w-40 p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 cursor-pointer"
+>
+  <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
+    Check out
+  </p>
+</div>
+
           </div>
         </div>
       ) : (

@@ -1,6 +1,8 @@
 import axios from "axios";
 import { ProductProps } from "./types";
 import { signOut } from "firebase/auth";
+import { useRouter } from 'next/navigation';
+
 
 //discounts
 export async function getDiscount(code: string) {
@@ -109,11 +111,15 @@ export async function updateOrder(data: any) {
   }
 }
 
+
+
 export async function addTailor(data: any) {
   try {
-    return await axios.put(`/api/orders/add-tailor`, data);
+    console.log("Sending tailor data:", data) // Add logging
+    return await axios.put(`/api/orders/add-tailor`, data)
   } catch (error) {
-    return error;
+    console.error("Error adding tailor:", error) // Add error logging
+    return error
   }
 }
 
@@ -263,6 +269,34 @@ export async function getTopSellers() {
   }
 }
 
+//users
+// export async function getAllUsers() {
+//   try {
+//     const response = await axios.get(`/api/users/get-users`);
+//     return response.data;
+//   } catch (err) {
+//     console.error("Error fetching users:", err);
+//     return { users: [] }; // safer default fallback
+//   }
+// }
+export async function getAllUsers(): Promise<{
+  success: boolean;
+  message: string;
+  users: any[];
+}> {
+  try {
+    const response = await axios.get(`/api/users/get-all-users`);
+    return response.data;
+  } catch (err) {
+    console.error(err);
+    return {
+      success: false,
+      message: err.response?.data?.message || "Failed to fetch users",
+      users: []
+    };
+  }
+}
+
 //login 
 export async function login(email: string, password: string) {
   try {
@@ -275,6 +309,15 @@ export async function login(email: string, password: string) {
     return error;
   }
 }
+
+
+export const logout = () => {
+  const router = useRouter();
+  localStorage.removeItem('loggedInUser'); // Remove user session
+  localStorage.setItem('forceLogin', 'true'); // Mark that user logged out intentionally
+  router.push('/login'); // Redirect to login page
+};
+
 
 //signup
 export async function signup(
