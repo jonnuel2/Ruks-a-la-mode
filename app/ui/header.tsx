@@ -1,81 +1,107 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import ShoppingBag from "../shop/_ui/shopping-bag";
-import { useAppContext } from "@/helpers/store";
+import type React from "react"
+
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import ShoppingBag from "../shop/_ui/shopping-bag"
+import { useAppContext } from "@/helpers/store"
 
 export default function Header() {
-  const routes = ["home", "about-us", "shop", "contact-us", "faqs"];
-  const paths = ["/", "/about-us", "/shop", "/contact-us", "/faqs"];
-  const pathname = usePathname();
+  const routes = ["home", "about-us", "shop", "contact-us", "faqs"]
+  const paths = ["/", "/about-us", "/shop", "/contact-us", "/faqs"]
+  const pathname = usePathname()
 
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false)
+  const [open, setOpen] = useState(false)
   const [search, setSearch] = useState({
     isOpen: false,
     keyword: "",
-  });
+  })
 
-  const context = useAppContext();
-  const router = useRouter();
-  const { currencies, currency, setCurrency } = context;
+  const context = useAppContext()
+  const router = useRouter()
+  const { currencies, currency, setCurrency } = context
 
-  const [user, setUser] = useState<{ name?: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name?: string; email: string } | null>(null)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedCurrency = localStorage.getItem("selectedCurrency");
-      const storedUser = localStorage.getItem("user");
+      const savedCurrency = localStorage.getItem("selectedCurrency")
+      const storedUser = localStorage.getItem("user")
       if (savedCurrency && currencies.includes(savedCurrency)) {
-        setCurrency(savedCurrency);
+        setCurrency(savedCurrency)
       }
       if (storedUser) {
         try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
+          const parsedUser = JSON.parse(storedUser)
+          setUser(parsedUser)
         } catch (err) {
-          console.error("Invalid user JSON in localStorage");
+          console.error("Invalid user JSON in localStorage")
+        }
+      } else {
+        // Clear user if no user in localStorage
+        setUser(null)
+      }
+    }
+  }, [currencies, setCurrency, pathname])
+
+  // Add this effect after the existing useEffect
+  useEffect(() => {
+    // Function to handle storage changes from other tabs/windows
+    const handleStorageChange = (e) => {
+      if (e.key === "user") {
+        if (e.newValue) {
+          try {
+            const parsedUser = JSON.parse(e.newValue)
+            setUser(parsedUser)
+          } catch (err) {
+            console.error("Invalid user JSON in localStorage")
+          }
+        } else {
+          setUser(null)
         }
       }
     }
-  }, [currencies, setCurrency]);
+
+    // Add event listener
+    window.addEventListener("storage", handleStorageChange)
+
+    // Clean up
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
+  }, [])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCurrency = e.target.value;
-    setCurrency(selectedCurrency);
+    const selectedCurrency = e.target.value
+    setCurrency(selectedCurrency)
     if (typeof window !== "undefined") {
-      localStorage.setItem("selectedCurrency", selectedCurrency);
+      localStorage.setItem("selectedCurrency", selectedCurrency)
     }
-  };
+  }
 
   const handleSearch = () => {
     if (search?.keyword !== "") {
-      router.push(`/shop?search=${search.keyword}`);
+      router.push(`/shop?search=${search.keyword}`)
     }
-  };
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    router.push("/auth/login");
-    window.location.reload();
-  };
+    localStorage.removeItem("user")
+    router.push("/auth/login")
+    window.location.reload()
+  }
 
   return (
     <>
-      {paths.some(
-        (path) => pathname.startsWith(path) && !pathname.startsWith("/roaming")
-      ) && (
+      {paths.some((path) => pathname.startsWith(path) && !pathname.startsWith("/roaming")) && (
         <div className="relative">
           <div className="w-full flex items-center justify-between pb-8 lg:pt-8 pt-6 px-3 lg:px-10">
             {/* Hamburger icon for mobile */}
             <div className="md:hidden flex items-center">
-              <button
-                onClick={() => setOpen(!open)}
-                className="text-dark focus:outline-none"
-                aria-label="Toggle Menu"
-              >
+              <button onClick={() => setOpen(!open)} className="text-dark focus:outline-none" aria-label="Toggle Menu">
                 {open ? (
                   // Close icon
                   <svg
@@ -85,12 +111,7 @@ export default function Header() {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : (
                   // Hamburger icon
@@ -101,12 +122,7 @@ export default function Header() {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )}
               </button>
@@ -139,27 +155,21 @@ export default function Header() {
               {/* search */}
               <div
                 className={`hidden md:flex items-center transition-all duration-300 ease-in-out ${
-                  search.isOpen
-                    ? "bg-white border border-gray-900 rounded-full"
-                    : ""
+                  search.isOpen ? "bg-white border border-gray-900 rounded-full" : ""
                 }`}
               >
                 <input
                   type="text"
                   placeholder="Search products..."
                   className={`text-sm outline-none transition-all duration-300 ease-in-out rounded-full ${
-                    search.isOpen
-                      ? "w-64 px-4 py-2 opacity-100"
-                      : "w-0 px-0 opacity-0"
+                    search.isOpen ? "w-64 px-4 py-2 opacity-100" : "w-0 px-0 opacity-0"
                   }`}
                   value={search.keyword}
-                  onChange={(e) =>
-                    setSearch({ ...search, keyword: e.target.value })
-                  }
+                  onChange={(e) => setSearch({ ...search, keyword: e.target.value })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleSearch();
+                      e.preventDefault()
+                      handleSearch()
                     }
                   }}
                 />
@@ -172,9 +182,7 @@ export default function Header() {
                   className={`size-4 lg:size-6 cursor-pointer transition-all duration-300 ease-in-out ${
                     search.isOpen ? "mr-3" : "lg:mr-4 mr-2"
                   }`}
-                  onClick={() =>
-                    setSearch({ ...search, isOpen: !search.isOpen })
-                  }
+                  onClick={() => setSearch({ ...search, isOpen: !search.isOpen })}
                 >
                   <path
                     strokeLinecap="round"
@@ -193,9 +201,7 @@ export default function Header() {
                   strokeWidth={1}
                   stroke="currentColor"
                   className="size-4 mr-2 cursor-pointer"
-                  onClick={() =>
-                    setSearch({ ...search, isOpen: !search.isOpen })
-                  }
+                  onClick={() => setSearch({ ...search, isOpen: !search.isOpen })}
                 >
                   <path
                     strokeLinecap="round"
@@ -217,7 +223,7 @@ export default function Header() {
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-6 h-6 text-dark"
+                      className="w-8 h-8 text-dark"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -225,7 +231,7 @@ export default function Header() {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={1.5}
+                        strokeWidth={1}
                         d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
@@ -252,21 +258,15 @@ export default function Header() {
                 <>
                   <Link href="/auth/login">
                     <div className="hidden md:flex items-center justify-center lg:ml-4 ml-2 py-1.5 rounded-md cursor-pointer">
-                      <p className="text-xs font-medium text-dark whitespace-nowrap">
-                        LOGIN /
-                      </p>
+                      <p className="text-xs font-medium text-dark whitespace-nowrap">LOGIN /</p>
                     </div>
                     <div className="flex md:hidden items-center justify-center lg:ml-4 ml-2 py-1.5 border px-2 rounded-md cursor-pointer">
-                      <p className="text-xs font-medium text-dark whitespace-nowrap">
-                        LOGIN 
-                      </p>
+                      <p className="text-xs font-medium text-dark whitespace-nowrap">LOGIN</p>
                     </div>
                   </Link>
                   <Link href="/auth/signup">
                     <div className="hidden md:flex items-center justify-center lg:border border lg:border-dark border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
-                      <p className="text-xs font-bold text-dark whitespace-nowrap">
-                        Sign Up
-                      </p>
+                      <p className="text-xs font-bold text-dark whitespace-nowrap">Sign Up</p>
                     </div>
                   </Link>
                 </>
@@ -291,14 +291,8 @@ export default function Header() {
           {open && (
             <div className="absolute flex flex-col items-start space-y-2 px-4 pb-4 bg-[#f5f5f5] w-full z-50 shadow-md">
               {routes.map((r) => (
-                <Link
-                  href={r === "home" ? "/" : `/${r}`}
-                  onClick={() => setOpen(false)}
-                  key={r}
-                >
-                  <p className="uppercase font-bold text-gray-900">
-                    {r.replace("-", " ")}
-                  </p>
+                <Link href={r === "home" ? "/" : `/${r}`} onClick={() => setOpen(false)} key={r}>
+                  <p className="uppercase font-bold text-gray-900">{r.replace("-", " ")}</p>
                 </Link>
               ))}
             </div>
@@ -316,13 +310,11 @@ export default function Header() {
                 placeholder="Search products..."
                 className="w-full text-sm outline-none"
                 value={search.keyword}
-                onChange={(e) =>
-                  setSearch({ ...search, keyword: e.target.value })
-                }
+                onChange={(e) => setSearch({ ...search, keyword: e.target.value })}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSearch();
+                    e.preventDefault()
+                    handleSearch()
                   }
                 }}
               />
@@ -346,5 +338,5 @@ export default function Header() {
         </div>
       )}
     </>
-  );
+  )
 }

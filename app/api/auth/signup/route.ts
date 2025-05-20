@@ -134,10 +134,10 @@ export async function POST(req: NextRequest) {
     const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
 
     // Send the verification email
-    await sendEmail(email, verificationLink, firstName);
+    // await sendEmail(email, verificationLink, firstName);
 
     return NextResponse.json(
-      { success: true, message: "User registered successfully. Verification email sent." , Link: verificationLink},
+      { success: true, message: "User registered successfully."},
       { status: 201 }
     );
   } catch (error) {

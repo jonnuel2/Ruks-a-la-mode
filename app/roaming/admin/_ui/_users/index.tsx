@@ -34,7 +34,7 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      toast.info("Fetching users...", { autoClose: 2000 });
+      // toast.info("Fetching users...", { autoClose: 2000 });
 
       const response = await getAllUsers();
 
@@ -104,7 +104,7 @@ export default function Users() {
     setSearchTerm("");
     setCurrentPage(1);
     fetchUsers();
-    toast.info("Refreshing user data...");
+    // toast.info("Refreshing user data...");
   };
 
   const formatDate = (timestamp: {
