@@ -27,6 +27,9 @@ import { url } from "inspector";
 
 type Params = Promise<{ slug: string }>;
 
+
+
+
 export default function Page(props: { params: Params }) {
   const swiperRef = useRef<any>(null);
   const [openCustom, setOpenCustom] = useState(false);
