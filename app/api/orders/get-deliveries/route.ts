@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const ordersDb = db
       .collection("orders")
-      .where("status", "in", ["ready", "transit"]);
+      .where("status", "in", ["ready", "transit", "delivered", "canceled"]);
     let result: any = [];
     let snapshot = await ordersDb.get();
     if (snapshot.empty) {

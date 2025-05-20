@@ -1,10 +1,14 @@
+// app/api/users/get-users/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/helpers/utils/db";
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch all users from the "users" collection
-    const usersSnapshot = await db.collection("users").orderBy("createdAt", "desc").get();
+    const usersSnapshot = await db
+      .collection("users")
+      .orderBy("createdAt", "desc")
+      .get();
 
     if (usersSnapshot.empty) {
       return NextResponse.json(
@@ -13,7 +17,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Map through the documents to retrieve user data
     const users = usersSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

@@ -10,11 +10,11 @@ const AppContext = createContext<SharedState>({} as SharedState);
 export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
   const [cart, setcart] = useState<any>({ items: [], discount: "" });
   const [user, setuser] = useState<any>(undefined);
+  // const [user, setuser] = useState<{ name?: string; email: string } | null>(null);
 
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>(
     {}
   );
-
   const [currency, setCurrency] = useState("NGN");
 
   const [all_products, set_all_products] = useState([
@@ -158,10 +158,34 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
     },
   ]);
 
+  
+
+    // Load user from localStorage on initial mount
+    useEffect(() => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setuser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error("Failed to parse user from localStorage:", error);
+        }
+      }
+    }, []);
+  
+    // Save user to localStorage whenever it changes
+    useEffect(() => {
+      if (user !== undefined) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+    }, [user]);
+
   const fetchRates = async () => {
     const rates = await getExchangeRates();
     return rates;
   };
+
+
+
 
   useEffect(() => {
     const rates = fetchRates().then((data) => {

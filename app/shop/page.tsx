@@ -46,7 +46,7 @@ function ShopPage() {
   // State for selected filters
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<
-    "low-to-high" | "high-to-low" | null
+    "low-to-high" | "high-to-low" | "a-z" | "z-a" | "newest" | "oldest" | null
   >(null);
 
   // Filter and sort function
@@ -71,16 +71,33 @@ function ShopPage() {
       );
     }
 
-    // Sort by price
-    if (sortOrder === "low-to-high") {
-      filtered = filtered.sort(
-        (a: any, b: any) => a?.data?.price - b?.data?.price
-      );
-    } else if (sortOrder === "high-to-low") {
-      filtered = filtered.sort(
-        (a: any, b: any) => b?.data?.price - a?.data?.price
-      );
-    }
+   // Sort logic
+if (sortOrder === "low-to-high") {
+  filtered = filtered.sort((a: any, b: any) => a?.data?.price - b?.data?.price);
+} else if (sortOrder === "high-to-low") {
+  filtered = filtered.sort((a: any, b: any) => b?.data?.price - a?.data?.price);
+} else if (sortOrder === "a-z") {
+  filtered = filtered.sort((a: any, b: any) =>
+    a?.data?.name.localeCompare(b?.data?.name)
+  );
+} else if (sortOrder === "z-a") {
+  filtered = filtered.sort((a: any, b: any) =>
+    b?.data?.name.localeCompare(a?.data?.name)
+  );
+} else if (sortOrder === "newest") {
+  filtered = filtered.sort(
+    (a: any, b: any) =>
+      new Date(b?.data?.createdAt).getTime() -
+      new Date(a?.data?.createdAt).getTime()
+  );
+} else if (sortOrder === "oldest") {
+  filtered = filtered.sort(
+    (a: any, b: any) =>
+      new Date(a?.data?.createdAt).getTime() -
+      new Date(b?.data?.createdAt).getTime()
+  );
+}
+
 
     return filtered;
   }, [products, selectedCategory, sortOrder, search]);
