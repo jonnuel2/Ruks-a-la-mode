@@ -68,7 +68,7 @@ export default function Header() {
     // Add event listener
     window.addEventListener("storage", handleStorageChange)
 
-    // Clean up
+    // Clean upz
     return () => {
       window.removeEventListener("storage", handleStorageChange)
     }
@@ -256,7 +256,7 @@ export default function Header() {
                 </div>
               ) : (
                 <>
-                  <Link href="/auth/login">
+                  <Link href="/Auth/login">
                     <div className="hidden md:flex items-center justify-center lg:ml-4 ml-2 py-1.5 rounded-md cursor-pointer">
                       <p className="text-xs font-medium text-dark whitespace-nowrap">LOGIN /</p>
                     </div>
@@ -264,7 +264,7 @@ export default function Header() {
                       <p className="text-xs font-medium text-dark whitespace-nowrap">LOGIN</p>
                     </div>
                   </Link>
-                  <Link href="/auth/signup">
+                  <Link href="/Auth/signup">
                     <div className="hidden md:flex items-center justify-center lg:border border lg:border-dark border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
                       <p className="text-xs font-bold text-dark whitespace-nowrap">Sign Up</p>
                     </div>

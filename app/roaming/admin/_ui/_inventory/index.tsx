@@ -90,10 +90,17 @@ const Inventory = () => {
         
         if (response?.products && Array.isArray(response.products)) {
           setInventory(response.products);
-          const initialExpandedState = response.products.reduce((acc, product) => {
-            acc[product.id] = false;
-            return acc;
-          }, {} as Record<string, boolean>);
+          interface InitialExpandedState {
+            [productId: string]: boolean;
+          }
+
+          const initialExpandedState: InitialExpandedState = response.products.reduce(
+            (acc: InitialExpandedState, product: Product) => {
+              acc[product.id] = false;
+              return acc;
+            },
+            {} as InitialExpandedState
+          );
           setExpandedProducts(initialExpandedState);
         } else {
           console.error("Unexpected API response structure:", response);

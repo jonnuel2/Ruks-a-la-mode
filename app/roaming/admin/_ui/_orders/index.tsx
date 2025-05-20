@@ -28,12 +28,18 @@ export default function Orders() {
     data: allOrders,
     isLoading,
     isError,
+    error,
     refetch: refetchOrders,
   } = useQuery({
     queryKey: ["orders"],
     queryFn: () => getAllOrders(),
-    onError: () => toast.error("Failed to fetch orders"),
   })
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to fetch orders")
+    }
+  }, [isError])
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: (data: any) => updateOrder(data),
