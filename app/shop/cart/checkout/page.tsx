@@ -19,10 +19,11 @@ export default function Page() {
   const [discount, setDiscount] = useState(0);
 
   // Price calculation
-  const price = cart?.items?.reduce(
-    (sum, item) => item.item?.price * item.quantity + sum,
-    0
-  ) || 0;
+  const price =
+    cart?.items?.reduce(
+      (sum, item) => item.item?.price * item.quantity + sum,
+      0
+    ) || 0;
 
   const discountPrice = discount > 0 ? price - (discount / 100) * price : price;
 
@@ -77,7 +78,10 @@ export default function Page() {
     const response = await makePayment({
       email: shippingInfo?.email,
       price: discountPrice + shippingFee,
-      callbackUrl: `http://localhost:3000/shop/confirmation/?email=${shippingInfo?.email}&quantity=${cart?.items?.reduce(
+      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
+      // callbackUrl: `http://localhost:3000/shop/confirmation/?email=${
+        shippingInfo?.email
+      }&quantity=${cart?.items?.reduce(
         (sum, item) => item.quantity + sum,
         0
       )}&price=${discountPrice + shippingFee}&currency=${currency}`,
@@ -106,7 +110,9 @@ export default function Page() {
             Delivery Information
           </h2>
           <CheckoutForm
-            checkoutCart={shippingFee !== undefined ? handleCheckout : handleShippingFee}
+            checkoutCart={
+              shippingFee !== undefined ? handleCheckout : handleShippingFee
+            }
             shippingFee={shippingFee}
             setShippingFee={setShippingFee}
             deliveryType={deliveryType}
