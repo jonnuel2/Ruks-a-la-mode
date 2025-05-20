@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useAppContext } from "@/helpers/store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { login } from "@/helpers/api-controller";
@@ -9,6 +9,14 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-[70vh]">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const [loginInfo, setLoginInfo] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [hidden, setHidden] = useState(true);
@@ -21,8 +29,8 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     const existingUser = localStorage.getItem("user");
-
     const redirectParam = searchParams?.get("redirect");
+    
     if (redirectParam) {
       localStorage.setItem("postLoginRedirect", redirectParam);
     }

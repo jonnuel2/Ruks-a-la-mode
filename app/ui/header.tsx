@@ -92,7 +92,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("user")
-    router.push("/auth/login")
+    router.push("/Auth/login")
     window.location.reload()
   }
 
