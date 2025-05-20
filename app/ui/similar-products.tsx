@@ -21,7 +21,7 @@ export default function SimilarProducts({
           <p className="tracking-wide font-semibold lg:text-3xl text-xl mb-10">
             MORE YOU MAY LIKE
           </p>
-          <div className="lg:w-full grid lg:grid-cols-4 grid-cols-2 lg:gap-28 gap-5">
+          <div className="w-full grid lg:grid-cols-4 grid-cols-2 lg:gap-28 gap-5">
             {items?.map((m: any) => (
               <Product
                 key={m.id}

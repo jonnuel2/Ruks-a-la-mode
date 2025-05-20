@@ -7,6 +7,8 @@ import { CartItemProps } from "@/helpers/types";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CheckoutBox({
   currency,
@@ -32,7 +34,18 @@ export default function CheckoutBox({
   const handleSetDiscount = (data: any) => {
     setcart({ ...cart, discount: code });
     setDiscount(data?.discount);
-    alert(`${data?.discount}% Discount added`);
+    // alert(`${data?.discount}% Discount added`);
+
+    toast.success(`"${data?.discount}%" Discount Added`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
   };
 
   const getDiscountMutation = useMutation({
@@ -40,7 +53,17 @@ export default function CheckoutBox({
     onSuccess: (data) =>
       data?.hasOwnProperty("discount")
         ? handleSetDiscount(data)
-        : alert(data?.message),
+        : // : alert(data?.message),
+          toast.error(`"${data?.message}"`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          }),
   });
 
   // Retrieve items from localStorage
@@ -55,6 +78,7 @@ export default function CheckoutBox({
   }, []);
   return (
     <div className="p-3 border border-dark lg:w-[46%] w-full lg:mb-0 mb-16">
+      <ToastContainer />
       <div className="w-full lg:p-8 p-2">
         {cart?.items?.map((c) => {
           const formattedMeasurementString = Object.entries(

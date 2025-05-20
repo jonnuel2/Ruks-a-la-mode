@@ -27,9 +27,17 @@ export default function Footer() {
       text: "Join Our Community",
       url: "https://www.instagram.com/channel/AbZLhIPkflwG7Rsc/?igsh=aGVvbnNrcndqd2Fy",
     },
+    {
+      text: "Length Guide",
+      url: "/length-guide",
+    },
+    {
+      text: "Size Guide",
+      url: "/size-guide",
+    },
   ];
-  const menu = ["Home", "Shop", "FAQs"];
-  const paths = ["/", "/shop", "/contact-us"];
+  const menu = ["Home", "About-Us", "Shop", "Contact-Us", "FAQs"];
+  const paths = ["/", "/about-us", "/shop", "/contact-us", "/faqs"];
   const pathname = usePathname();
 
   const now = DateTime.now();
@@ -71,7 +79,7 @@ export default function Footer() {
                       key={m}
                       href={
                         m?.toLowerCase() === "faqs"
-                          ? "/contact-us#faqs"
+                          ? "/faqs"
                           : m.toLowerCase() === "home"
                           ? "/"
                           : `/${m.toLowerCase()}`

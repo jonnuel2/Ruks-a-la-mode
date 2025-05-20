@@ -13,7 +13,16 @@ type ControllerOptions = {
 type FilterBoxProps = {
   categories?: string[];
   onCategorySelect?: (category: string | null) => void;
-  onSortOrderSelect?: (order: "low-to-high" | "high-to-low" | null) => void;
+  onSortOrderSelect?: (
+    order:
+      | "low-to-high"
+      | "high-to-low"
+      | "a-z"
+      | "z-a"
+      | "newest"
+      | "oldest"
+      | null
+  ) => void;
   clearFilter: () => void;
 };
 
@@ -26,11 +35,15 @@ export default function FilterBox({
   const SORT_ORDER_LABELS = {
     "low-to-high": "Price: Lowest to Highest",
     "high-to-low": "Price: Highest to Lowest",
+    "a-z": "Alphabetical: A-Z",
+    "z-a": "Alphabetical: Z-A",
+    newest: "Newest First",
+    oldest: "Oldest First",
   };
 
-  const SORT_ORDER_VALUES = Object.keys(SORT_ORDER_LABELS) as Array<
-    "low-to-high" | "high-to-low"
-  >;
+  const SORT_ORDER_VALUES = Object.keys(
+    SORT_ORDER_LABELS
+  ) as Array<keyof typeof SORT_ORDER_LABELS>;
 
   const controllerOptions: ControllerOptions = {
     category: categories,
@@ -46,12 +59,17 @@ export default function FilterBox({
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSortOrder, setSelectedSortOrder] = useState<
-    "low-to-high" | "high-to-low" | null
+    | "low-to-high"
+    | "high-to-low"
+    | "a-z"
+    | "z-a"
+    | "newest"
+    | "oldest"
+    | null
   >(null);
 
   const toggleSwitch = (key: string) => {
     setSwitches((prev) => {
-      // Close other switches, open the clicked one
       const updatedSwitches = Object.keys(prev).reduce(
         (acc, k) => ({ ...acc, [k]: k === key ? !prev[k] : false }),
         {}
@@ -123,10 +141,13 @@ export default function FilterBox({
           onClick={() => {
             clearFilter();
             setSwitches({ category: false, "sort-by": false });
+            setSelectedCategory(null);
+            setSelectedSortOrder(null);
           }}
         >
           ✕
         </p>
+
         {filterMenu.map((m) => (
           <div
             key={m}
@@ -141,8 +162,7 @@ export default function FilterBox({
                       option?.toLowerCase() ===
                         selectedCategory?.toLowerCase()) ||
                     (m === "sort-by" &&
-                      (selectedSortOrder === "low-to-high" ||
-                        selectedSortOrder === "high-to-low") &&
+                      selectedSortOrder &&
                       SORT_ORDER_LABELS[selectedSortOrder] === option)
                       ? "text-coffee font-bold"
                       : "text-dark"

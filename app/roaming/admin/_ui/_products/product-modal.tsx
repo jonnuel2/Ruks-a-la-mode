@@ -487,7 +487,7 @@ export default function ProductModal({
               <label className="text-xs block mb-1">Weight</label>
               <div className="flex gap-2">
                 <input
-                  type="text"
+                  type="number"
                   placeholder="Weight"
                   value={component.weight}
                   onChange={(e) => {
@@ -500,8 +500,9 @@ export default function ProductModal({
                       );
                     }
                   }}
-                  className="w-full p-2 border text-xs rounded"
+                  className="no-spinner w-full p-2 border text-xs rounded"
                 />
+              
                 <button
                   type="button"
                   onClick={() => handleRemoveComponent(index)}

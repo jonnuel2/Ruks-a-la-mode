@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/helpers/utils/auth";
 import { useAppContext } from "@/helpers/store";
 import { useRouter } from "next/navigation";
-import Button from "@/app/ui/button";
-import { Radio } from "react-loader-spinner";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Page() {
   const [loginInfo, setLoginInfo] = useState({
@@ -17,39 +17,65 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const context = useAppContext();
   const router = useRouter();
-
   const { setuser } = context;
+  const [hidden, sethidden] = useState(true);
 
-  onAuthStateChanged(auth, (u) => {
-    if (u) {
-      // User is signed in, see docs for a list of available properties
-      // https://firebase.google.com/docs/reference/js/auth.user
-      const uid = u.uid;
-      setuser(u);
-      router.push("/roaming/admin");
-      // ...
-    } else {
-      // User is signed out
-      // ...
-    }
-  });
+  // Auth check on mount
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        setuser(u);
+        router.push("/roaming/admin");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const isValidPassword = (password: string) => {
+    const minLength = 6;
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    return password.length >= minLength && hasLetter && hasNumber;
+  };
 
   const handleSignIn = () => {
     setLoading(true);
-    if (!loginInfo.email || !loginInfo.password)
-      return alert("Incomplete Login");
+
     const { email, password } = loginInfo;
+
+    if (!email || !password) {
+      toast.error("Incomplete login credentials");
+      setLoading(false);
+      return;
+    } else {
+      toast.success("logging in...");
+      setLoading(true);
+    }
+
+    if (!isValidPassword(password)) {
+      toast.error(
+        "Password must be at least 6 characters long and include letters and numbers."
+      );
+      setLoading(false);
+      return;
+    }
+
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         router.push("/roaming/admin");
       })
-      .catch((reason) => alert(reason.message))
+      .catch((reason) => {
+        toast.error("Incorrect email or password");
+        console.error(reason.message);
+      })
       .finally(() => setLoading(false));
   };
 
-  const [hidden, sethidden] = useState(false);
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
+      <ToastContainer />
       <p className="text-3xl font-bold mb-20">RUKS Á LA MODE</p>
       <p className="text-lg font-semibold mb-12">LOGIN TO CONTINUE</p>
       <input
@@ -71,19 +97,23 @@ export default function Page() {
         />
         <p
           onClick={() => sethidden(!hidden)}
-          className="lg:text-xs text-[10px]"
+          className="lg:text-xs text-[10px] cursor-pointer"
         >
           {hidden ? "SHOW" : "HIDE"}
         </p>
       </div>
       <div
         onClick={() => {
-          handleSignIn();
+          if (!loading) handleSignIn();
         }}
-        className={`mt-2 lg:w-72 w-40 p-3 bg-black/85 rounded-md flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
+        className={`mt-2 lg:w-72 w-40 p-3 ${
+          loading ? "bg-gray-600" : "bg-black/85 hover:opacity-90"
+        } rounded-md flex items-center font-medium justify-center ${
+          loading ? "cursor-not-allowed" : "cursor-pointer"
+        }`}
       >
         {loading ? (
-          <Radio />
+          <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         ) : (
           <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">LOGIN</p>
         )}

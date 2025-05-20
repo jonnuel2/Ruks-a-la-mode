@@ -135,7 +135,7 @@ const Content = () => {
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4">Banner Management</h2>
+      <h2 className="text-lg font-bold mb-4">Banner</h2>
       {/* Filters and Search */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
@@ -339,7 +339,7 @@ const Content = () => {
       )}
       {/* PREHEADER */}
       <div>
-        <h2 className="lg:text-lg text-xs font-bold mb-4 mt-8">Pre Header</h2>
+        <h2 className="text-lg font-bold mb-4 mt-8">Pre Header</h2>
         <div>
           <input
             onChange={(e) => setPreText(e.target.value)}

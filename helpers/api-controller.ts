@@ -1,6 +1,8 @@
 import axios from "axios";
 import { ProductProps } from "./types";
 import { signOut } from "firebase/auth";
+import { useRouter } from 'next/navigation';
+
 
 //discounts
 export async function getDiscount(code: string) {
@@ -29,6 +31,16 @@ export async function createDiscount(discount: any) {
     return await axios.post(`/api/discounts/add-discount`, discount);
   } catch (error) {
     return error;
+  }
+}
+
+export async function updateDiscount(code: string, data: any) {
+  try {
+    const response = await axios.put(`/api/discounts/update-discount?code=${code}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating discount:', error);
+    throw error;
   }
 }
 
@@ -99,11 +111,15 @@ export async function updateOrder(data: any) {
   }
 }
 
+
+
 export async function addTailor(data: any) {
   try {
-    return await axios.put(`/api/orders/add-tailor`, data);
+    console.log("Sending tailor data:", data) // Add logging
+    return await axios.put(`/api/orders/add-tailor`, data)
   } catch (error) {
-    return error;
+    console.error("Error adding tailor:", error) // Add error logging
+    return error
   }
 }
 
@@ -252,3 +268,79 @@ export async function getTopSellers() {
     return err;
   }
 }
+
+//users
+// export async function getAllUsers() {
+//   try {
+//     const response = await axios.get(`/api/users/get-users`);
+//     return response.data;
+//   } catch (err) {
+//     console.error("Error fetching users:", err);
+//     return { users: [] }; // safer default fallback
+//   }
+// }
+export async function getAllUsers(): Promise<{
+  success: boolean;
+  message: string;
+  users: any[];
+}> {
+  try {
+    const response = await axios.get(`/api/users/get-all-users`);
+    return response.data;
+  } catch (err) {
+    console.error(err);
+    return {
+      success: false,
+      message: err.response?.data?.message || "Failed to fetch users",
+      users: []
+    };
+  }
+}
+
+//login 
+export async function login(email: string, password: string) {
+  try {
+    const response = await axios.post(`/api/auth/login`, {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+}
+
+
+export const logout = () => {
+  const router = useRouter();
+  localStorage.removeItem('loggedInUser'); // Remove user session
+  localStorage.setItem('forceLogin', 'true'); // Mark that user logged out intentionally
+  router.push('/login'); // Redirect to login page
+};
+
+
+//signup
+export async function signup(
+  firstName: string,
+  lastName: string,
+  email: string,
+  phoneNumber: string,
+  password: string,
+  confirmPassword: string
+) {
+  try {
+    const response = await axios.post(`/api/auth/signup`, {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      password,
+      confirmPassword,
+    });
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+}
+
+

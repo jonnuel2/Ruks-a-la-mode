@@ -7,7 +7,7 @@ import { useAppContext } from "@/helpers/store";
 // import { bungee, inter } from "@/styles/fonts";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import PartSelector from "../_ui/part-selector";
 import MaterialSelector from "../_ui/material-selector";
 import Button from "@/app/ui/button";
@@ -15,14 +15,15 @@ import { formatPrice } from "@/helpers/functions";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { getProduct } from "@/helpers/api-controller";
 import { Blocks } from "react-loader-spinner";
+import { url } from "inspector";
 
 type Params = Promise<{ slug: string }>;
 
@@ -30,6 +31,7 @@ type Params = Promise<{ slug: string }>;
 
 
 export default function Page(props: { params: Params }) {
+  const swiperRef = useRef<any>(null);
   const [openCustom, setOpenCustom] = useState(false);
   const params = use(props.params);
   const { slug } = params;
@@ -75,7 +77,8 @@ export default function Page(props: { params: Params }) {
   const more = [
     {
       text: "Size Guide",
-      url: "https://drive.google.com/file/d/1rz9N8QZTzkUZTjbRqL6xYoi5X2wOh6_z/view?usp=sharing",
+      // url: "https://drive.google.com/file/d/1rz9N8QZTzkUZTjbRqL6xYoi5X2wOh6_z/view?usp=sharing",
+      url: "/size-guide",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +98,8 @@ export default function Page(props: { params: Params }) {
     },
     {
       text: "Length Guide",
-      url: "https://drive.google.com/file/d/1rtkcLWXlncIHvlp5SpMZSQzelrN56H4h/view?usp=drivesdk",
+      // url: "https://drive.google.com/file/d/1rtkcLWXlncIHvlp5SpMZSQzelrN56H4h/view?usp=drivesdk",
+      url: "/length-guide",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -154,10 +158,31 @@ export default function Page(props: { params: Params }) {
   });
 
   const [selectedColor, setSelectedColor] = useState({
-    name: product?.data?.colors[0]?.name,
-    hexColor: product?.data?.colors[0]?.hexColor,
-    stock: product?.data?.colors[0]?.stock,
+    // name: product?.data?.colors[0]?.name,
+    // hexColor: product?.data?.colors[0]?.hexColor,
+    // stock: product?.data?.colors[0]?.stock,
+    name: "",
+    hexColor: "",
+    stock: 0,
   });
+
+  // Reset selectedColor when the product changes (slug changes)
+  // useEffect(() => {
+  //   if (product?.data?.colors?.length > 0) {
+  //     setSelectedColor({
+  //       name: product?.data?.colors[0]?.name,
+  //       hexColor: product?.data?.colors[0]?.hexColor,
+  //       stock: product?.data?.colors[0]?.stock,
+  //     });
+  //   } else {
+  //     // Handle cases where the product has no colors (optional)
+  //     setSelectedColor({
+  //       name: "",
+  //       hexColor: "",
+  //       stock: 0,
+  //     });
+  //   }
+  // }, [slug, product?.data?.colors]); // Reset when slug or product colors change
 
   const [orderDetails, setOrderDetails] = useState({
     quantity: 1,
@@ -222,17 +247,130 @@ export default function Page(props: { params: Params }) {
     return product?.data?.price ?? 0;
   };
 
+  // const addToBag = () => {
+  //   if (product) {
+  //     console.log("adding");
+  //     const { size, custom, length } = measurement;
+
+  //     if (
+  //       !size &&
+  //       !length &&
+  //       !Object?.entries(custom)?.some(([_, value]) => value !== "")
+  //     ) {
+  //       // return alert("Incomplete Measurement Parameters");
+  //       toast.error("Incomplete Measurement Parameters", {
+  //         position: "top-right",
+  //         autoClose: 3000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //       });
+  //       return;
+  //     }
+
+  //     let filteredMeasurement;
+
+  //     if (
+  //       Object.entries(measurement?.custom).some(([_, value]) => value !== "")
+  //     ) {
+  //       filteredMeasurement = Object.fromEntries(
+  //         Object.entries(measurement?.custom).filter(
+  //           ([_, value]) => value !== ""
+  //         )
+  //       );
+  //     } else {
+  //       filteredMeasurement = Object.fromEntries(
+  //         Object.entries(measurement).filter(
+  //           ([_, value]) => typeof value !== "object"
+  //         )
+  //       );
+  //     }
+
+  //     let color = { ...product?.data?.colors[0] };
+
+  //     // if (product?.data?.colors?.length > 1) {
+  //     //   if (selectedColor?.name === "") return alert("Please choose a color");
+  //     //   if (selectedColor?.name === "") {
+  //     //     toast.warning("Please choose a color", {
+  //     //       position: "top-right",
+  //     //       autoClose: 3000,
+  //     //       hideProgressBar: false,
+  //     //       closeOnClick: true,
+  //     //       pauseOnHover: true,
+  //     //       draggable: true,
+  //     //     });
+
+  //     //   color = { ...selectedColor };
+  //     // }
+  //     if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+  //       toast.warning("Please choose a color", {
+  //         position: "top-right",
+  //         autoClose: 3000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //       });
+  //       return;
+  //     }
+
+  //     const itemData: any = {
+  //       item: {
+  //         name: product?.data?.name,
+  //         price: getPrice(),
+  //         id: product?.id,
+  //         image: product?.data?.images[0],
+  //         stock:
+  //           product?.data?.colors?.find((c: any) => c?.name === color?.name)
+  //             ?.stock ?? 10,
+  //         measurement: filteredMeasurement,
+  //         color,
+  //         weight: product?.data?.weight,
+  //       },
+  //       quantity: orderDetails?.quantity,
+  //     };
+  //     if (selectedPart?.name) {
+  //       itemData.item["selectedPart"] = selectedPart;
+  //       itemData.item["name"] += ` (${selectedPart?.name})`;
+  //     }
+  //     if (selectedMaterial?.name) {
+  //       itemData.item["selectedMaterial"] = selectedMaterial;
+  //       itemData.item["name"] += ` (${selectedMaterial?.name})`;
+  //     }
+  //     if (product?.data?.colors?.length > 1) {
+  //       itemData.item["name"] += ` (${selectedColor?.name})`;
+  //     }
+  //     setcart({ ...cart, items: [...cart?.items, itemData] });
+
+  //     localStorage.setItem(
+  //       "cart",
+  //       JSON.stringify({ ...cart, items: [...cart?.items, itemData] })
+  //     );
+
+  //     // alert("Cart Updated");
+  //     toast.success("Cart Updated Successfully!", {
+  //       position: "top-right",
+  //       autoClose: 3000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //     });
+  //   }
+  // };
+
   const addToBag = () => {
     if (product) {
       console.log("adding");
       const { size, custom, length } = measurement;
 
+      // Validate measurements
       if (
         !size &&
         !length &&
         !Object?.entries(custom)?.some(([_, value]) => value !== "")
       ) {
-        // return alert("Incomplete Measurement Parameters");
         toast.error("Incomplete Measurement Parameters", {
           position: "top-right",
           autoClose: 3000,
@@ -244,8 +382,21 @@ export default function Page(props: { params: Params }) {
         return;
       }
 
-      let filteredMeasurement;
+      // Validate color selection for multi-color products
+      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+        toast.warning("Please choose a color", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
 
+      // Prepare measurements
+      let filteredMeasurement;
       if (
         Object.entries(measurement?.custom).some(([_, value]) => value !== "")
       ) {
@@ -262,59 +413,58 @@ export default function Page(props: { params: Params }) {
         );
       }
 
-      let color = { ...product?.data?.colors[0] };
+      // Use the SELECTED color, not the first one
+      const color =
+        product?.data?.colors?.length > 1
+          ? selectedColor
+          : product?.data?.colors[0]; // Fallback to first color if product has only one color
 
-      if (product?.data?.colors?.length > 1) {
-        // if (selectedColor?.name === "") return alert("Please choose a color");
-        if (selectedColor?.name === "") {
-          toast.warning("Please choose a color", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-          return;
-        }
-
-        color = { ...selectedColor };
-      }
-
+      // Prepare cart item
       const itemData: any = {
         item: {
           name: product?.data?.name,
           price: getPrice(),
           id: product?.id,
           image: product?.data?.images[0],
-          stock:
-            product?.data?.colors?.find((c: any) => c?.name === color?.name)
-              ?.stock ?? 10,
+          stock: color?.stock ?? 10,
           measurement: filteredMeasurement,
-          color,
+          color: {
+            // Store the complete color object
+            name: color?.name,
+            hexCode: color?.hexCode,
+            stock: color?.stock,
+          },
           weight: product?.data?.weight,
         },
         quantity: orderDetails?.quantity,
       };
+
+      // Add part info if selected
       if (selectedPart?.name) {
         itemData.item["selectedPart"] = selectedPart;
         itemData.item["name"] += ` (${selectedPart?.name})`;
       }
+
+      // Add material info if selected
       if (selectedMaterial?.name) {
         itemData.item["selectedMaterial"] = selectedMaterial;
         itemData.item["name"] += ` (${selectedMaterial?.name})`;
       }
-      if (product?.data?.colors?.length > 1) {
-        itemData.item["name"] += ` (${selectedColor?.name})`;
-      }
-      setcart({ ...cart, items: [...cart?.items, itemData] });
 
-      localStorage.setItem(
-        "cart",
-        JSON.stringify({ ...cart, items: [...cart?.items, itemData] })
-      );
+      // Add color to name if multiple colors exist
+      // if (product?.data?.colors?.length > 1) {
+      //   itemData.item["name"] += ` (${color?.name})`;
+      // }
 
-      // alert("Cart Updated");
+      // Update cart
+      const updatedCart = {
+        ...cart,
+        items: [...cart?.items, itemData],
+      };
+
+      setcart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+
       toast.success("Cart Updated Successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -326,6 +476,8 @@ export default function Page(props: { params: Params }) {
     }
   };
 
+
+
   if (isLoading) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
@@ -335,39 +487,121 @@ export default function Page(props: { params: Params }) {
   }
   console.log("checkiii", product?.data);
 
-
   console.log("art?.items?.length >>>>", product?.data?.colors?.length);
   console.log("product?.data?.colors >>>>", product?.data);
 
+  const handlePrev = () => {
+    if (!swiperRef.current) return;
+    
+    if (swiperRef.current.isBeginning) {
+      // If at first slide, go to last
+      swiperRef.current.slideTo(product?.data?.images?.length - 1, 500);
+    } else {
+      // Normal previous slide
+      swiperRef.current.slidePrev(500);
+    }
+  };
+  
+  const handleNext = () => {
+    if (!swiperRef.current) return;
+    
+    if (swiperRef.current.isEnd) {
+      // If at last slide, go to first
+      swiperRef.current.slideTo(0, 500);
+    } else {
+      // Normal next slide
+      swiperRef.current.slideNext(500);
+    }
+  };
+
   return (
-    <div className={`flex flex-col w-full lg:px-24 px-8  text-black/80 `}>
+    <div className={`flex flex-col w-full lg:px-24 px-4  text-black/80 `}>
       <ToastContainer />
       <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
-        <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          // navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 5000, disableOnInteraction: false }}
-          className="h-full lg:w-[570px] w-full flex items-center justify-center"
-        >
-          {product?.data?.images?.map((image: any, i: number) => (
-            <SwiperSlide key={i}>
-              <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] relative lg:mt-0 mt-8">
-                {image ? (
-                  <Image
-                    priority
-                    alt="merch"
-                    src={image}
-                    fill
-                    style={{ objectFit: "cover" }} // or "contain"
-                  />
-                ) : (
-                  <></>
-                )}
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <div className="relative lg:w-[570px] w-full">
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            navigation={{
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            }}
+            pagination={{ clickable: true }}
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+              waitForTransition: true, // Prevents skipping
+            }}
+            speed={500} // Smooth transition speed
+            className="h-full w-full"
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            preventInteractionOnTransition={true} // Prevents interruptions
+          >
+            {product?.data?.images?.map((image: any, i: number) => (
+              <SwiperSlide key={i}>
+                <div className="lg:h-[715px] lg:w-[570px] w-full h-[440px] md:h-[800px] relative lg:mt-0 mt-8">
+                  {image && (
+                    <Image
+                      priority
+                      alt="merch"
+                      src={image}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          {/* Custom Navigation Arrows */}
+          <button
+            className="custom-swiper-button-prev absolute left-4 top-1/2 z-10 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 h-12 w-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle previous slide
+              handlePrev();
+              
+            }}
+            aria-label="Previous slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M11.03 3.97a.75.75 0 010 1.06l-6.22 6.22H21a.75.75 0 010 1.5H4.81l6.22 6.22a.75.75 0 11-1.06 1.06l-7.5-7.5a.75.75 0 010-1.06l7.5-7.5a.75.75 0 011.06 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          <button
+            className="custom-swiper-button-next absolute right-4 top-1/2 z-10 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-900 h-12 w-12 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-105 focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+             
+            }}
+            aria-label="Next slide"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
         <div className="flex flex-col items-start lg:w-2/5 w-full lg:mt-0 mt-10">
           {/* name */}
           <p className="lg:text-4xl text-2xl font-medium tracking-wider lg:text-left text-center">
@@ -494,49 +728,46 @@ export default function Page(props: { params: Params }) {
           /> */}
 
           {/* add to cart */}
+          {/* add to cart */}
           <div className="flex flex-row gap-4 lg:gap-2 items-center lg:items-start lg:mt-10 mt-6 lg:space-x-3 w-full">
-            {isProductInCart ? (
-              <></>
-            ) : (
-              <div className="flex flex-col items-start">
-                <div className="w-40 py-2 px-3 border-dark border ">
-                  <Incrementer
-                    leftClick={() =>
-                      setOrderDetails({
-                        ...orderDetails,
-                        quantity:
-                          orderDetails.quantity > 1
-                            ? orderDetails.quantity - 1
-                            : orderDetails.quantity,
-                      })
-                    }
-                    rightClick={() =>
-                      setOrderDetails({
-                        ...orderDetails,
-                        quantity:
-                          selectedColor?.stock &&
-                          orderDetails.quantity < selectedColor?.stock
-                            ? orderDetails.quantity + 1
-                            : orderDetails.quantity,
-                      })
-                    }
-                    value={orderDetails?.quantity}
-                  />
-                </div>
+            {/* Quantity selector */}
+            <div className="flex flex-col items-start">
+              <div className="w-40 py-2 px-3 border-dark border">
+                <Incrementer
+                  leftClick={() => {
+                    setOrderDetails({
+                      ...orderDetails,
+                      quantity: Math.max(1, orderDetails.quantity - 1),
+                    });
+                  }}
+                  rightClick={() => {
+                    setOrderDetails({
+                      ...orderDetails,
+                      quantity:
+                        selectedColor?.stock &&
+                        orderDetails.quantity < selectedColor?.stock
+                          ? orderDetails.quantity + 1
+                          : orderDetails.quantity,
+                    });
+                  }}
+                  value={orderDetails.quantity}
+                />
               </div>
-            )}
+            </div>
 
-            {/* add to cart */}
-            {/* {isProductInCart ? (
-              <Incrementer
-                leftClick={handleLeftClick}
-                rightClick={handleRightClick}
-                value={cart?.items ? cart?.items[itemIndex].quantity : 1}
-              />
-            ) : (
+            {/* Add to Bag button - always enabled */}
+            <div className="relative group w-full">
               <div
-                className="flex items-center justify-center w-full lg:w-1/2 border bg-dark p-2 cursor-pointer"
-                onClick={addToBag}
+                className={`flex items-center justify-center w-full lg:w-[50%] border py-2 h-[40px] px-4 text-nowrap ${
+                  !selectedColor?.name || selectedColor?.stock <= 0
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-dark hover:bg-gray-800 cursor-pointer"
+                }`}
+                onClick={
+                  !selectedColor?.name || selectedColor?.stock <= 0
+                    ? undefined
+                    : addToBag
+                }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -552,38 +783,23 @@ export default function Page(props: { params: Params }) {
                     d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                   />
                 </svg>
-                <p className="text-xs text-lightgrey">Add To Bag</p>
+                <p className="text-xs text-lightgrey px-8">
+                  {!selectedColor?.name
+                    ? "Add to Bag"
+                    : selectedColor?.stock <= 0
+                    ? "Out of Stock"
+                    : "Add To Bag"}
+                </p>
               </div>
-            )} */}
-            {isProductInCart ? (
-              <Incrementer
-                leftClick={handleLeftClick}
-                rightClick={handleRightClick}
-                value={cart?.items ? cart?.items[itemIndex].quantity : 0}
-              />
-            ) : product?.data?.colors?.some((color:any) => color?.stock !== "") ? (
-              <div
-                className="flex items-center justify-center w-full lg:w-1/2 border bg-dark p-2 cursor-pointer"
-                onClick={addToBag}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="#f5f5f5"
-                  className="size-5 mr-2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                  />
-                </svg>
-                <p className="text-xs text-lightgrey">Add To Bag</p>
-              </div>
-            ) : null}
+              {!selectedColor?.name && (
+                <div className="absolute z-10 hidden group-hover:block bg-black text-white text-xs p-2 rounded mt-1 whitespace-nowrap">
+                  Please select a color
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* other items */}
           <div className="flex items-start lg:items-center lg:flex-row flex-col lg:space-y-0 space-y-3 lg:space-x-6 mt-6 lg:mt-8">
             {more?.map((m) => (
               <Link key={m.text} href={m.url}>
@@ -639,7 +855,7 @@ const CustomMeasurement = ({
             onChange={(e) => {
               const inputValue = e.target.value;
               // Allow decimals (e.g., 0.4, 12.75)
-              if (/^\d*\.?\d*$/.test(inputValue)) {
+              if (/^[\d'.]*$/.test(inputValue)) {
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: inputValue },
