@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
     const newUserRef = await usersRef.add(newUser);
 
     // Construct the verification link
-    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+    // const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
 
     // Send the verification email
     // await sendEmail(email, verificationLink, firstName);
