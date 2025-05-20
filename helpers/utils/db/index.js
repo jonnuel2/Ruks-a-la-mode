@@ -30,3 +30,4 @@ try {
 export const db = admin.firestore();
 
 export const firebase = admin;
+
