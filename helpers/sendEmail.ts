@@ -181,6 +181,10 @@ export async function sendEmail(email: string, verificationLink: string, firstNa
     return info
   } catch (error) {
     console.error("Failed to send verification email:", error)
-    throw new Error(`Email sending failed: ${error.message}`)
+    if (error instanceof Error) {
+      throw new Error(`Email sending failed: ${error.message}`)
+    } else {
+      throw new Error(`Email sending failed: ${String(error)}`)
+    }
   }
 }
