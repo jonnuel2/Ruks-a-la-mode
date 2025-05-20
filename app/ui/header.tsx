@@ -24,7 +24,9 @@ export default function Header() {
   const router = useRouter()
   const { currencies, currency, setCurrency } = context
 
-  const [user, setUser] = useState<{ name?: string; email: string } | null>(null)
+  // const [user, setUser] = useState<{ name?: string; email: string } | null>(null)
+  const [user, setUser] = useState<{ firstName?: string; lastName?: string; email: string } | null>(null)
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -50,7 +52,7 @@ export default function Header() {
   // Add this effect after the existing useEffect
   useEffect(() => {
     // Function to handle storage changes from other tabs/windows
-    const handleStorageChange = (e) => {
+    const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "user") {
         if (e.newValue) {
           try {

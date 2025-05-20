@@ -289,9 +289,14 @@ export async function getAllUsers(): Promise<{
     return response.data;
   } catch (err) {
     console.error(err);
+    let message = "Failed to fetch users";
+    if (err && typeof err === "object" && "response" in err) {
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      message = errorObj.response?.data?.message || message;
+    }
     return {
       success: false,
-      message: err.response?.data?.message || "Failed to fetch users",
+      message,
       users: []
     };
   }
