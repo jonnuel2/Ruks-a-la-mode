@@ -172,7 +172,7 @@ export default function Page() {
       </div>
 
       <div className="mt-4">
-        <Link href="/auth/login">
+        <Link href="/Auth/login">
           <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Already have an account? <span className="text-blue-600">Login</span>
