@@ -6,17 +6,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Validate required fields (modify as needed)
-    if (!body.imageUrl || !body.status) {
+    if (!body.status || (!body.imageUrl && !body.videoUrl)) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
 
+        // Ensure at least one of imageUrl or videoUrl is provided
+        if (body.imageUrl && body.videoUrl) {
+          return NextResponse.json(
+            { success: false, message: "Provide only one of imageUrl or videoUrl" },
+            { status: 400 }
+          );
+        }
+
     // Prepare product data
     const newBanner = {
       status: body.status,
-      imageUrl: body.imageUrl,
+      imageUrl: body.imageUrl || null, // Ensure imageUrl is null if not provided
+      videoUrl: body.videoUrl || null,
     };
 
     console.log(newBanner);
