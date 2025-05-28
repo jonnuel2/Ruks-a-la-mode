@@ -12,16 +12,16 @@ export default function ContactCard() {
     <div className="lg:w-[45%] w-full bg-lightgrey lg:p-14 rounded-[40px] lg:mt-0 mt-12">
       <Tab label="Location">
         <p className="lg:w-3/5 lg:text-sm text-sm text-dark">
-          Penthouse, Wing C, Deo Gracia Plaza, Utako, Abuja.
+         No. 27, Beechwood Avenue, Minfa 1 Garden Estate, Lokogoma, Abuja.
         </p>
       </Tab>
       <Tab label="Working Hours">
         <div>
           <p className="lg:text-sm text-sm text-dark">
-            Monday To Friday 11:00 AM to 5:00 PM
+            In-Store: Monday to Friday, 11:00 AM – 5:00 PM
           </p>
           <p className="lg:text-sm text-sm mt-1">
-            Our Support Team is available 9am - 9pm, everyday but Sunday.
+            Online: Monday to Saturday, 10:00 AM – 8:00 PM
           </p>
         </div>
       </Tab>

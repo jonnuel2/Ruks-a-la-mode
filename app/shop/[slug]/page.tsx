@@ -514,7 +514,7 @@ export default function Page(props: { params: Params }) {
   return (
     <div className={`flex flex-col w-full lg:px-24 px-4  text-black/80 `}>
       <ToastContainer />
-      <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
+      <div className="flex lg:flex-row   flex-col lg:items-start lg:justify-center items-center lg:space-x-12 w-full lg:mt-10">
         <div className="relative lg:w-[570px] w-full">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
@@ -599,6 +599,8 @@ export default function Page(props: { params: Params }) {
             </svg>
           </button>
         </div>
+
+        {/*  */}
         <div className="flex flex-col items-start lg:w-2/5 w-full lg:mt-0 mt-10">
           {/* name */}
           <p className="lg:text-4xl text-2xl font-medium tracking-wider lg:text-left text-center">

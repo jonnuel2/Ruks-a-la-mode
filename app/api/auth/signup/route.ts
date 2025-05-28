@@ -82,10 +82,10 @@ const sendEmail = async (email: string, verificationLink: string, firstName: str
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, lastName, email, phoneNumber, password, confirmPassword } = body;
+    const { firstName, lastName, email, password, confirmPassword } = body;
 
     // Validate input
-    if (!firstName || !lastName || !email || !phoneNumber || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       return NextResponse.json(
         { success: false, message: "All fields are required" },
         { status: 400 }
@@ -120,7 +120,6 @@ export async function POST(req: NextRequest) {
       firstName,
       lastName,
       email,
-      phoneNumber,
       password: hashedPassword,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       verificationToken,
