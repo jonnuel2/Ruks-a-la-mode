@@ -7,24 +7,20 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { getBanners } from "@/helpers/api-controller";
-import { Blocks, ProgressBar } from "react-loader-spinner";
-export default function HomeBanners() {
-  // const banners = [
-  //   { id: 1, image: "/images/banners/0E3A2870.jpg", alt: "banner 1" },
-  //   { id: 2, image: "/images/banners/0E3A3249.jpg", alt: "banner 2" },
-  // ];
+import { ProgressBar } from "react-loader-spinner";
 
+export default function HomeBanners() {
   const {
     data: bannersData,
     isLoading,
     isError,
-    refetch,
   } = useQuery({
     queryKey: ["banners"],
     queryFn: () => getBanners(),
   });
 
   const banners = bannersData?.banners;
+
   return (
     <div className="w-full lg:h-screen">
       {isLoading ? (
@@ -37,17 +33,27 @@ export default function HomeBanners() {
       ) : (
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
-          // navigation
           pagination={{ clickable: true }}
           autoplay={{ delay: 5000, disableOnInteraction: false }}
           className="w-full h-full"
         >
           {banners?.map((banner: any) => (
             <SwiperSlide key={banner.id}>
-              <div
-                className="w-full lg:h-full h-80 bg-cover lg:bg-cover bg-center"
-                style={{ backgroundImage: `url(${banner?.data?.imageUrl})` }}
-              />
+              {banner?.data?.videoUrl ? (
+                <video
+                  src={banner?.data?.videoUrl}
+                  className="w-full lg:h-full h-80 object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  controls
+                />
+              ) : (
+                <div
+                  className="w-full lg:h-full h-80 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${banner?.data?.imageUrl})` }}
+                />
+              )}
             </SwiperSlide>
           ))}
         </Swiper>

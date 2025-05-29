@@ -127,13 +127,6 @@ export default function Page() {
         type="email"
       />
 
-      <input
-        placeholder="Phone Number"
-        className={inputStyle}
-        value={signupInfo.phoneNumber}
-        onChange={(e) => setSignupInfo({ ...signupInfo, phoneNumber: e.target.value })}
-        type="number"
-      />
 
       <div className="flex px-3 py-1.5 text-[#0e0e0e] items-center rounded-md justify-center space-x-2 lg:w-72 w-72 mb-6 bg-transparent border border-dark">
         <input

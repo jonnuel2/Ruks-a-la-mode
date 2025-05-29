@@ -52,6 +52,14 @@ export async function deleteDiscount(code: any) {
   }
 }
 
+export async function editDiscount(discount: any) {
+  try {
+    return await axios.post(`/api/discounts/edit-discount`, discount);
+  } catch (error) {
+    return error;
+  }
+}
+
 //payments
 export async function makePayment(data: any) {
   try {
@@ -329,7 +337,6 @@ export async function signup(
   firstName: string,
   lastName: string,
   email: string,
-  phoneNumber: string,
   password: string,
   confirmPassword: string
 ) {
@@ -338,7 +345,6 @@ export async function signup(
       firstName,
       lastName,
       email,
-      phoneNumber,
       password,
       confirmPassword,
     });
