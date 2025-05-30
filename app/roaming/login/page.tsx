@@ -50,7 +50,7 @@ export default function Page() {
       setLoading(false);
       return;
     } else {
-      toast.success("logging in...");
+      toast.success("Logging in...");
       setLoading(true);
     }
 

@@ -1,5 +1,8 @@
 import { formatPrice } from "@/helpers/functions";
-import React from "react";
+import React, { useState } from "react";
+import AddTailorModal from "./add-tailor"
+
+import { editTailor } from "@/helpers/api-controller"; // Make sure this path is correct
 
 type OrderDetailsProps = {
   order: any;
@@ -7,6 +10,11 @@ type OrderDetailsProps = {
 };
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
+  const [isTailorModalOpen, setTailorModalOpen] = useState(false);
+  const [assignedTailors, setAssignedTailors] = useState(
+    order?.data?.tailors || []
+  );
+
   const getMeasurementString = (measurement: any) => {
     if (!measurement) return null;
 
@@ -34,29 +42,44 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           Order Details - {order.id}
         </h2>
         <p className="mb-2 text-sm">
-          <span className="font-bold">Name:</span> {order?.data?.shippingInfo?.firstname || "N/A"} {order?.data?.shippingInfo?.surname || "N/A"}
+          <span className="font-bold">Name:</span>{" "}
+          {order?.data?.shippingInfo?.firstname || "N/A"}{" "}
+          {order?.data?.shippingInfo?.surname || "N/A"}
         </p>
         <p className="mb-2 text-sm">
-        <span className="font-bold">Email:</span> {order?.data?.shippingInfo?.email || "N/A"}
+          <span className="font-bold">Email:</span>{" "}
+          {order?.data?.shippingInfo?.email || "N/A"}
         </p>
         <p className="mb-2 text-sm">
-        <span className="font-bold">Number:</span> {order?.data?.shippingInfo?.phonenumber || "N/A"}
+          <span className="font-bold">Number:</span>{" "}
+          {order?.data?.shippingInfo?.phonenumber || "N/A"}
         </p>
         <p className="mb-2 text-sm">
-        <span className="font-bold">Order Date:</span> {order?.data?.createdAt || "N/A"}
+          <span className="font-bold">Order Date:</span>{" "}
+          {order?.data?.createdAt || "N/A"}
         </p>
         <p className="mb-2 text-sm capitalize">
-        <span className="font-bold">Status:</span> {order?.data?.status || "N/A"}
+          <span className="font-bold">Status:</span>{" "}
+          {order?.data?.status || "N/A"}
         </p>
         <p className="mb-4 text-sm font-bold">
           Total: {formatPrice("NGN", order?.data?.price || 0)}
         </p>
 
-        {order?.data?.tailors?.length > 0 && (
+        {assignedTailors.length > 0 && (
           <div className="mb-6">
-            <p className="text-sm mb-1 font-semibold">Assigned Tailors</p>
+            <p className="text-sm mb-1 font-semibold flex gap-8 items-center">
+              Assigned Tailors
+              <button
+                onClick={() => setTailorModalOpen(true)}
+                className="text-xs  border rounded-md px-2 py-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                disabled={assignedTailors.length === 0}
+              >
+                Edit
+              </button>
+            </p>
             <ol className="list-decimal list-inside text-sm">
-              {order.data.tailors.map((t: any, i: number) => (
+              {assignedTailors.map((t: any, i: number) => (
                 <li key={i}>
                   <span className="font-medium">{t.name}</span> – {t.description}
                 </li>
@@ -108,6 +131,23 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           Close
         </button>
       </div>
+
+      {/* Tailor Modal */}
+      <AddTailorModal
+        isOpen={isTailorModalOpen}
+        onClose={() => setTailorModalOpen(false)}
+        onSubmit={async (newTailors) => {
+          try {
+            await editTailor({ orderId: order.id, tailors: newTailors });
+            setAssignedTailors(newTailors);
+            setTailorModalOpen(false);
+          } catch (err) {
+            console.error(err);
+          }
+        }}
+        orderId={order.id}
+        initialData={assignedTailors}
+      />
     </div>
   );
 };

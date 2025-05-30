@@ -1,113 +1,126 @@
-"use client"
+import React, { useEffect, useState } from "react";
 
-import type React from "react"
-import { useState } from "react"
+type Tailor = {
+  name: string;
+  description: string;
+};
 
-interface TailorEntry {
-  name: string
-  description: string
-}
+type AddTailorModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (tailors: Tailor[]) => Promise<void> | void;
+  orderId: string;
+  initialData: Tailor[];
+};
 
-interface AddTailorProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (tailorInfoList: TailorEntry[]) => void
-  orderId: string
-}
+const AddTailorModal: React.FC<AddTailorModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  orderId,
+  initialData,
+}) => {
+  const [tailorList, setTailorList] = useState<Tailor[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-export default function AddTailorModal({ isOpen, onClose, onSubmit, orderId }: AddTailorProps) {
-  const [tailorList, setTailorList] = useState<TailorEntry[]>([{ name: "", description: "" }])
-
-  if (!isOpen) return null
-
-  const handleChange = (index: number, field: keyof TailorEntry, value: string) => {
-    const updatedList = [...tailorList]
-    updatedList[index][field] = value
-    setTailorList(updatedList)
-  }
-
-  const handleAdd = () => {
-    setTailorList([...tailorList, { name: "", description: "" }])
-  }
-
-  const handleRemove = (index: number) => {
-    const updatedList = [...tailorList]
-    updatedList.splice(index, 1)
-    setTailorList(updatedList)
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Filter out empty entries
-    const validTailors = tailorList.filter((tailor) => tailor.name.trim() !== "" && tailor.description.trim() !== "")
-
-    if (validTailors.length === 0) {
-      alert("Please enter at least one tailor with name and description")
-      return
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setTailorList(initialData);
+      setIsAdding(false); // editing mode
+    } else {
+      setTailorList([{ name: "", description: "" }]);
+      setIsAdding(true); // adding mode
     }
+  }, [initialData, isOpen]);
 
-    onSubmit(validTailors)
-    setTailorList([{ name: "", description: "" }]) // Reset after submit
-    onClose()
-  }
+  if (!isOpen) return null;
+
+  const handleAddInput = () => {
+    setTailorList([...tailorList, { name: "", description: "" }]);
+  };
+
+  const handleChange = (index: number, field: keyof Tailor, value: string) => {
+    const updated = [...tailorList];
+    updated[index][field] = value;
+    setTailorList(updated);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit(tailorList);
+      // Close modal automatically after successful submit
+      onClose();
+    } catch (error) {
+      // optionally handle error here
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-6">Enter Tailor Information</h2>
-        <form onSubmit={handleSubmit}>
-          {tailorList.map((entry, index) => (
-            <div key={index} className="mb-4 border-b pb-4">
-              <label className="block text-sm font-medium mb-2">Tailor Name</label>
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Assign / Edit Tailors</h2>
+
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {tailorList.map((tailor, index) => (
+            <div key={index} className="flex flex-col gap-2">
+              <label className="text-sm font-semibold">Tailor Name</label>
               <input
                 type="text"
-                value={entry.name}
+                value={tailor.name}
                 onChange={(e) => handleChange(index, "name", e.target.value)}
-                className="w-full p-2 mb-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                required
+                placeholder="Enter tailor name"
+                className="border p-2 rounded text-sm"
+                disabled={isSubmitting}
               />
 
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="text-sm font-semibold">Description</label>
               <input
                 type="text"
-                value={entry.description}
-                onChange={(e) => handleChange(index, "description", e.target.value)}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                required
-                placeholder="Enter design or other details"
+                value={tailor.description}
+                onChange={(e) =>
+                  handleChange(index, "description", e.target.value)
+                }
+                placeholder="Enter description"
+                className="border p-2 rounded text-sm"
+                disabled={isSubmitting}
               />
-
-              {tailorList.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemove(index)}
-                  className="mt-2 text-red-500 text-sm underline"
-                >
-                  Remove
-                </button>
-              )}
             </div>
           ))}
+        </div>
 
-          <button type="button" onClick={handleAdd} className="mb-6 text-sm text-blue-600 underline">
-            + Add another
+        <div className="flex justify-between items-center mt-6">
+          <button
+            onClick={handleAddInput}
+            className="text-blue-600 text-sm underline"
+            disabled={isSubmitting}
+          >
+            + Add Another Tailor
           </button>
 
-          <div className="flex justify-end gap-4">
+          <div className="space-x-2">
             <button
-              type="button"
+              onClick={handleSubmit}
+              className="bg-gray-900 text-white px-4 py-2 text-sm rounded hover:bg-green-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (isAdding ? "Adding..." : "Saving...") : isAdding ? "Add" : "Save"}
+            </button>
+            <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
+              className="bg-gray-400 text-white px-4 py-2 text-sm rounded hover:bg-gray-500"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 text-sm text-white bg-black rounded-lg hover:bg-gray-800">
-              Submit
-            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default AddTailorModal;

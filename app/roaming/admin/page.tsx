@@ -153,15 +153,36 @@ export default function Page() {
     }
   };
 
+  // useEffect(() => {
+  //   if (!user) {
+  //     router.push("/roaming/login");
+  //   } else {
+  //     let current = admins?.find((a: any) => a?.id === user?.email);
+  //     setrole(current?.data?.role);
+  //     lastSeenMutation.mutate(user?.email);
+  //   }
+  // }, [user]);
+
   useEffect(() => {
-    if (!user) {
-      router.push("/roaming/login");
+  if (!user) {
+    router.push("/roaming/login");
+  } else {
+    const current = admins?.find((a: any) => a?.id === user?.email);
+    const userRole = current?.data?.role;
+    setrole(userRole);
+    lastSeenMutation.mutate(user?.email);
+
+    // Set default view based on role
+    if (userRole === "production") {
+      setActiveView("orders");
+    } else if (userRole === "deliveries") {
+      setActiveView("deliveries");
     } else {
-      let current = admins?.find((a: any) => a?.id === user?.email);
-      setrole(current?.data?.role);
-      lastSeenMutation.mutate(user?.email);
+      setActiveView("analytics"); // Default for super/admin
     }
-  }, [user]);
+  }
+}, [user, admins]);
+
 
   return (
     <div className="flex lg:flex-row flex-col overflow-x-auto">

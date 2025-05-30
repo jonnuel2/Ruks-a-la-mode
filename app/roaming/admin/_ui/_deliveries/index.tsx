@@ -377,6 +377,7 @@ const Deliveries = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >Date</th>
               <th 
                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => {
@@ -409,6 +410,9 @@ const Deliveries = () => {
                 return (
                   <tr key={delivery.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">{delivery.id}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {dayjs(delivery.data.createdAt).format("MMM D, YYYY")}
+                    </td>
                     <td className="px-4 py-3 text-sm">
                       <div className="font-medium">
                         {delivery.data.shippingInfo.firstname} {delivery.data.shippingInfo.surname}
@@ -456,7 +460,7 @@ const Deliveries = () => {
                         delivery.data.status === "delivered" ? "bg-green-100 text-green-800" :
                         "bg-red-100 text-red-800"
                       }`}>
-                        {delivery.data.status}
+                       {delivery.data.status.charAt(0).toUpperCase() + delivery.data.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm">

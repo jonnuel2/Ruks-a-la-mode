@@ -45,7 +45,7 @@ export default function Page() {
     const { firstName, lastName, email, phoneNumber, password, confirmPassword } = signupInfo;
 
     // Basic client-side validations
-    if (!firstName || !lastName || !email || !phoneNumber || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       toast.error("Please fill out all fields.");
       return;
     }
@@ -59,7 +59,7 @@ export default function Page() {
 
     try {
       console.log("Sending signup request...");
-      const response = await signup(firstName, lastName, email, phoneNumber, password, confirmPassword);
+      const response = await signup(firstName, lastName, email, password, confirmPassword);
       console.log("Signup response:", response);
 
       if (response && response.success === true) {
@@ -68,7 +68,7 @@ export default function Page() {
           firstName: response.user?.firstName || firstName,
           lastName: response.user?.lastName || lastName,
           email: response.user?.email || email,
-          phoneNumber: response.user?.phoneNumber || phoneNumber,
+          // phoneNumber: response.user?.phoneNumber || phoneNumber,
         };
 
         console.log("Saving user data:", userData);
@@ -127,6 +127,13 @@ export default function Page() {
         type="email"
       />
 
+      {/* <input
+        placeholder="Phone Number"
+        className={inputStyle}
+        value={signupInfo.phoneNumber}
+        onChange={(e) => setSignupInfo({ ...signupInfo, phoneNumber: e.target.value })}
+        type="number"
+      /> */}
 
       <div className="flex px-3 py-1.5 text-[#0e0e0e] items-center rounded-md justify-center space-x-2 lg:w-72 w-72 mb-6 bg-transparent border border-dark">
         <input
@@ -136,18 +143,24 @@ export default function Page() {
           onChange={(e) => setSignupInfo({ ...signupInfo, password: e.target.value })}
           type={hidden ? "password" : "text"}
         />
-        <p onClick={() => setHidden(!hidden)} className="lg:text-xs text-[10px] cursor-pointer select-none">
+        <p onClick={() => setHidden(!hidden)} className="lg:text-xs text-[10px] text-blue-600 cursor-pointer select-none">
           {hidden ? "SHOW" : "HIDE"}
         </p>
       </div>
 
-      <input
+      
+      <div className="flex px-3 py-1.5 text-[#0e0e0e] items-center rounded-md justify-center space-x-2 lg:w-72 w-72 mb-6 bg-transparent border border-dark">
+        <input
         placeholder="Confirm Password"
-        className={inputStyle}
+        className="bg-transparent outline-none text-xs w-full"
         value={signupInfo.confirmPassword}
         onChange={(e) => setSignupInfo({ ...signupInfo, confirmPassword: e.target.value })}
         type={hidden ? "password" : "text"}
       />
+        <p onClick={() => setHidden(!hidden)} className="lg:text-xs text-[10px] text-blue-600 cursor-pointer select-none">
+          {hidden ? "SHOW" : "HIDE"}
+        </p>
+      </div>
 
       <div
         onClick={() => {
@@ -166,7 +179,7 @@ export default function Page() {
 
       <div className="mt-4">
         <Link href="/Auth/login">
-          <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
+          <div className="flex items-center justify-start  cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Already have an account? <span className="text-blue-600">Login</span>
             </p>

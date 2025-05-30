@@ -60,6 +60,14 @@ export async function editDiscount(discount: any) {
   }
 }
 
+export async function editTailor(discount: any) {
+  try {
+    return await axios.post(`/api/order/edit-tailor`, discount);
+  } catch (error) {
+    return error;
+  }
+}
+
 //payments
 export async function makePayment(data: any) {
   try {
@@ -330,6 +338,41 @@ export const logout = () => {
   localStorage.setItem('forceLogin', 'true'); // Mark that user logged out intentionally
   router.push('/login'); // Redirect to login page
 };
+
+export async function forgotPassword(email: string) {
+  try {
+    const response = await axios.post(`/api/users/forgot-password`, { email });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("Error in forgotPassword:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Something went wrong.",
+    };
+  }
+};
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+  confirmPassword: string
+) {
+  try {
+    const response = await axios.post(`/api/users/reset-password`, {
+      token,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    return error;
+  }
+};
+
 
 
 //signup
