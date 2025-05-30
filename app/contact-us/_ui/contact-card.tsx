@@ -12,7 +12,7 @@ export default function ContactCard() {
     <div className="lg:w-[45%] w-full bg-lightgrey lg:p-14 rounded-[40px] lg:mt-0 mt-12">
       <Tab label="Location">
         <p className="lg:w-3/5 lg:text-sm text-sm text-dark">
-         No. 27, Beechwood Avenue, Minfa 1 Garden Estate, Lokogoma, Abuja.
+          No. 27, Beechwood Avenue, Minfa 1 Garden Estate, Lokogoma, Abuja.
         </p>
       </Tab>
       <Tab label="Working Hours">
@@ -26,13 +26,42 @@ export default function ContactCard() {
         </div>
       </Tab>
       <Tab label="Contact us">
-        <div>
-          <p className="lg:w-1/2 lg:text-sm text-sm text-dark">
-            +234 901 210 1539
-          </p>
-          <p className="mt-1 lg:text-sm text-sm text-dark">
-            support@ruksalamode.com
-          </p>
+        <div className="space-y-6 text-sm text-dark leading-relaxed lg:w-2/3">
+          <div>
+            <h3 className="font-semibold text-base mb-1">General Support</h3>
+            <p>
+              For issues with the website, ordering, or general support, please
+              use the form on the left, call us <br />at{" "}
+              <a href="tel:+2349012101539" className="underline font-medium">
+                +234 901 210 1539
+              </a>
+              , or send an email to{" "}
+              <a
+                href="mailto:support@ruksalamode.com"
+                className="underline font-medium"
+              >
+                support@ruksalamode.com
+              </a>
+              .
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-base mb-1">
+              Business & Partnerships
+            </h3>
+            <p>
+              For wholesale, retail or stockist partnerships, and
+              collaborations, kindly email us at{" "}
+              <a
+                href="mailto:ruksalamode@gmail.com"
+                className="underline font-medium"
+              >
+                ruksalamode@gmail.com
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </Tab>
 

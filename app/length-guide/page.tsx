@@ -158,10 +158,10 @@ export default function LengthGuide() {
         <div className="text-center mt-16">
           <div className="w-16 h-px bg-gray-300 mx-auto mb-4"></div>
           <p className="text-gray-600 text-sm">
-            For personalized length recommendations, contact our{" "}
-            <span className="text-amber-700 font-medium">
+            "Not sure of length? Input custom length." in notes
+            {/* <span className="text-amber-700 font-medium">
               style consultants
-            </span>
+            </span> */}
           </p>
         </div>
       </div>

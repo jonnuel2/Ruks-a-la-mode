@@ -77,7 +77,7 @@ export default function SizeGuide() {
               </svg>
               <p className="text-gray-600 text-sm">
                 <span className="font-medium">Note:</span> All measurements are in inches. 
-                For between sizes, we recommend sizing up for comfort.
+                Not sure of sizing? Input custom measurements.
               </p>
             </div>
           </div>
@@ -115,12 +115,12 @@ export default function SizeGuide() {
         </div>
 
         {/* Closing element */}
-        <div className="text-center mt-16">
+        {/* <div className="text-center mt-16">
           <div className="w-16 h-px bg-gray-300 mx-auto mb-4"></div>
           <p className="text-gray-600 text-sm">
             Need fitting advice? Contact our <span className="text-amber-700 font-medium">style specialists</span>
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

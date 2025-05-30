@@ -557,7 +557,6 @@ const Analytics = () => {
                   { status: "producing", color: "yellow" },
                   { status: "canceled", color: "red" },
                   { status: "pending", color: "orange" },
-                  { status: "delivered", color: "gray" },
                 ].map((statusInfo) => {
                   // Filter orders by date range
                   const startDate = new Date(dateRange.start);

@@ -387,7 +387,7 @@ export default function Page() {
     if (!token) {
       // Store intended route to redirect after login
       localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
-      router.push("/auth/login");
+      router.push("/Auth/login");
     } else {
       router.push("/shop/cart/checkout");
     }

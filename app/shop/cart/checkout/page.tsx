@@ -35,7 +35,7 @@ export default function Page() {
         setuser(JSON.parse(storedUser));
       } else {
         // Redirect to login with redirect back to checkout
-        router.push("/auth/login?redirect=/shop/checkout");
+        router.push("/Auth/login?redirect=/shop/checkout");
       }
     }
   }, [user, router, setuser]);
