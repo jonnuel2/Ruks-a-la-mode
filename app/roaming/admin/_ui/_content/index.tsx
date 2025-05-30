@@ -13,7 +13,8 @@ import { Audio, TailSpin } from "react-loader-spinner";
 
 type Banner = {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
+  videoUrl?: string | null;
   status: "active" | "inactive";
 };
 
@@ -43,18 +44,18 @@ const Content = () => {
   const banners = bannersData?.banners;
   const pretext = pretextData?.preText;
 
-  const uploadImage = async (file: File) => {
+  const uploadMedia = async (file: File) => {
     if (!file) return;
 
-    const storageRef = ref(storage, `banners/${file.name}`);
-
+    const mediaType = file.type.startsWith("video/") ? "videos" : "images";
+    const storageRef = ref(storage, `banners/${mediaType}/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          // Optional: Handle progress
+          // Optional: Progress handler
         },
         (error) => reject(error),
         async () => {
@@ -98,32 +99,33 @@ const Content = () => {
     currentPage * itemsPerPage
   );
 
-  // Add or edit banner
   const handleFormSubmit = async () => {
     setLoading(true);
     const banner = { ...editingBanner };
-    if (editingBanner?.id) {
-      if (file) {
-        let url: any = await uploadImage(file);
-        banner.imageUrl = url;
-      }
-      updateBannerMutation.mutate(banner);
-    } else {
-      if (file) {
-        let url: any = await uploadImage(file);
-        banner.imageUrl = url;
 
-        const filteredBanner = Object.fromEntries(
-          Object.entries(banner).filter(([_, value]) => value !== "")
-        );
-
-        addBannerMutation.mutate(filteredBanner);
+    if (file) {
+      const url = await uploadMedia(file);
+      if (file.type.startsWith("video/")) {
+        banner.videoUrl = url;
+        banner.imageUrl = null; // Ensure only video is set
+      } else {
+        banner.imageUrl = url;
+        banner.videoUrl = null; // Ensure only image is set
       }
     }
+
+    if (editingBanner?.id) {
+      updateBannerMutation.mutate(banner);
+    } else {
+      const filteredBanner = Object.fromEntries(
+        Object.entries(banner).filter(([_, value]) => value !== "")
+      );
+      addBannerMutation.mutate(filteredBanner);
+    }
+
     setLoading(false);
     setEditingBanner(null);
   };
-
   // Delete banner
   const deleteBanner = (id: string) => {};
 
@@ -188,14 +190,22 @@ const Content = () => {
         <tbody>
           {displayedBanners?.map((banner: any) => (
             <tr key={banner?.id}>
-              {/* <td className="px-4 py-2 border">{banner.title}</td>
-              <td className="px-4 py-2 border">{banner.description}</td> */}
               <td className="px-4 py-2 border text-xs">
-                <img
-                  src={banner?.data?.imageUrl}
-                  alt={banner?.id}
-                  className="w-28 h-16 object-cover rounded"
-                />
+                {banner?.data?.imageUrl ? (
+                  <img
+                    src={banner?.data?.imageUrl}
+                    alt={`Banner ${banner?.id}`}
+                    className="w-28 h-16 object-cover rounded"
+                  />
+                ) : banner?.data?.videoUrl ? (
+                  <video
+                    src={banner?.data?.videoUrl}
+                    className="w-28 h-16 object-cover rounded"
+                    controls
+                  />
+                ) : (
+                  <span className="text-gray-500">No Media</span>
+                )}
               </td>
               <td className="px-4 py-2 border text-xs capitalize">
                 <span
@@ -214,6 +224,7 @@ const Content = () => {
                     setEditingBanner({
                       id: banner?.id,
                       imageUrl: banner?.data?.imageUrl,
+                      videoUrl: banner?.data?.videoUrl,
                       status: banner?.data?.status,
                     })
                   }
@@ -269,15 +280,16 @@ const Content = () => {
             >
               {editingBanner?.id ? (
                 <div className="mb-4">
-                  <img
+                  {/* <img
                     src={editingBanner?.imageUrl}
                     alt={editingBanner?.id}
                     className="w-28 h-16 object-cover rounded"
-                  />
+                  /> */}
                   <input
                     type="file"
+                    accept="image/*,video/*"
                     onChange={(e) =>
-                      e.target.files ? setFile(e?.target?.files[0]) : null
+                      setFile(e.target.files ? e.target.files[0] : null)
                     }
                     className="border text-xs px-4 py-2 rounded w-full"
                   />

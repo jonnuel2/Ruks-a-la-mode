@@ -59,7 +59,7 @@ export default function Page() {
 
     try {
       console.log("Sending signup request...");
-      const response = await signup(firstName, lastName, email, phoneNumber, password, confirmPassword);
+      const response = await signup(firstName, lastName, email, password, confirmPassword);
       console.log("Signup response:", response);
 
       if (response && response.success === true) {
