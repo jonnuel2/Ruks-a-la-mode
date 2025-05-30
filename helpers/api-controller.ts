@@ -60,6 +60,14 @@ export async function editDiscount(discount: any) {
   }
 }
 
+export async function editTailor(discount: any) {
+  try {
+    return await axios.post(`/api/order/edit-tailor`, discount);
+  } catch (error) {
+    return error;
+  }
+}
+
 //payments
 export async function makePayment(data: any) {
   try {
