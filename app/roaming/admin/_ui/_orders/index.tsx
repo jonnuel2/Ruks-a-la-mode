@@ -401,7 +401,7 @@ export default function Orders() {
 
           {/* No Results Message */}
           {filteredOrders?.length === 0 && (
-            <p className="mt-4 text-gray-500 text-xs">No orders match your filter and search.</p>
+            <p className="mt-4 text-gray-500 text-xs">No orders match your filter and search. Please put a  valid filter or search</p>
           )}
         </div>
       )}
