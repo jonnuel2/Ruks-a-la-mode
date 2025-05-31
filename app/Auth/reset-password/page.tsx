@@ -1,22 +1,29 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validToken, setValidToken] = useState(false);
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const router = useRouter();
 
+  useEffect(() => {
+    if (!token) {
+      toast.error("Invalid or missing reset token");
+      router.push("/Auth/forgot-password");
+    } else {
+      setValidToken(true);
+    }
+  }, [token, router]);
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {
-      toast.error("Token not found.");
-      return;
-    }
+    if (!token) return;
 
     setLoading(true);
     try {
@@ -40,6 +47,15 @@ export default function ResetPasswordPage() {
     }
   };
 
+  if (!validToken) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-[70vh]">
+        <ToastContainer />
+        <h2 className="text-3xl font-bold mb-10">VERIFYING TOKEN...</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh]">
       <ToastContainer />
@@ -53,6 +69,7 @@ export default function ResetPasswordPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength={8}
         />
 
         <button
@@ -72,3 +89,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+
+export const dynamic = 'force-dynamic';
