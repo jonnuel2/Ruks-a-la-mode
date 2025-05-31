@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import { formatPrice } from "@/helpers/functions";
 import Link from "next/link";
 import { useEffect } from "react";
-import { FaDeleteLeft, FaX } from "react-icons/fa6";
-import { AiOutlineDelete, AiOutlineDeleteColumn } from "react-icons/ai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -71,6 +69,24 @@ export default function Page() {
       progress: undefined,
       theme: "light",
     });
+  };
+
+  // Improved checkout function to handle authentication properly
+  const handleCheckout = () => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    
+    // Check if user is authenticated
+    if (!token || !user) {
+      // Store the checkout path as the redirect destination
+      localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
+      
+      // Redirect to login with checkout as redirect parameter
+      router.push(`/Auth/login?redirect=${encodeURIComponent("/shop/cart/checkout")}`);
+    } else {
+      // User is authenticated, proceed to checkout
+      router.push("/shop/cart/checkout");
+    }
   };
 
   return (
@@ -205,42 +221,6 @@ export default function Page() {
                       <td className="px-4 lg:w-[30%] lg:block hidden">
                         <div className="flex items-start">
                           <div className="mt-4 lg:w-40 w-16 p-1 lg:p-2 border-dark/70 border">
-                            {/* <Incrementer
-                              leftClick={() => {
-                                const modifiedCart = { ...cart };
-                                if (c.quantity > 1) {
-                                  modifiedCart.items[i].quantity -= 1;
-                                  setcart(modifiedCart);
-                                  localStorage.setItem(
-                                    "cart",
-                                    JSON.stringify(modifiedCart)
-                                  );
-                                } else {
-                                  const newItems = cart.items.filter(
-                                    (ci: any) => c.item.name !== ci.item.name
-                                  );
-                                  const updatedCart = { ...cart, items: newItems };
-                                  setcart(updatedCart);
-                                  localStorage.setItem(
-                                    "cart",
-                                    JSON.stringify(updatedCart)
-                                  );
-                                }
-                              }}
-                              rightClick={() => {
-                                const modifiedCart = { ...cart };
-                                if (!c?.item?.stock || c?.quantity < c?.item?.stock) {
-                                  modifiedCart.items[i].quantity += 1;
-                                  setcart(modifiedCart);
-                                  localStorage.setItem(
-                                    "cart",
-                                    JSON.stringify(modifiedCart)
-                                  );
-                                }
-                              }}
-                              value={c?.quantity}
-                            /> */}
-
                             <Incrementer
                               leftClick={() => {
                                 const modifiedCart = { ...cart };
@@ -283,40 +263,6 @@ export default function Page() {
                         )}
                       </td>
                       <td className="px-4 mt-3 font-light text-xs lg:text-sm lg:w-1/12">
-                        {/* <AiOutlineDelete
-                          size={25}
-                          className="cursor-pointer"
-                          onClick={() => {
-                            const newItems = cart.items.filter(
-                              (ci: any) => c.item.name !== ci.item.name
-                            );
-                            const updatedCart = { ...cart, items: newItems };
-                            setcart(updatedCart);
-                            localStorage.setItem(
-                              "cart",
-                              JSON.stringify(updatedCart)
-                            );
-                          }}
-                        /> */}
-
-                        {/* <AiOutlineDelete
-                          size={25}
-                          className="cursor-pointer"
-                          onClick={() => {
-                            // Create a new array without this specific item instance
-                            const newItems = [...cart.items];
-                            newItems.splice(i, 1); // Remove just this specific item at index i
-
-                            const updatedCart = { ...cart, items: newItems };
-                            setcart(updatedCart);
-                            localStorage.setItem(
-                              "cart",
-                              JSON.stringify(updatedCart)
-                            );
-                          }}
-                        /> */}
-
-                        {/* delete icon */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-5 w-5 text-gray-800 hover:text-gray-600 cursor-pointer transition-colors"
@@ -324,18 +270,6 @@ export default function Page() {
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                           onClick={() => handleDeleteItem(i, c.item.name)}
-                          // onClick={() => {
-                          //   // Create a new array without this specific item instance
-                          //   const newItems = [...cart.items];
-                          //   newItems.splice(i, 1); // Remove just this specific item at index i
-
-                          //   const updatedCart = { ...cart, items: newItems };
-                          //   setcart(updatedCart);
-                          //   localStorage.setItem(
-                          //     "cart",
-                          //     JSON.stringify(updatedCart)
-                          //   );
-                          // }}
                         >
                           <path
                             strokeLinecap="round"
@@ -372,33 +306,14 @@ export default function Page() {
                 *Taxes, discounts and shipping calculated at checkout
               </p>
             </div>
-            {/* <div
-              onClick={() => router.push("cart/checkout")}
+            <div
+              onClick={handleCheckout}
               className="mt-2 lg:w-96 w-40 p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 cursor-pointer"
             >
               <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
                 Check out
               </p>
-            </div> */}
-           <div
-  onClick={() => {
-    const token = typeof window !== "undefined" && localStorage.getItem("token");
-
-    if (!token) {
-      // Store intended route to redirect after login
-      localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
-      router.push("/Auth/login");
-    } else {
-      router.push("/shop/cart/checkout");
-    }
-  }}
-  className="mt-2 lg:w-96 w-40 p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 cursor-pointer"
->
-  <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
-    Check out
-  </p>
-</div>
-
+            </div>
           </div>
         </div>
       ) : (
