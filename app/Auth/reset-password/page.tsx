@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     if (!token) {
       toast.error("Invalid or missing reset token");
-      router.push("/Auth/forgot-password");
+      router.push("/auth/forgot-password");
     } else {
       setValidToken(true);
     }
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
       const data = await res.json();
       if (data.success) {
         toast.success("Password reset successful!");
-        router.push("/Auth/login");
+        router.push("/auth/login");
       } else {
         toast.error(data.message || "Reset failed.");
       }

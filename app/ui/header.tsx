@@ -300,14 +300,14 @@ export default function Header() {
                   {openUser && (
                     <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg border rounded-md py-2 z-50">
                       <Link
-                        href="/Auth/login"
+                        href="/auth/login"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                         onClick={() => setOpenUser(false)}
                       >
                         Login
                       </Link>
                       <Link
-                        href="/Auth/signup"
+                        href="/auth/signup"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                         onClick={() => setOpenUser(false)}
                       >

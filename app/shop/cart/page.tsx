@@ -82,7 +82,7 @@ export default function Page() {
       localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
       
       // Redirect to login with checkout as redirect parameter
-      router.push(`/Auth/login?redirect=${encodeURIComponent("/shop/cart/checkout")}`);
+      router.push(`/auth/login?redirect=${encodeURIComponent("/shop/cart/checkout")}`);
     } else {
       // User is authenticated, proceed to checkout
       router.push("/shop/cart/checkout");
