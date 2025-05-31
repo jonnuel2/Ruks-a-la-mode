@@ -28,7 +28,8 @@ export default function ForgotPasswordPage() {
         templateParams,
         {publicKey:process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY}
       );
-      toast.success("Reset link sent to your email.");
+      toast.success("Reset link sent to your email. Please check your inbox.");
+      setEmail(""); // Clear the email input after sending
     } catch (error) {
       console.error("Failed to send email:", error);
       toast.error("Failed to send reset email. Please try again.");

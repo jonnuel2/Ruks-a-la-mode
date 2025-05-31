@@ -26,25 +26,32 @@ function LoginContent() {
   const [loginInfo, setLoginInfo] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [hidden, setHidden] = useState(true);
-  const [userJustLoggedIn, setUserJustLoggedIn] = useState(false);
 
   const { setuser } = useAppContext();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Redirect if already logged in
+  // Get redirect parameter if it exists
+  const redirectParam = searchParams?.get("redirect");
+
+  // Handle redirects and check for existing authentication
   useEffect(() => {
     const existingUser = localStorage.getItem("user");
-    const redirectParam = searchParams?.get("redirect");
-
+    const existingToken = localStorage.getItem("token");
+    
+    // Store redirect parameter if it exists
     if (redirectParam) {
       localStorage.setItem("postLoginRedirect", redirectParam);
+      console.log("Login page: Stored redirect URL:", redirectParam);
     }
 
-    if (existingUser) {
-      router.push("/");
+    // If user is already logged in, redirect them
+    if (existingUser && existingToken) {
+      const redirectTo = localStorage.getItem("postLoginRedirect") || "/";
+      localStorage.removeItem("postLoginRedirect");
+      router.push(redirectTo);
     }
-  }, [router, searchParams]);
+  }, [redirectParam, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,12 +65,26 @@ function LoginContent() {
     setLoading(true);
     try {
       const response = await login(email, password);
+      
       if (response.success && response.user) {
+        // Store authentication data
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response.user));
         setuser(response.user);
+        
         toast.success("Login successful!");
-        setUserJustLoggedIn(true);
+
+        // Get the redirect destination
+        const redirectTo = localStorage.getItem("postLoginRedirect") || "/";
+        console.log("Login successful, redirecting to:", redirectTo);
+        
+        // Clear the stored redirect
+        localStorage.removeItem("postLoginRedirect");
+        
+        // Redirect to the stored destination
+        setTimeout(() => {
+          router.push(redirectTo);
+        }, 800);
       } else {
         toast.error(response.message || "Login failed.");
       }
@@ -74,19 +95,6 @@ function LoginContent() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (userJustLoggedIn) {
-      const redirectTo = localStorage.getItem("postLoginRedirect");
-      if (redirectTo) {
-        localStorage.removeItem("postLoginRedirect");
-        router.push(redirectTo);
-      } else {
-        router.push("/");
-        window.location.reload();
-      }
-    }
-  }, [userJustLoggedIn, router]);
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh]">
@@ -158,7 +166,7 @@ function LoginContent() {
       </form>
 
       <div className="mt-6">
-        <Link href="/Auth/signup">
+        <Link href={`/Auth/signup${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
           <div className="flex items-center justify-start cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Don&apos;t have an account?{" "}
