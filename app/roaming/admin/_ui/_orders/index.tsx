@@ -410,6 +410,7 @@ export default function Orders() {
         onClose={() => setAddingTailor(false)}
         onSubmit={handleAddTailors}
         orderId={selectedOrderId}
+        initialData={[]}
       />
     </div>
   )
