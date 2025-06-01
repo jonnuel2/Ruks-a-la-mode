@@ -97,7 +97,7 @@ export default function Page() {
         toast.success("Signup successful! Redirecting...");
 
         // Get the redirect destination
-        const redirectTo = localStorage.getItem("postLoginRedirect") || "/auth/login";
+        const redirectTo = localStorage.getItem("postLoginRedirect") || "/Auth/login";
         console.log("Signup successful, redirecting to:", redirectTo);
         // Clear the stored redirect
         localStorage.removeItem("postLoginRedirect");
@@ -208,7 +208,7 @@ export default function Page() {
       </div>
 
       <div className="mt-4">
-        <Link href={`/auth/login${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
+        <Link href={`/Auth/login${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
           <div className="flex items-center justify-start cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Already have an account?{" "}

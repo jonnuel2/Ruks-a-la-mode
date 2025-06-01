@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <div className="mt-6">
-        <Link href="/auth/login">
+        <Link href="/Auth/login">
           <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Remembered your password? <span className="text-blue-600">Login</span>

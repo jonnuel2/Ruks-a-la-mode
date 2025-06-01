@@ -166,7 +166,7 @@ function LoginContent() {
       </form>
 
       <div className="mt-6">
-        <Link href={`/auth/signup${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
+        <Link href={`/Auth/signup${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
           <div className="flex items-center justify-start cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Don&apos;t have an account?{" "}
