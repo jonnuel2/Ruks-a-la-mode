@@ -5,8 +5,8 @@ export default function Page() {
   // Sample gallery images - replace with your own
   const galleryImages = [
     "/images/about-us/ab1.jpeg",
-    "/images/about-us/ab2.jpeg",
     "/images/about-us/ab3.jpeg",
+    "/images/about-us/ab2.jpeg",
   ];
 
   return (
@@ -25,7 +25,7 @@ export default function Page() {
         <div className="space-y-4 text-gray-700 mb-24">
           <p className="text-sm lg:text-lg leading-relaxed">
             At{" "}
-            <span className=" font-semibold text-gray-900">Ruks á la Mode</span>
+            <span className=" font-semibold text-gray-900">Ruks Á La Mode</span>
             , we blend fashion with comfort, making chic style accessible to
             all! Established in 2017 and proudly crafted in Abuja, Nigeria,
             we strive to provide you with the finest in style. With over 5,000

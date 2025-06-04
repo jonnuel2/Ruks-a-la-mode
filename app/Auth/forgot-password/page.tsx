@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
     }
 
     const templateParams = {
-      to_email: email,
+      to_mail: email,
       subject: "Password Reset Request",
       message: `You have requested to reset your password. Click the link below to proceed: ${resetLink}`,
     };

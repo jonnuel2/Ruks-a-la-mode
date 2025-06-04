@@ -83,20 +83,20 @@ export default function ContactForm() {
     setStatus({ loading: true, error: false, success: false });
 
     try {
-      // await emailjs.send(
-      //   'service_8soz4xk',
-      //   'template_afxnrtp',
-      //   {
-      //     from_name: messager.name,
-      //     from_email: messager.email,
-      //     message: messager.message,
-      //     to_email: 'support@ruksalamode.com',
-      //     reply_to: messager.email, // Important for reply functionality
-      //   },
-      //   'nQo6ev2cTJ3sZ4sBl'
+      await emailjs.send(
+        'service_8soz4xk',
+        'template_afxnrtp',
+        {
+          from_name: messager.name,
+          from_email: messager.email,
+          message: messager.message,
+          to_mail: 'support@ruksalamode.com',
+          reply_to: messager.email, // Important for reply functionality
+        },
+        'nQo6ev2cTJ3sZ4sBl'
 
         
-      // );
+      );
       await fetch("/api/send-contact", {
   method: "POST",
   headers: { "Content-Type": "application/json" },

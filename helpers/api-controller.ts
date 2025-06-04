@@ -210,6 +210,21 @@ export async function deleteProduct(id: any) {
   }
 }
 
+// helpers/api-controller.ts
+export const deleteBanner = async (id: string) => {
+  const response = await fetch(`/api/content/delete-banner?id=${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete banner");
+  }
+
+  return data;
+};
+
+
 //admins
 export async function getAdmins() {
   try {

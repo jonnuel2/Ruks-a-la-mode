@@ -4,6 +4,7 @@ import {
   getPretext,
   updateBanner,
   updatePretext,
+  deleteBanner as deleteBannerApi,
 } from "@/helpers/api-controller";
 import { storage } from "@/helpers/utils/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -78,6 +79,21 @@ const Content = () => {
     mutationFn: () => updatePretext(preText),
   });
 
+  const deleteBannerMutation = useMutation({
+    mutationFn: (id: string) => deleteBannerApi(id),
+    onSuccess: () => refetch(),
+    onError: (error: any) => {
+      alert(error.message || "Something went wrong deleting the banner.");
+    },
+  });
+
+  // Function that gets called on delete button click
+  const deleteBanner = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this banner?")) {
+      deleteBannerMutation.mutate(id);
+    }
+  };
+
   const [filter, setFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -127,7 +143,7 @@ const Content = () => {
     setEditingBanner(null);
   };
   // Delete banner
-  const deleteBanner = (id: string) => {};
+  // const deleteBanner = (id: string) => {};
 
   useEffect(() => {
     setPreText(pretext);
@@ -232,11 +248,19 @@ const Content = () => {
                 >
                   Edit
                 </button>
-                <button
+                {/* <button
                   onClick={() => deleteBanner(banner?.id)}
                   className="bg-red-500 text-white px-3 py-1 rounded text-xs"
                 >
                   Delete
+                </button> */}
+
+                <button
+                  onClick={() => deleteBanner(banner?.id)}
+                  disabled={deleteBannerMutation.isPending}
+                  className="bg-red-500 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
+                >
+                  {deleteBannerMutation.isPending ? "Deleting..." : "Delete"}
                 </button>
               </td>
             </tr>
