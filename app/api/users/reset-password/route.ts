@@ -22,12 +22,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Query the database for a user with a matching hashed reset token
+    // Query all users and find one with a matching reset token
     const userQuery = await db.collection("users").get();
-    const matchingUser = userQuery.docs.find(async (doc) => {
+    let matchingUser = null;
+
+    for (const doc of userQuery.docs) {
       const userData = doc.data();
-      return userData.resetToken && (await bcrypt.compare(token, userData.resetToken));
-    });
+      if (userData.resetToken && await bcrypt.compare(token, userData.resetToken)) {
+        matchingUser = doc;
+        break;
+      }
+    }
 
     if (!matchingUser) {
       return NextResponse.json(
@@ -50,7 +55,7 @@ export async function POST(req: NextRequest) {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update the user's password and clear the reset token and expiry
+    // Update user data
     await userDoc.ref.update({
       password: hashedPassword,
       resetToken: null,

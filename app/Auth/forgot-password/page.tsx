@@ -36,32 +36,60 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await fetch("/api/users/forgot-password", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ email }),
+  //     });
+
+  //     const result = await response.json();
+
+  //     if (response.ok && result.success) {
+  //       // Send email with the reset link
+  //       await sendResetEmail(result.resetLink);
+  //     } else {
+  //       toast.error(result.message || "Failed to process forgot password request.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during forgot password request:", error);
+  //     toast.error("Something went wrong.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const response = await fetch("/api/users/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+  try {
+    const response = await fetch("/api/users/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (response.ok && result.success) {
-        // Send email with the reset link
-        await sendResetEmail(result.resetLink);
-      } else {
-        toast.error(result.message || "Failed to process forgot password request.");
-      }
-    } catch (error) {
-      console.error("Error during forgot password request:", error);
-      toast.error("Something went wrong.");
-    } finally {
-      setLoading(false);
+    if (response.ok && result.success) {
+      toast.success("Reset link sent to your email.");
+    } else {
+      toast.error(result.message || "Failed to send reset email.");
     }
-  };
+  } catch (error) {
+    console.error("Error during forgot password:", error);
+    toast.error("Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh]">

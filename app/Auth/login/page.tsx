@@ -137,14 +137,14 @@ function LoginContent() {
         </div>
 
         {/* Forgot Password Link */}
-        {/* <div className="w-full flex justify-end lg:w-72 mb-6">
+        <div className="w-full flex justify-end lg:w-72 mb-6">
           <Link
             href="/Auth/forgot-password"
             className="text-xs text-blue-600 hover:underline"
           >
             Forgot password?
           </Link>
-        </div> */}
+        </div>
 
         <button
           type="submit"
