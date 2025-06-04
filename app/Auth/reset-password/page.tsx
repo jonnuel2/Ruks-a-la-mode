@@ -1,5 +1,4 @@
-"use client";
-
+'use client';
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
