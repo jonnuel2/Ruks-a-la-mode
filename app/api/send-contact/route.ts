@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   try {
     await transporter.sendMail({
       from: `"${name}" <${process.env.PRIVATE_EMAIL_USER}>`,
-      to: "support@ruksalamode.com",
+      to: "ruksalamode@gmail.com",
       subject: `New Message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
       replyTo: email,

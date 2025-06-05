@@ -52,7 +52,9 @@ const sendEmail = async (email: string, verificationLink: string, firstName: str
                         </div>
                         <div class="support-section">
                             <p>If you didn't request this email, you can safely ignore it.</p>
-                            <p>Need help? Contact us at <a href="mailto:support@ruksalamode.com">support@ruksalamode.com</a></p>
+                            <p>Need help? Contact us at <a href="mailto:ruksalamode@gmail.com
+">ruksalamode@gmail.com
+</a></p>
                         </div>
                     </div>
                     <div class="email-footer">

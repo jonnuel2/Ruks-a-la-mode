@@ -37,10 +37,10 @@ export default function ContactCard() {
               </a>
               , or send an email to{" "}
               <a
-                href="mailto:support@ruksalamode.com"
+                href="mailto:ruksalamode@gmail.com"
                 className="underline font-medium"
               >
-                support@ruksalamode.com
+                ruksalamode@gmail.com
               </a>
               .
             </p>

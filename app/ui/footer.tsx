@@ -124,10 +124,10 @@ export default function Footer() {
       />
     </svg>
     <a
-      href="mailto:support@ruksalamode.com"
+      href="mailto:ruksalamode@gmail.com"
       className="opacity-90 text-sm lg:text-base hover:underline"
     >
-      support@ruksalamode.com
+      ruksalamode@gmail.com
     </a>
   </div>
   <div className="flex items-center space-x-2">
