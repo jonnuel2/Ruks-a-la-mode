@@ -8,6 +8,8 @@ import { toast, ToastContainer } from "react-toastify";
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validToken, setValidToken] = useState(false);
   const searchParams = useSearchParams();
@@ -69,25 +71,45 @@ export default function ResetPasswordPage() {
       <h2 className="text-3xl font-bold mb-10">RESET PASSWORD</h2>
 
       <form onSubmit={handleReset} className="flex flex-col items-center w-full">
-        <input
-          type="password"
-          placeholder="Enter new password"
-          className="px-3 py-1.5 text-[#0e0e0e] text-xs bg-transparent border border-dark outline-none rounded-md lg:w-72 w-72 mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-        />
+        {/* Password Field */}
+        <div className="relative mb-4">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter new password"
+            className="px-3 py-1.5 text-[#0e0e0e] text-xs bg-transparent border border-dark outline-none rounded-md lg:w-72 w-72"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 text-xs font-medium"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
 
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          className="px-3 py-1.5 text-[#0e0e0e] text-xs bg-transparent border border-dark outline-none rounded-md lg:w-72 w-72 mb-6"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          minLength={8}
-        />
+        {/* Confirm Password Field */}
+        <div className="relative mb-6">
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Confirm new password"
+            className="px-3 py-1.5 text-[#0e0e0e] text-xs bg-transparent border border-dark outline-none rounded-md lg:w-72 w-72"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 text-xs font-medium"
+          >
+            {showConfirmPassword ? "Hide" : "Show"}
+          </button>
+        </div>
 
         <button
           type="submit"
