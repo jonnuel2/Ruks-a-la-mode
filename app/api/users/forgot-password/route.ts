@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       resetTokenExpiry,
     });
 
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/Auth/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/Auth/password-reset?token=${resetToken}`;
 
     // Send email using Nodemailer
     const transporter = nodemailer.createTransport({
