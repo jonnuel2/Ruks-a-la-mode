@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import CountryDropdown from "./country-dropdown"
-import AbjCityDropdown from "./abj-city-dropdown"
-import Link from "next/link"
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState } from "react";
+import CountryDropdown from "./country-dropdown";
+import AbjCityDropdown from "./abj-city-dropdown";
+import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { formatPrice } from "@/helpers/functions";
 import { useAppContext } from "@/helpers/store";
 
@@ -16,13 +16,13 @@ const CheckoutForm = ({
   deliveryType,
   setDeliveryType,
 }: {
-  checkoutCart: (value: any) => void
-  shippingFee: number | undefined
-  setShippingFee: (value: undefined) => void
-  deliveryType: string
-  setDeliveryType: (value: string) => void
+  checkoutCart: (value: any) => void;
+  shippingFee: number | undefined;
+  setShippingFee: (value: undefined) => void;
+  // setShippingFee: (value: number | undefined) => void;
+  deliveryType: string;
+  setDeliveryType: (value: string) => void;
 }) => {
-
   const { exchangeRates, currency } = useAppContext();
 
   const [shippingInfo, setShippingInfo] = useState({
@@ -35,18 +35,21 @@ const CheckoutForm = ({
     country: "",
     zipCode: "",
     phonenumber: "",
-  })
+  });
 
-  const types = ["standard", "express"]
+  const types = ["standard", "express"];
 
   return (
     <>
-    <ToastContainer />
+      <ToastContainer />
       <form className="mt-8 space-y-6">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-row space-x-4">
             <div className="w-1/2">
-              <label htmlFor="firstName" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="firstName"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 First Name
               </label>
               <input
@@ -65,7 +68,10 @@ const CheckoutForm = ({
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="surname" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="surname"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 Surname
               </label>
               <input
@@ -74,14 +80,19 @@ const CheckoutForm = ({
                 type="surname"
                 required
                 value={shippingInfo.surname}
-                onChange={(e) => setShippingInfo({ ...shippingInfo, surname: e.target.value })}
+                onChange={(e) =>
+                  setShippingInfo({ ...shippingInfo, surname: e.target.value })
+                }
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
               />
             </div>
           </div>
           <div className="flex flex-row space-x-4">
             <div className="w-1/2">
-              <label htmlFor="phonenumber" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="phonenumber"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 Phone Number
               </label>
               <input
@@ -100,7 +111,10 @@ const CheckoutForm = ({
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="email" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="email"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 Email
               </label>
               <input
@@ -109,7 +123,9 @@ const CheckoutForm = ({
                 type="email"
                 required
                 value={shippingInfo.email}
-                onChange={(e) => setShippingInfo({ ...shippingInfo, email: e.target.value })}
+                onChange={(e) =>
+                  setShippingInfo({ ...shippingInfo, email: e.target.value })
+                }
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
               />
             </div>
@@ -118,14 +134,17 @@ const CheckoutForm = ({
           <CountryDropdown
             country={shippingInfo?.country}
             setCountry={(c) => {
-              setShippingInfo({ ...shippingInfo, country: c })
-              setShippingFee(undefined)
+              setShippingInfo({ ...shippingInfo, country: c });
+              setShippingFee(undefined);
             }}
           />
 
           <div className="flex flex-row space-x-4">
             <div className="w-1/2">
-              <label htmlFor="address" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="address"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 Address
               </label>
               <input
@@ -134,12 +153,17 @@ const CheckoutForm = ({
                 type="text"
                 required
                 value={shippingInfo.address}
-                onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
+                onChange={(e) =>
+                  setShippingInfo({ ...shippingInfo, address: e.target.value })
+                }
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="zipCode" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="zipCode"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 Zipcode
               </label>
               <input
@@ -148,7 +172,9 @@ const CheckoutForm = ({
                 type="text"
                 required
                 value={shippingInfo.zipCode}
-                onChange={(e) => setShippingInfo({ ...shippingInfo, zipCode: e.target.value })}
+                onChange={(e) =>
+                  setShippingInfo({ ...shippingInfo, zipCode: e.target.value })
+                }
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
               />
             </div>
@@ -156,7 +182,10 @@ const CheckoutForm = ({
 
           <div className="flex flex-row space-x-4">
             <div className="w-1/2">
-              <label htmlFor="state" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="state"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 State
               </label>
               <input
@@ -166,22 +195,26 @@ const CheckoutForm = ({
                 required
                 value={shippingInfo.state}
                 onChange={(e) => {
-                  setShippingInfo({ ...shippingInfo, state: e.target.value })
-                  setShippingFee(undefined)
+                  setShippingInfo({ ...shippingInfo, state: e.target.value });
+                  setShippingFee(undefined);
                 }}
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
               />
             </div>
             <div className="w-1/2">
-              <label htmlFor="city" className="block text-xs lg:text-sm font-medium text-coffee">
+              <label
+                htmlFor="city"
+                className="block text-xs lg:text-sm font-medium text-coffee"
+              >
                 City
               </label>
               {shippingInfo.state?.trim().toLowerCase() === "abuja" ? (
                 <AbjCityDropdown
                   abjCity={shippingInfo.city}
-                  setabjCity={(a) => setShippingInfo({ ...shippingInfo, city: a })}
+                  setabjCity={(a) =>
+                    setShippingInfo({ ...shippingInfo, city: a })
+                  }
                   setShippingFee={setShippingFee}
-                 
                 />
               ) : (
                 <input
@@ -191,8 +224,8 @@ const CheckoutForm = ({
                   required
                   value={shippingInfo.city}
                   onChange={(e) => {
-                    setShippingInfo({ ...shippingInfo, city: e.target.value })
-                    setShippingFee(undefined)
+                    setShippingInfo({ ...shippingInfo, city: e.target.value });
+                    setShippingFee(undefined);
                   }}
                   className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none bg-transparent text-sm"
                 />
@@ -203,15 +236,18 @@ const CheckoutForm = ({
             {shippingInfo.state?.trim().toLowerCase() !== "abuja" ? (
               shippingInfo?.country?.toLowerCase() === "nigeria" ? (
                 types.map((option) => (
-                  <label key={option} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={option}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="radio"
                       name="shipping"
                       value={option}
                       checked={deliveryType === option}
                       onChange={() => {
-                        setDeliveryType(option)
-                        setShippingFee(undefined)
+                        setDeliveryType(option);
+                        setShippingFee(undefined);
                       }}
                       className="hidden"
                     />
@@ -220,22 +256,27 @@ const CheckoutForm = ({
                         deliveryType === option ? "border-blue-500" : ""
                       }`}
                     >
-                      {deliveryType === option && <div className="w-3 h-3 bg-blue-500 rounded-full"></div>}
+                      {deliveryType === option && (
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      )}
                     </div>
                     <span className="capitalize">{option}</span>
                   </label>
                 ))
               ) : (
                 <div className="flex gap-4">
-                  <label key={"standard"} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={"standard"}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="radio"
                       name="shipping"
                       value={"standard"}
                       checked={deliveryType === "standard"}
                       onChange={() => {
-                        setDeliveryType("standard")
-                        setShippingFee(undefined)
+                        setDeliveryType("standard");
+                        setShippingFee(undefined);
                       }}
                       className="hidden"
                     />
@@ -244,19 +285,24 @@ const CheckoutForm = ({
                         deliveryType === "standard" ? "border-blue-500" : ""
                       }`}
                     >
-                      {deliveryType === "standard" && <div className="w-3 h-3 bg-blue-500 rounded-full"></div>}
+                      {deliveryType === "standard" && (
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      )}
                     </div>
                     <span className="capitalize">{"standard"}</span>
                   </label>
-                  <label key={"express"} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={"express"}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="radio"
                       name="shipping"
                       value={"express"}
                       checked={deliveryType === "express"}
                       onChange={() => {
-                        setDeliveryType("express")
-                        setShippingFee(undefined)
+                        setDeliveryType("express");
+                        setShippingFee(undefined);
                       }}
                       className="hidden"
                     />
@@ -265,22 +311,27 @@ const CheckoutForm = ({
                         deliveryType === "express" ? "border-blue-500" : ""
                       }`}
                     >
-                      {deliveryType === "express" && <div className="w-3 h-3 bg-blue-500 rounded-full"></div>}
+                      {deliveryType === "express" && (
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      )}
                     </div>
                     <span className="capitalize">{"express"}</span>
                   </label>
                 </div>
               )
             ) : (
-              <label key={"standard"} className="flex items-center gap-2 cursor-pointer">
+              <label
+                key={"standard"}
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <input
                   type="radio"
                   name="shipping"
                   value={"standard"}
                   checked={deliveryType === "standard"}
                   onChange={() => {
-                    setDeliveryType("standard")
-                    setShippingFee(undefined)
+                    setDeliveryType("standard");
+                    setShippingFee(undefined);
                   }}
                   className="hidden"
                 />
@@ -289,7 +340,9 @@ const CheckoutForm = ({
                     deliveryType === "standard" ? "border-blue-500" : ""
                   }`}
                 >
-                  {deliveryType === "standard" && <div className="w-3 h-3 bg-blue-500 rounded-full"></div>}
+                  {deliveryType === "standard" && (
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  )}
                 </div>
                 <span className="capitalize">{"standard"}</span>
               </label>
@@ -298,14 +351,23 @@ const CheckoutForm = ({
         </div>
         {shippingFee !== undefined ? (
           <div>
-             
-             {/* chatgpt */}
-            <p>Shipping Fee:{" "}<span className="text-lg font-bold">{formatPrice(currency, shippingFee * exchangeRates[currency.toLowerCase()])}</span>   </p>
+            
+            <p>
+              Shipping Fee:{" "}
+              <span className="text-lg font-bold">
+                {formatPrice(
+                  currency,
+                  shippingFee * exchangeRates[currency.toLowerCase()]
+                )}
+              </span>{" "}
+            </p>
             <Link
               className="mt-4"
               href="https://docs.google.com/document/d/1PmALWFEbB8emQyMLKd2EFfUbeFz0ngPDzGPXuncMJiY/edit?usp=drivesdk"
             >
-              <p className="mt-4 text-blue-600">By Clicking Checkout, You Agree To Our Terms and Policy</p>
+              <p className="mt-4 text-blue-600">
+                By Clicking Checkout, You Agree To Our Terms and Policy
+              </p>
             </Link>
           </div>
         ) : (
@@ -323,17 +385,20 @@ const CheckoutForm = ({
               shippingInfo.phonenumber === ""
             ) {
               // return alert("We need some information to process your delivery.")
-              toast.error('We need some information to process your delivery.', {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-              });
+              toast.error(
+                "We need some information to process your delivery.",
+                {
+                  position: "top-right",
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                }
+              );
               return; // Make sure to keep the return statement to prevent further execution
             }
-            checkoutCart(shippingInfo)
+            checkoutCart(shippingInfo);
           }}
           className={`lg:w-[49%] w-full p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
         >
@@ -343,8 +408,7 @@ const CheckoutForm = ({
         </div>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default CheckoutForm
-
+export default CheckoutForm;

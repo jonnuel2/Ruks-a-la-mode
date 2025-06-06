@@ -64,9 +64,12 @@ export default function Page() {
       weights,
       deliveryType
     );
-    if (fee) {
-      setShippingFee(fee);
-    }
+    // if (fee) {
+    //   setShippingFee(fee);
+    // }
+    if (fee !== undefined && fee !== null) {
+  setShippingFee(fee);
+}
   };
 
   const handleCheckout = async (shippingInfo: any) => {

@@ -44,11 +44,25 @@ const TOAST_CONFIG = {
 // Helper Functions
 // ======================
 export const slugify = (text: string) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "") ?? "";
+  return (
+    text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "") ?? ""
+  );
+};
+
+//function to reset fee after 6 weeks of free shipping
+// This function checks if the current date is within 6 weeks of the free shipping start date
+// If it is, it returns true, indicating that free shipping is still available.
+// If it is not, it returns false, indicating that free shipping has ended.
+// You can adjust the FREE_SHIPPING_START_DATE to the actual start date of your free shipping period.
+const FREE_SHIPPING_START_DATE = new Date("2025-06-01T00:00:00Z"); // Update this to the actual start date
+const SIX_WEEKS_IN_MS = 6 * 7 * 24 * 60 * 60 * 1000;
+const isFreeShippingPeriod = () => {
+  const now = new Date();
+  return now.getTime() - FREE_SHIPPING_START_DATE.getTime() < SIX_WEEKS_IN_MS;
 };
 
 export const formatPrice = (currency: string, price: number) => {
@@ -76,12 +90,12 @@ export function groupMerchByCategory(
 // ======================
 function getRegionByCountry(country: string): string | null {
   const countryLower = country.toLowerCase().trim();
-  
+
   // First check exact matches
   for (const [region, countries] of Object.entries(countryGroups)) {
-    if (countries.some(c => c.toLowerCase() === countryLower)) {
+    if (countries.some((c) => c.toLowerCase() === countryLower)) {
       // Special case for France in standard shipping
-      // if (countryLower === "france") return "FRA"; 
+      // if (countryLower === "france") return "FRA";
 
       return region;
     }
@@ -89,14 +103,14 @@ function getRegionByCountry(country: string): string | null {
 
   // Handle common alternative names
   const countryAliases: Record<string, string> = {
-    "usa": "United States",
+    usa: "United States",
     "u.s.a": "United States",
     "u.s.": "United States",
-    "america": "United States",
-    "uk": "United Kingdom",
-    "england": "United Kingdom",
+    america: "United States",
+    uk: "United Kingdom",
+    england: "United Kingdom",
     "great britain": "United Kingdom",
-    "gb": "United Kingdom",
+    gb: "United Kingdom",
     "ivory coast": "Cote D Ivoire",
   };
 
@@ -113,7 +127,10 @@ function getScalingFactor(quantity: number): number | null {
   )?.sf;
 
   if (!factor) {
-    toast.error("Too many items to ship. Please contact us for bulk orders.", TOAST_CONFIG);
+    toast.error(
+      "Too many items to ship. Please contact us for bulk orders.",
+      TOAST_CONFIG
+    );
     return null;
   }
   return factor;
@@ -121,9 +138,13 @@ function getScalingFactor(quantity: number): number | null {
 
 function checkShippingSupport(region: string, type: ShippingType): boolean {
   if (type === "standard") {
-    return standardInternationalDeliveryFees.some(tier => tier[region as keyof typeof tier] !== undefined);
+    return standardInternationalDeliveryFees.some(
+      (tier) => tier[region as keyof typeof tier] !== undefined
+    );
   } else {
-    return expressInternationalDeliveryFees.some(tier => tier[region as keyof typeof tier] !== undefined);
+    return expressInternationalDeliveryFees.some(
+      (tier) => tier[region as keyof typeof tier] !== undefined
+    );
   }
 }
 
@@ -171,7 +192,7 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
 //       }
 
 //       // Find correct tier for calculated weight
-//       const feeTier = nigeriaDeliveryFees.find(tier => 
+//       const feeTier = nigeriaDeliveryFees.find(tier =>
 //         preciseWeight > tier.min && preciseWeight <= tier.max
 //       );
 
@@ -187,19 +208,19 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
 //     // 4. International Shipping Calculation
 //     // ======================
 //     const region = getRegionByCountry(country);
-    
+
 //     if (!region) {
 //       // Suggest similar countries if available
 //       const allCountries = Object.values(countryGroups).flat();
-//       const suggestions = allCountries.filter(c => 
+//       const suggestions = allCountries.filter(c =>
 //         c.toLowerCase().includes(country.toLowerCase()) ||
 //         country.toLowerCase().includes(c.toLowerCase())
 //       ).slice(0, 3);
-      
-//       const message = suggestions.length 
+
+//       const message = suggestions.length
 //         ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(", ")}?`
 //         : `We don't currently deliver to ${country}.`;
-      
+
 //       toast.error(message, TOAST_CONFIG);
 //       return null;
 //     }
@@ -214,7 +235,7 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
 //     // }
 //     if (!checkShippingSupport(region, type)) {
 //       const alternativeType = type === 'standard' ? 'express' : 'standard';
-      
+
 //       if (checkShippingSupport(region, alternativeType)) {
 //         toast.error(
 //           `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
@@ -228,7 +249,7 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
 //         toast.warning(
 //           // `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
 //           `We don't currently deliver to ${country}. Please contact us.`,
-         
+
 //           {
 //             ...TOAST_CONFIG,
 //             autoClose: 8000 // Longer display for more complex message
@@ -247,7 +268,7 @@ function checkShippingSupport(region: string, type: ShippingType): boolean {
 //       ? standardInternationalDeliveryFees
 //       : expressInternationalDeliveryFees;
 
-//     const feeTier = feeTable.find(tier => 
+//     const feeTier = feeTable.find(tier =>
 //       scaledWeight > tier.min && scaledWeight <= tier.max
 //     );
 
@@ -303,14 +324,14 @@ export function getShippingFee(
     // ======================
     const itemCount = weights.reduce((sum, item) => sum + item.quantity, 0);
     const sf = getScalingFactor(itemCount) || 1;
-    
+
     // Calculate the sum of (weight × quantity) for all items
     const weightedSum = weights.reduce((sum, product) => {
-      return sum + (product.weight * product.quantity);
+      return sum + product.weight * product.quantity;
     }, 0);
-    
+
     // Apply the scaling formula: Total Weight = 1 + (weightedSum × scalingFactor)
-    const totalWeight = 1 + (weightedSum * sf);
+    const totalWeight = 1 + weightedSum * sf;
     const preciseWeight = parseFloat(totalWeight.toFixed(2));
 
     // ======================
@@ -327,20 +348,55 @@ export function getShippingFee(
     // ======================
     // 3. Nigeria Shipping Calculation
     // ======================
+    // if (country.toLowerCase() === "nigeria") {
+    //   // Abuja special cases
+    //   if (state?.toLowerCase() === "abuja") {
+    //     const cityKey = city?.toLowerCase() || "";
+    //     if (!abujaDeliveryFees[cityKey]) {
+    //       toast.error(
+    //         "Delivery not available for this area of Abuja.",
+    //         TOAST_CONFIG
+    //       );
+    //       return null;
+    //     }
+    //     return abujaDeliveryFees[cityKey];
+    //   }
+
+    //   // Find correct tier for calculated weight
+    //   const feeTier = nigeriaDeliveryFees.find(
+    //     (tier) => preciseWeight > tier.min && preciseWeight <= tier.max
+    //   );
+
+    //   if (!feeTier) {
+    //     // Fallback to highest tier if no match found
+    //     return nigeriaDeliveryFees[nigeriaDeliveryFees.length - 1][type];
+    //   }
+
+    //   return feeTier[type];
+    // }
+
     if (country.toLowerCase() === "nigeria") {
+      // ✅ Free shipping check
+      if (isFreeShippingPeriod()) {
+        return 0;
+      }
+
       // Abuja special cases
       if (state?.toLowerCase() === "abuja") {
         const cityKey = city?.toLowerCase() || "";
         if (!abujaDeliveryFees[cityKey]) {
-          toast.error("Delivery not available for this area of Abuja.", TOAST_CONFIG);
+          toast.error(
+            "Delivery not available for this area of Abuja.",
+            TOAST_CONFIG
+          );
           return null;
         }
         return abujaDeliveryFees[cityKey];
       }
 
       // Find correct tier for calculated weight
-      const feeTier = nigeriaDeliveryFees.find(tier => 
-        preciseWeight > tier.min && preciseWeight <= tier.max
+      const feeTier = nigeriaDeliveryFees.find(
+        (tier) => preciseWeight > tier.min && preciseWeight <= tier.max
       );
 
       if (!feeTier) {
@@ -351,37 +407,65 @@ export function getShippingFee(
       return feeTier[type];
     }
 
+    // optional Nigeria shipping to 0 logic commented out for now
+    //    if (country.toLowerCase() === "nigeria") {
+    //   // 1. Weight validation (unchanged)
+    //   if (preciseWeight > MAX_ALLOWED_WEIGHT_KG) {
+    //     toast.error(`Weight limit exceeded`, TOAST_CONFIG);
+    //     return null; // Explicit null for errors
+    //   }
+
+    //   // 2. Abuja validation (modified)
+    //   if (state?.toLowerCase() === "abuja") {
+    //     const cityKey = city?.toLowerCase() || "";
+    //     if (!abujaDeliveryFees.hasOwnProperty(cityKey)) {
+    //       toast.error("Delivery unavailable for this area", TOAST_CONFIG);
+    //       return null; // Explicit null for invalid areas
+    //     }
+    //   }
+
+    //   // 3. Return 0 for ALL valid Nigeria deliveries
+    //   return 0;
+    // }
+
     // ======================
     // 4. International Shipping Calculation
     // ======================
     const region = getRegionByCountry(country);
-    
+
     if (!region) {
       // Suggest similar countries if available
       const allCountries = Object.values(countryGroups).flat();
-      const suggestions = allCountries.filter(c => 
-        c.toLowerCase().includes(country.toLowerCase()) ||
-        country.toLowerCase().includes(c.toLowerCase())
-      ).slice(0, 3);
-      
-      const message = suggestions.length 
-        ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(", ")}?`
+      const suggestions = allCountries
+        .filter(
+          (c) =>
+            c.toLowerCase().includes(country.toLowerCase()) ||
+            country.toLowerCase().includes(c.toLowerCase())
+        )
+        .slice(0, 3);
+
+      const message = suggestions.length
+        ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(
+            ", "
+          )}?`
         : `We don't currently deliver to ${country}.`;
-      
+
       toast.error(message, TOAST_CONFIG);
       return null;
     }
 
     if (!checkShippingSupport(region, type)) {
-      const alternativeType = type === 'standard' ? 'express' : 'standard';
-      
+      const alternativeType = type === "standard" ? "express" : "standard";
+
       if (checkShippingSupport(region, alternativeType)) {
         toast.error(
-          `${type.charAt(0).toUpperCase() + type.slice(1)} shipping is not available to ${country}. ` +
-          `Would you like to try ${alternativeType} shipping instead?`,
+          `${
+            type.charAt(0).toUpperCase() + type.slice(1)
+          } shipping is not available to ${country}. ` +
+            `Would you like to try ${alternativeType} shipping instead?`,
           {
             ...TOAST_CONFIG,
-            autoClose: 8000
+            autoClose: 8000,
           }
         );
       } else {
@@ -389,19 +473,20 @@ export function getShippingFee(
           `We don't currently deliver to ${country}. Please contact us.`,
           {
             ...TOAST_CONFIG,
-            autoClose: 8000
+            autoClose: 8000,
           }
         );
       }
       return null;
     }
 
-    const feeTable = type === "standard"
-      ? standardInternationalDeliveryFees
-      : expressInternationalDeliveryFees;
+    const feeTable =
+      type === "standard"
+        ? standardInternationalDeliveryFees
+        : expressInternationalDeliveryFees;
 
-    const feeTier = feeTable.find(tier => 
-      preciseWeight > tier.min && preciseWeight <= tier.max
+    const feeTier = feeTable.find(
+      (tier) => preciseWeight > tier.min && preciseWeight <= tier.max
     );
 
     if (!feeTier) {
@@ -412,17 +497,21 @@ export function getShippingFee(
     // Handle special cases for US/CAN and UK
     if (region === "US_CAN") {
       if (country.toLowerCase() === "united states") {
-        return "US" in feeTier ? (feeTier["US"] as number | null) : (feeTier["US_CAN"] as number | null);
+        return "US" in feeTier
+          ? (feeTier["US"] as number | null)
+          : (feeTier["US_CAN"] as number | null);
       }
       if (country.toLowerCase() === "canada") {
         return "CAN" in feeTier ? feeTier["CAN"] : feeTier["US_CAN"];
       }
-    }
-    else if (region === "UK") {
+    } else if (region === "UK") {
       return feeTier["UK"] || ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
-    }
-    else if (region === "EUROPE" && country.toLowerCase() === "france") {
-      return "FRA" in feeTier ? feeTier["FRA"] : ("EUROPE" in feeTier ? feeTier["EUROPE"] : null);
+    } else if (region === "EUROPE" && country.toLowerCase() === "france") {
+      return "FRA" in feeTier
+        ? feeTier["FRA"]
+        : "EUROPE" in feeTier
+        ? feeTier["EUROPE"]
+        : null;
     }
 
     const fee = feeTier[region as keyof typeof feeTier];
@@ -435,14 +524,12 @@ export function getShippingFee(
     }
 
     return fee;
-
   } catch (error) {
     console.error("Shipping calculation error:", error);
-    toast.error("Failed to calculate shipping. Please try again.", TOAST_CONFIG);
+    toast.error(
+      "Failed to calculate shipping. Please try again.",
+      TOAST_CONFIG
+    );
     return null;
   }
 }
-
-
-
-
