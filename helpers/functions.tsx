@@ -444,11 +444,15 @@ export function getShippingFee(
         )
         .slice(0, 3);
 
-      const message = suggestions.length
-        ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(
-            ", "
-          )}?`
-        : `We don't currently deliver to ${country}.`;
+      // const message = suggestions.length
+      //   ? `We don't deliver to ${country}. Did you mean: ${suggestions.join(
+      //       ", "
+      //     )}?`
+      //   : `We don't currently deliver to ${country}.`; 
+
+        const message = suggestions.length
+        ? `Incorrect location. If issue persists, kindly contact us.`
+        : `We don't currently deliver to ${country}. Please contact us.`;
 
       toast.error(message, TOAST_CONFIG);
       return null;

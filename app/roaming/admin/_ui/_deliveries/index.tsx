@@ -8,10 +8,15 @@ import DeliveryInfoModal from "./delivery-info"
 import emailjs from "@emailjs/browser"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
+import utc from "dayjs/plugin/utc"
+import timezone from "dayjs/plugin/timezone"
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+// Configure dayjs with proper plugins and locale
 dayjs.extend(customParseFormat)
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const Deliveries = () => {
   const queryClient = useQueryClient()
@@ -123,47 +128,77 @@ const Deliveries = () => {
     }).format(Number.parseInt(amount || "0"))
   }
 
+  // Fixed measurement string function
   const getMeasurementString = (measurement: any) => {
-    if (!measurement) return null
-    
-    // Check for direct size property first
-    if (measurement.size) {
-      return measurement.size
-    }
-
-    // Check for custom measurements
-    if (measurement.custom && typeof measurement.custom === "object") {
-      const entries = Object.entries(measurement.custom)
-      if (entries.length > 0) {
-        return entries.map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`).join(", ")
-      }
-    }
-
-    // Check for direct measurements (like length, width, etc.)
-    const standardMeasurements = Object.entries(measurement)
-      .filter(([key]) => !["custom"].includes(key))
+  if (!measurement || typeof measurement !== 'object') return "One Size"
+  
+  const measurements = []
+  
+  // Standard measurements
+  const standardMeasurements = Object.entries(measurement)
+    .filter(([key, value]) => value && key !== 'custom')
+    .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
+  
+  measurements.push(...standardMeasurements)
+  
+  // Custom measurements
+  if (measurement.custom && typeof measurement.custom === 'object') {
+    const customMeasurements = Object.entries(measurement.custom)
+      .filter(([key, value]) => value)
       .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
+    
+    measurements.push(...customMeasurements)
+  }
+  
+  return measurements.length > 0 ? measurements.join(", ") : "One Size"
+}
 
-    if (standardMeasurements.length > 0) {
-      return standardMeasurements.join(", ")
+  // Fixed date formatting function
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A"
+    
+    // Parse the date and format it consistently
+    const date = dayjs(dateString)
+    
+    // Check if date is valid
+    if (!date.isValid()) {
+      console.warn(`Invalid date: ${dateString}`)
+      return "Invalid Date"
     }
+    
+      // Get the day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+  const day = date.date()
+  let dayWithSuffix
+  if (day > 3 && day < 21) {
+    dayWithSuffix = `${day}th`
+  } else {
+    switch (day % 10) {
+      case 1: dayWithSuffix = `${day}st`; break
+      case 2: dayWithSuffix = `${day}nd`; break
+      case 3: dayWithSuffix = `${day}rd`; break
+      default: dayWithSuffix = `${day}th`
+    }
+  }
+    // Return formatted date as "DD/MM/YYYY"
+    return `${dayWithSuffix} ${date.format("MMMM, YYYY")}`
 
-    return null
+    // Format as DD/MM/YYYY to avoid confusion
+    // return date.format("DD/MM/YYYY")
   }
 
-  // Email template with length included
+  // Email template with proper measurement handling
   const orderItemsHTML = deliveryInfo?.items
     ?.map((item: any) => {
       const measurement = getMeasurementString(item.item?.measurement)
-      const color = item.item?.color?.name || item?.color?.name
+      const color = item.item?.color?.name || item?.color?.name || "Standard"
       const length = item.item?.measurement?.length || "N/A"
 
       return `
           <tr>
             <td>${item.item?.name || "N/A"}</td>
-            <td>${measurement || "One Size"}</td>
+            <td>${measurement}</td>
             <td>${length}</td>
-            <td>${color || "Standard"}</td>
+            <td>${color}</td>
             <td>${item.quantity || 1}</td>
             <td>${item.item?.price ? formatCurrency(item.item.price) : "N/A"}</td>
           </tr>
@@ -205,7 +240,7 @@ const Deliveries = () => {
     }
   }
 
-  // Processed deliveries with filtering and sorting
+  // Fixed sorting logic
   const processedDeliveries = useMemo(() => {
     if (!deliveriesData?.deliveries) return []
 
@@ -226,8 +261,18 @@ const Deliveries = () => {
       })
       .sort((a, b) => {
         if (sortField === "date") {
-          const dateA = dayjs(a.data?.createdAt)
-          const dateB = dayjs(b.data?.createdAt)
+          // Fixed date sorting - use proper date comparison
+          const dateA = dayjs(a.data?.createdAt || a.data?.updatedAt)
+          const dateB = dayjs(b.data?.createdAt || b.data?.updatedAt)
+          
+          // For delivered items, prioritize by updatedAt (when they were marked as delivered)
+          if (filter === "delivered") {
+            const updatedA = dayjs(a.data?.updatedAt)
+            const updatedB = dayjs(b.data?.updatedAt)
+            return sortDirection === "asc" ? updatedA.diff(updatedB) : updatedB.diff(updatedA)
+          }
+          
+          // For other statuses, sort by creation date
           return sortDirection === "asc" ? dateA.diff(dateB) : dateB.diff(dateA)
         } else {
           const nameA = `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase()
@@ -390,15 +435,6 @@ const Deliveries = () => {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipping Info</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-              <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => {
-                  setSortField("date")
-                  setSortDirection(prev => prev === "asc" ? "desc" : "asc")
-                }}
-              >
-                Date {sortField === "date" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-              </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
@@ -411,7 +447,7 @@ const Deliveries = () => {
                   <tr key={delivery.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">{delivery.id}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {dayjs(delivery.data.createdAt).format("MMM D, YYYY")}
+                      {formatDate(delivery.data.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <div className="font-medium">
@@ -438,20 +474,22 @@ const Deliveries = () => {
                       ))}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {delivery.data.items.map((item: any, index: number) => (
-                        <div key={index} className="mb-2 last:mb-0">
-                          <div><span className="font-semibold">Size:</span> {item.item.measurement?.size || "N/A"}</div>
-                          <div><span className="font-semibold">Color:</span> {item.item.color?.name || "N/A"}</div>
-                          <div><span className="font-semibold">Price:</span> {formatCurrency(item.item.price)}</div>
-                          <div><span className="font-semibold">Length:</span> {item.item.measurement?.length || "N/A"}</div>
-                          {item.item.measurement?.custom && (
-                            <div><span className="font-semibold">Measurements:</span> {getMeasurementString(item.item.measurement)}</div>
-                          )}
-                        </div>
-                      ))}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {dayjs(delivery.data.createdAt).format("MMM D, YYYY")}
+                      {delivery.data.items.map((item: any, index: number) => {
+                        const measurementStr = getMeasurementString(item.item?.measurement)
+                        const color = item.item?.color?.name || item?.color?.name || "Standard"
+                        const length = item.item?.measurement?.length || "N/A"
+                        
+                        return (
+                          <div key={index} className="mb-2 last:mb-0">
+                            <div><span className="font-semibold">Size:</span> <br /> {measurementStr}</div>
+                            <div><span className="font-semibold">Color:</span> <br /> {color}</div>
+                            <div><span className="font-semibold">Price:</span> <br /> {formatCurrency(item.item.price)}</div>
+                            {length !== "N/A" && (
+                              <div><span className="font-semibold">Length:</span> {length}</div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${

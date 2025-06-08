@@ -38,7 +38,7 @@ function LoginContent() {
   useEffect(() => {
     const existingUser = localStorage.getItem("user");
     const existingToken = localStorage.getItem("token");
-    
+
     // Store redirect parameter if it exists
     if (redirectParam) {
       localStorage.setItem("postLoginRedirect", redirectParam);
@@ -65,22 +65,22 @@ function LoginContent() {
     setLoading(true);
     try {
       const response = await login(email, password);
-      
+
       if (response.success && response.user) {
         // Store authentication data
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response.user));
         setuser(response.user);
-        
+
         toast.success("Login successful!");
 
         // Get the redirect destination
         const redirectTo = localStorage.getItem("postLoginRedirect") || "/";
         console.log("Login successful, redirecting to:", redirectTo);
-        
+
         // Clear the stored redirect
         localStorage.removeItem("postLoginRedirect");
-        
+
         // Redirect to the stored destination
         setTimeout(() => {
           router.push(redirectTo);
@@ -90,7 +90,11 @@ function LoginContent() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "An error occurred during login.");
+
+      const errorMessage =
+        error?.response?.data?.message || "An error occurred during login.";
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -166,7 +170,11 @@ function LoginContent() {
       </form>
 
       <div className="mt-6">
-        <Link href={`/Auth/signup${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
+        <Link
+          href={`/Auth/signup${
+            redirectParam ? `?redirect=${redirectParam}` : ""
+          }`}
+        >
           <div className="flex items-center justify-start cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Don&apos;t have an account?{" "}

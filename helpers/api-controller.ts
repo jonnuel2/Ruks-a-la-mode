@@ -341,8 +341,8 @@ export async function login(email: string, password: string) {
       password,
     });
     return response.data;
-  } catch (error) {
-    return error;
+  } catch (error: any) {
+    throw error;
   }
 }
 

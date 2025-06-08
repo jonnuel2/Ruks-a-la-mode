@@ -3,7 +3,6 @@
 import { getDiscount } from "@/helpers/api-controller";
 import { formatPrice } from "@/helpers/functions";
 import { useAppContext } from "@/helpers/store";
-import { CartItemProps } from "@/helpers/types";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -28,13 +27,22 @@ export default function CheckoutBox({
   const [code, setcode] = useState("");
 
   const context = useAppContext();
-
   const { cart, setcart } = context;
+
+  const subtotal = cart?.items?.reduce(
+    (sum, item) => item.item.price * item.quantity + sum,
+    0
+  ) * rate;
+
+  const discountAmount = (discount / 100) * subtotal;
+  const discountedSubtotal = subtotal - discountAmount;
+  const vat = 0.075 * discountedSubtotal;
+  const total =
+    discountedSubtotal + vat + (shippingFee ? shippingFee * rate : 0);
 
   const handleSetDiscount = (data: any) => {
     setcart({ ...cart, discount: code });
     setDiscount(data?.discount);
-    // alert(`${data?.discount}% Discount added`);
 
     toast.success(`"${data?.discount}%" Discount Added`, {
       position: "top-right",
@@ -53,8 +61,7 @@ export default function CheckoutBox({
     onSuccess: (data) =>
       data?.hasOwnProperty("discount")
         ? handleSetDiscount(data)
-        : // : alert(data?.message),
-          toast.error(`"${data?.message}"`, {
+        : toast.error(`"${data?.message}"`, {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
@@ -66,16 +73,15 @@ export default function CheckoutBox({
           }),
   });
 
-  // Retrieve items from localStorage
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       const storedCart = localStorage.getItem("cart");
       if (storedCart) {
-        console.log(JSON.parse(storedCart));
         setcart(JSON.parse(storedCart));
       }
     }
   }, []);
+
   return (
     <div className="p-3 border border-dark lg:w-[46%] w-full lg:mb-0 mb-16">
       <ToastContainer />
@@ -95,7 +101,7 @@ export default function CheckoutBox({
               key={c?.item?.id}
             >
               <div className="flex items-center w-full justify-start">
-                {c?.item.image ? (
+                {c?.item.image && (
                   <Image
                     priority
                     width={100}
@@ -104,8 +110,6 @@ export default function CheckoutBox({
                     alt="Product Image"
                     className=" mr-4"
                   />
-                ) : (
-                  <></>
                 )}
                 <div>
                   <p className="tracking-wide lg:text-base text-sm font-medium lg:font-bold uppercase">
@@ -137,8 +141,9 @@ export default function CheckoutBox({
             </div>
           );
         })}
+
         {discount > 0 ? (
-          <p className="font-medium text-xs tracking-wider text-green-500">
+          <p className="font-medium text-xs tracking-wider text-green-500 mt-2">
             {discount}% discount added
           </p>
         ) : (
@@ -160,40 +165,51 @@ export default function CheckoutBox({
             </div>
           </div>
         )}
-        <div
-          className={`flex items-center justify-between w-full ${
-            discount > 0 ? "mt-4" : "mt-8"
-          }`}
-        >
+
+        <div className="flex items-center justify-between w-full mt-8">
           <p className="font-medium tracking-wide lg:text-base text-xs">
             Subtotal
           </p>
           <p className="font-light tracking-wide lg:text-base text-xs">
-            {formatPrice(
-              currency,
-              cart?.items?.reduce(
-                (sum, item) => item.item.price * item.quantity + sum,
-                0
-              ) * rate
-            )}
+            {formatPrice(currency, subtotal)}
           </p>
         </div>
-        <div className="flex items-center justify-between w-full">
+
+        {discount > 0 && (
+          <div className="flex items-center justify-between w-full mt-2">
+            <p className="font-medium tracking-wide lg:text-base text-xs">
+              Discount
+            </p>
+            <p className="font-light tracking-wide lg:text-base text-xs">
+              -{formatPrice(currency, discountAmount)}
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between w-full mt-2">
+          <p className="font-medium tracking-wide lg:text-base text-xs">
+            VAT (7.5%)
+          </p>
+          <p className="font-light tracking-wide lg:text-base text-xs">
+            {formatPrice(currency, vat)}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between w-full mt-2">
           <p className="font-medium tracking-wide lg:text-base text-xs">
             Shipping Fee
           </p>
           <p className="font-light tracking-wide lg:text-base text-xs">
-            {formatPrice(currency, shippingFee ?? 0 * rate)}
+            {formatPrice(currency, (shippingFee ?? 0) * rate)}
           </p>
         </div>
+
         <div className="flex items-center justify-between w-full mt-3">
           <p className="font-semibold tracking-wide lg:text-lg text-sm">
             Total
           </p>
           <p className="font-medium tracking-wide lg:text-lg text-sm">
-            {shippingFee
-              ? formatPrice(currency, price * rate + shippingFee)
-              : formatPrice(currency, price * rate)}
+            {formatPrice(currency, total)}
           </p>
         </div>
       </div>

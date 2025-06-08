@@ -30,12 +30,12 @@ export default function ContactCard() {
           <div>
             <h3 className="font-semibold text-base mb-1">General Support</h3>
             <p>
-              For issues with the website, ordering, or general support, please
-              use the form on the left, call us <br />at{" "}
+              Need help? Want to partner with us? <br /> Reach out to us via:
+              <br />
               <a href="tel:+2349012101539" className="underline font-medium">
                 +234 901 210 1539
               </a>
-              , or send an email to{" "}
+              <br />
               <a
                 href="mailto:ruksalamode@gmail.com"
                 className="underline font-medium"
@@ -46,7 +46,7 @@ export default function ContactCard() {
             </p>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="font-semibold text-base mb-1">
               Business & Partnerships
             </h3>
@@ -61,7 +61,7 @@ export default function ContactCard() {
               </a>
               .
             </p>
-          </div>
+          </div> */}
         </div>
       </Tab>
 
