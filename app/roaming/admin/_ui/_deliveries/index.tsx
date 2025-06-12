@@ -1,41 +1,45 @@
-"use client"
+"use client";
 
-import { getDeliveries, updateOrder } from "@/helpers/api-controller"
-import type { Delivery } from "@/helpers/types"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState, useEffect, useCallback, useMemo } from "react"
-import DeliveryInfoModal from "./delivery-info"
-import emailjs from "@emailjs/browser"
-import dayjs from "dayjs"
-import customParseFormat from "dayjs/plugin/customParseFormat"
-import utc from "dayjs/plugin/utc"
-import timezone from "dayjs/plugin/timezone"
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { getDeliveries, updateOrder } from "@/helpers/api-controller";
+import type { Delivery } from "@/helpers/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import DeliveryInfoModal from "./delivery-info";
+import emailjs from "@emailjs/browser";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Configure dayjs with proper plugins and locale
-dayjs.extend(customParseFormat)
-dayjs.extend(utc)
-dayjs.extend(timezone)
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const Deliveries = () => {
-  const queryClient = useQueryClient()
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isMessageSending, setIsMessageSending] = useState(false)
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMessageSending, setIsMessageSending] = useState(false);
 
   // State management
-  const [sortField, setSortField] = useState<"date" | "name">("date")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
-  const [filter, setFilter] = useState<string>("")
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const itemsPerPage = 5
+  const [sortField, setSortField] = useState<"date" | "name">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [filter, setFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
 
-  const { data: deliveriesData, isLoading, isError } = useQuery({
+  const {
+    data: deliveriesData,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["orders"],
     queryFn: getDeliveries,
     staleTime: 0,
-  })
+  });
 
   // Delivery info state
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -54,7 +58,7 @@ const Deliveries = () => {
     },
     trackingId: "",
     items: [],
-  })
+  });
 
   // Calculate status counts
   const statusCounts = useMemo(() => {
@@ -63,135 +67,148 @@ const Deliveries = () => {
       transit: 0,
       delivered: 0,
       canceled: 0,
-    }
+    };
 
     deliveriesData?.deliveries?.forEach((delivery: any) => {
-      const status = (delivery?.data?.status || "").toLowerCase()
+      const status = (delivery?.data?.status || "").toLowerCase();
       if (status in counts) {
-        counts[status as keyof typeof counts]++
+        counts[status as keyof typeof counts]++;
       }
-    })
+    });
 
-    return counts
-  }, [deliveriesData])
+    return counts;
+  }, [deliveriesData]);
 
   // Update order mutation with optimistic updates
   const updateOrderStatusMutation = useMutation({
     mutationFn: updateOrder,
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ["orders"] })
-      
-      const previousDeliveries = queryClient.getQueryData(["orders"])
-      
+      await queryClient.cancelQueries({ queryKey: ["orders"] });
+
+      const previousDeliveries = queryClient.getQueryData(["orders"]);
+
       queryClient.setQueryData(["orders"], (old: any) => {
-        if (!old) return old
-        
+        if (!old) return old;
+
         return {
           ...old,
-          deliveries: old.deliveries.map((delivery: any) => 
+          deliveries: old.deliveries.map((delivery: any) =>
             delivery.id === variables.id
               ? {
                   ...delivery,
                   data: {
                     ...delivery.data,
                     status: variables.status,
-                    updatedAt: new Date().toISOString()
-                  }
+                    updatedAt: new Date().toISOString(),
+                  },
                 }
               : delivery
-          )
-        }
-      })
+          ),
+        };
+      });
 
-      return { previousDeliveries }
+      return { previousDeliveries };
     },
     onSuccess: (data, variables) => {
-      toast.success(`Status updated to ${variables.status}`)
+      toast.success(`Status updated to ${variables.status}`);
       if (variables.status === "transit") {
-        sendEmail()
+        sendEmail();
       }
     },
     onError: (error, variables, context) => {
-      toast.error(`Failed to update status: ${error.message}`)
-      queryClient.setQueryData(["orders"], context?.previousDeliveries)
+      toast.error(`Failed to update status: ${error.message}`);
+      queryClient.setQueryData(["orders"], context?.previousDeliveries);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] })
-    }
-  })
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
 
   // Format price as currency
   const formatCurrency = (amount: string) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
-    }).format(Number.parseInt(amount || "0"))
-  }
+    }).format(Number.parseInt(amount || "0"));
+  };
 
   // Fixed measurement string function
   const getMeasurementString = (measurement: any) => {
-  if (!measurement || typeof measurement !== 'object') return "One Size"
-  
-  const measurements = []
-  
-  // Standard measurements
-  const standardMeasurements = Object.entries(measurement)
-    .filter(([key, value]) => value && key !== 'custom')
-    .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
-  
-  measurements.push(...standardMeasurements)
-  
-  // Custom measurements
-  if (measurement.custom && typeof measurement.custom === 'object') {
-    const customMeasurements = Object.entries(measurement.custom)
-      .filter(([key, value]) => value)
-      .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
-    
-    measurements.push(...customMeasurements)
-  }
-  
-  return measurements.length > 0 ? measurements.join(", ") : "One Size"
-}
+    if (!measurement || typeof measurement !== "object") return "One Size";
+
+    const measurements = [];
+
+    // Standard measurements
+    const standardMeasurements = Object.entries(measurement)
+      .filter(([key, value]) => value && key !== "custom")
+      .map(
+        ([key, value]) =>
+          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+      );
+
+    measurements.push(...standardMeasurements);
+
+    // Custom measurements
+    if (measurement.custom && typeof measurement.custom === "object") {
+      const customMeasurements = Object.entries(measurement.custom)
+        .filter(([key, value]) => value)
+        .map(
+          ([key, value]) =>
+            `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+        );
+
+      measurements.push(...customMeasurements);
+    }
+
+    return measurements.length > 0 ? measurements.join(", ") : "One Size";
+  };
 
   // Fixed date formatting function
   const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A"
-    
+    if (!dateString) return "N/A";
+
     // Parse the date and format it consistently
-    const date = dayjs(dateString)
-    
+    const date = dayjs(dateString);
+
     // Check if date is valid
     if (!date.isValid()) {
-      console.warn(`Invalid date: ${dateString}`)
-      return "Invalid Date"
+      console.warn(`Invalid date: ${dateString}`);
+      return "Invalid Date";
     }
-    
-      // Get the day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
-  const day = date.date()
-  let dayWithSuffix
-  if (day > 3 && day < 21) {
-    dayWithSuffix = `${day}th`
-  } else {
-    switch (day % 10) {
-      case 1: dayWithSuffix = `${day}st`; break
-      case 2: dayWithSuffix = `${day}nd`; break
-      case 3: dayWithSuffix = `${day}rd`; break
-      default: dayWithSuffix = `${day}th`
+
+    // Get the day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+    const day = date.date();
+    let dayWithSuffix;
+    if (day > 3 && day < 21) {
+      dayWithSuffix = `${day}th`;
+    } else {
+      switch (day % 10) {
+        case 1:
+          dayWithSuffix = `${day}st`;
+          break;
+        case 2:
+          dayWithSuffix = `${day}nd`;
+          break;
+        case 3:
+          dayWithSuffix = `${day}rd`;
+          break;
+        default:
+          dayWithSuffix = `${day}th`;
+      }
     }
-  }
     // Return formatted date as "DD/MM/YYYY"
-    return `${dayWithSuffix} ${date.format("MMMM, YYYY")}`
+    return `${dayWithSuffix} ${date.format("MMMM, YYYY")}`;
 
     // Format as DD/MM/YYYY to avoid confusion
     // return date.format("DD/MM/YYYY")
-  }
+  };
 
   // Email template with proper measurement handling
   const orderItemsHTML = deliveryInfo?.items
     ?.map((item: any) => {
-      const measurement = getMeasurementString(item.item?.measurement)
-      const color = item.item?.color?.name || item?.color?.name || "Standard"
-      const length = item.item?.measurement?.length || "N/A"
+      const measurement = getMeasurementString(item.item?.measurement);
+      const color = item.item?.color?.name || item?.color?.name || "Standard";
+      const length = item.item?.measurement?.length || "N/A";
 
       return `
           <tr>
@@ -200,11 +217,13 @@ const Deliveries = () => {
             <td>${length}</td>
             <td>${color}</td>
             <td>${item.quantity || 1}</td>
-            <td>${item.item?.price ? formatCurrency(item.item.price) : "N/A"}</td>
+            <td>${
+              item.item?.price ? formatCurrency(item.item.price) : "N/A"
+            }</td>
           </tr>
-        `
+        `;
     })
-    .join("")
+    .join("");
 
   const templateParams = {
     user_name: `${deliveryInfo?.shippingInfo?.firstname} ${deliveryInfo?.shippingInfo?.surname}`,
@@ -216,152 +235,228 @@ const Deliveries = () => {
     delivery_address: [
       deliveryInfo?.shippingInfo?.address,
       deliveryInfo?.shippingInfo?.city,
-      deliveryInfo?.shippingInfo?.country
-    ].filter(Boolean).join(" "),
+      deliveryInfo?.shippingInfo?.country,
+    ]
+      .filter(Boolean)
+      .join(" "),
     order_items: orderItemsHTML,
     to_mail: deliveryInfo?.shippingInfo?.email,
-  }
+  };
 
   const sendEmail = async () => {
-    setIsMessageSending(true)
+    setIsMessageSending(true);
     try {
       await emailjs.send(
         process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID ?? "",
         process.env.NEXT_PUBLIC_EMAIL_JS_DELIVERY_TEMPLATE_ID ?? "",
         templateParams,
         { publicKey: process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY }
-      )
-      toast.success("Delivery email sent successfully")
+      );
+      toast.success("Delivery email sent successfully");
     } catch (error) {
-      toast.error("Failed to send delivery email")
-      console.error("Email send failed:", error)
+      toast.error("Failed to send delivery email");
+      console.error("Email send failed:", error);
     } finally {
-      setIsMessageSending(false)
+      setIsMessageSending(false);
     }
-  }
+  };
 
   // Fixed sorting logic
+  // const processedDeliveries = useMemo(() => {
+  //   if (!deliveriesData?.deliveries) return [];
+
+  //   return [...deliveriesData.deliveries]
+  //     .filter((delivery) => {
+  //       const deliveryStatus = (delivery.data?.status || "").toLowerCase();
+  //       const filterStatus = filter.toLowerCase();
+  //       const statusMatches =
+  //         !filter || filter === "all" || deliveryStatus === filterStatus;
+
+  //       const searchTerm = searchQuery.toLowerCase();
+  //       const fullname =
+  //         `${delivery.data?.shippingInfo?.firstname} ${delivery.data?.shippingInfo?.surname}`.toLowerCase();
+  //       const matchesSearch =
+  //         fullname.includes(searchTerm) ||
+  //         delivery.id.toLowerCase().includes(searchTerm) ||
+  //         delivery.data?.shippingInfo?.email
+  //           ?.toLowerCase()
+  //           .includes(searchTerm);
+
+  //       return statusMatches && matchesSearch;
+  //     })
+  //     .sort((a, b) => {
+  //       if (sortField === "date") {
+  //         // Fixed date sorting - use proper date comparison
+  //         const dateA = dayjs(a.data?.createdAt || a.data?.updatedAt);
+  //         const dateB = dayjs(b.data?.createdAt || b.data?.updatedAt);
+
+  //         // For delivered items, prioritize by updatedAt (when they were marked as delivered)
+  //         if (filter === "delivered") {
+  //           const updatedA = dayjs(a.data?.updatedAt);
+  //           const updatedB = dayjs(b.data?.updatedAt);
+  //           return sortDirection === "asc"
+  //             ? updatedA.diff(updatedB)
+  //             : updatedB.diff(updatedA);
+  //         }
+
+  //         // For other statuses, sort by creation date
+  //         return sortDirection === "asc"
+  //           ? dateA.diff(dateB)
+  //           : dateB.diff(dateA);
+  //       } else {
+  //         const nameA =
+  //           `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase();
+  //         const nameB =
+  //           `${b.data?.shippingInfo?.firstname} ${b.data?.shippingInfo?.surname}`.toLowerCase();
+  //         return sortDirection === "asc"
+  //           ? nameA.localeCompare(nameB)
+  //           : nameB.localeCompare(nameA);
+  //       }
+  //     });
+  // }, [deliveriesData, filter, searchQuery, sortField, sortDirection]);
+
+
   const processedDeliveries = useMemo(() => {
-    if (!deliveriesData?.deliveries) return []
+  if (!deliveriesData?.deliveries) return [];
 
-    return [...deliveriesData.deliveries]
-      .filter((delivery) => {
-        const deliveryStatus = (delivery.data?.status || "").toLowerCase()
-        const filterStatus = filter.toLowerCase()
-        const statusMatches = !filter || filter === "all" || deliveryStatus === filterStatus
+  return [...deliveriesData.deliveries]
+    .filter((delivery) => {
+      const deliveryStatus = (delivery.data?.status || "").toLowerCase();
+      const filterStatus = filter.toLowerCase();
+      const statusMatches =
+        !filter || filter === "all" || deliveryStatus === filterStatus;
 
-        const searchTerm = searchQuery.toLowerCase()
-        const fullname = `${delivery.data?.shippingInfo?.firstname} ${delivery.data?.shippingInfo?.surname}`.toLowerCase()
-        const matchesSearch = 
-          fullname.includes(searchTerm) ||
-          delivery.id.toLowerCase().includes(searchTerm) ||
-          delivery.data?.shippingInfo?.email?.toLowerCase().includes(searchTerm)
+      const searchTerm = searchQuery.toLowerCase();
+      const fullname =
+        `${delivery.data?.shippingInfo?.firstname} ${delivery.data?.shippingInfo?.surname}`.toLowerCase();
+      const matchesSearch =
+        fullname.includes(searchTerm) ||
+        delivery.id.toLowerCase().includes(searchTerm) ||
+        delivery.data?.shippingInfo?.email
+          ?.toLowerCase()
+          .includes(searchTerm);
 
-        return statusMatches && matchesSearch
-      })
-      .sort((a, b) => {
-        if (sortField === "date") {
-          // Fixed date sorting - use proper date comparison
-          const dateA = dayjs(a.data?.createdAt || a.data?.updatedAt)
-          const dateB = dayjs(b.data?.createdAt || b.data?.updatedAt)
-          
-          // For delivered items, prioritize by updatedAt (when they were marked as delivered)
-          if (filter === "delivered") {
-            const updatedA = dayjs(a.data?.updatedAt)
-            const updatedB = dayjs(b.data?.updatedAt)
-            return sortDirection === "asc" ? updatedA.diff(updatedB) : updatedB.diff(updatedA)
-          }
-          
-          // For other statuses, sort by creation date
-          return sortDirection === "asc" ? dateA.diff(dateB) : dateB.diff(dateA)
-        } else {
-          const nameA = `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase()
-          const nameB = `${b.data?.shippingInfo?.firstname} ${b.data?.shippingInfo?.surname}`.toLowerCase()
-          return sortDirection === "asc" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA)
-        }
-      })
-  }, [deliveriesData, filter, searchQuery, sortField, sortDirection])
+      return statusMatches && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortField === "date") {
+        // Always use updatedAt for sorting if available, fall back to createdAt
+        const dateA = dayjs(a.data?.updatedAt || a.data?.createdAt);
+        const dateB = dayjs(b.data?.updatedAt || b.data?.createdAt);
+
+        // Handle invalid dates by placing them at the end
+        if (!dateA.isValid()) return sortDirection === "asc" ? 1 : -1;
+        if (!dateB.isValid()) return sortDirection === "asc" ? -1 : 1;
+
+        return sortDirection === "asc"
+          ? dateA.diff(dateB)
+          : dateB.diff(dateA);
+      } else {
+        const nameA =
+          `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase();
+        const nameB =
+          `${b.data?.shippingInfo?.firstname} ${b.data?.shippingInfo?.surname}`.toLowerCase();
+        return sortDirection === "asc"
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      }
+    });
+}, [deliveriesData, filter, searchQuery, sortField, sortDirection]);
 
   // Pagination
-  const totalPages = Math.ceil(processedDeliveries.length / itemsPerPage)
+  const totalPages = Math.ceil(processedDeliveries.length / itemsPerPage);
   const displayedDeliveries = processedDeliveries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  )
+  );
 
   // Action handlers
-  const updateStatus = useCallback((id: string, status: Delivery["status"]) => {
-    updateOrderStatusMutation.mutate({ id, status })
-  }, [updateOrderStatusMutation])
+  const updateStatus = useCallback(
+    (id: string, status: Delivery["status"]) => {
+      updateOrderStatusMutation.mutate({ id, status });
+    },
+    [updateOrderStatusMutation]
+  );
 
   const handleDeliverySubmit = useCallback(() => {
-    updateStatus(deliveryInfo.id, deliveryInfo.status)
-    setIsModalOpen(false)
-  }, [deliveryInfo, updateStatus])
+    updateStatus(deliveryInfo.id, deliveryInfo.status);
+    setIsModalOpen(false);
+  }, [deliveryInfo, updateStatus]);
 
-  const getStatusButton = useCallback((delivery: any) => {
-    const status = (delivery.data?.status || "").toLowerCase()
-    
-    switch (status) {
-      case "ready":
-        return {
-          text: "Mark In Transit",
-          action: () => {
-            setDeliveryInfo({
-              id: delivery.id,
-              status: "transit",
-              shippingInfo: delivery.data.shippingInfo,
-              items: delivery.data.items,
-              deliveryDate: "",
-              trackingId: "",
-            })
-            setIsModalOpen(true)
-          },
-          className: "bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-nowrap text-sm"
-        }
-      case "transit":
-        return {
-          text: "Mark Delivered",
-          action: () => updateStatus(delivery.id, "delivered"),
-          className: "bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-nowrap text-sm"
-        }
-      case "delivered":
-        return {
-          text: "Delivered",
-          action: () => {},
-          className: "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed"
-        }
-      default:
-        return {
-          text: "Update Status",
-          action: () => {},
-          className: "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed"
-        }
-    }
-  }, [updateStatus])
+  const getStatusButton = useCallback(
+    (delivery: any) => {
+      const status = (delivery.data?.status || "").toLowerCase();
+
+      switch (status) {
+        case "ready":
+          return {
+            text: "Mark In Transit",
+            action: () => {
+              setDeliveryInfo({
+                id: delivery.id,
+                status: "transit",
+                shippingInfo: delivery.data.shippingInfo,
+                items: delivery.data.items,
+                deliveryDate: "",
+                trackingId: "",
+              });
+              setIsModalOpen(true);
+            },
+            className:
+              "bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-nowrap text-sm",
+          };
+        case "transit":
+          return {
+            text: "Mark Delivered",
+            action: () => updateStatus(delivery.id, "delivered"),
+            className:
+              "bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-nowrap text-sm",
+          };
+        case "delivered":
+          return {
+            text: "Delivered",
+            action: () => {},
+            className:
+              "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed",
+          };
+        default:
+          return {
+            text: "Update Status",
+            action: () => {},
+            className:
+              "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed",
+          };
+      }
+    },
+    [updateStatus]
+  );
 
   return (
     <div className="container mx-auto p-4">
       <ToastContainer position="top-right" autoClose={3000} />
-      
+
       <h1 className="text-2xl font-bold mb-6">Delivery Management</h1>
-      
+
       {/* Controls Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div>
-            <label className="mr-2 font-medium text-sm">Filter by Status:</label>
+            <label className="mr-2 font-medium text-sm">
+              Filter by Status:
+            </label>
             <select
               className="border rounded px-3 py-1.5 text-sm"
               value={filter}
               onChange={(e) => {
-                setFilter(e.target.value.toLowerCase())
-                setCurrentPage(1)
+                setFilter(e.target.value.toLowerCase());
+                setCurrentPage(1);
               }}
             >
               <option value="all">All Statuses</option>
               {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
-                <option key={status} value={status.toLowerCase()}>{status}</option>
+                <option key={status} value={status.toLowerCase()}>
+                  {status}
+                </option>
               ))}
             </select>
           </div>
@@ -372,10 +467,13 @@ const Deliveries = () => {
               className="border rounded px-3 py-1.5 text-sm"
               value={`${sortField}-${sortDirection}`}
               onChange={(e) => {
-                const [field, direction] = e.target.value.split("-") as ["date" | "name", "asc" | "desc"]
-                setSortField(field)
-                setSortDirection(direction)
-                setCurrentPage(1)
+                const [field, direction] = e.target.value.split("-") as [
+                  "date" | "name",
+                  "asc" | "desc"
+                ];
+                setSortField(field);
+                setSortDirection(direction);
+                setCurrentPage(1);
               }}
             >
               <option value="date-desc">Date (Newest First)</option>
@@ -403,10 +501,13 @@ const Deliveries = () => {
             className={`p-3 rounded-lg cursor-pointer transition-colors ${
               filter === status ? "ring-2 ring-blue-500" : ""
             } ${
-              status === "ready" ? "bg-yellow-50" :
-              status === "transit" ? "bg-blue-50" :
-              status === "delivered" ? "bg-green-50" :
-              "bg-red-50"
+              status === "ready"
+                ? "bg-yellow-50"
+                : status === "transit"
+                ? "bg-blue-50"
+                : status === "delivered"
+                ? "bg-green-50"
+                : "bg-red-50"
             }`}
             onClick={() => setFilter(filter === status ? "all" : status)}
           >
@@ -421,37 +522,59 @@ const Deliveries = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" >Date</th>
-              <th 
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th
                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => {
-                  setSortField("name")
-                  setSortDirection(prev => prev === "asc" ? "desc" : "asc")
+                  setSortField("name");
+                  setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
                 }}
               >
-                Customer {sortField === "name" ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                Customer{" "}
+                {sortField === "name"
+                  ? sortDirection === "asc"
+                    ? "↑"
+                    : "↓"
+                  : ""}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipping Info</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Shipping Info
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Details
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {displayedDeliveries.length > 0 ? (
               displayedDeliveries.map((delivery: any) => {
-                const statusButton = getStatusButton(delivery)
+                const statusButton = getStatusButton(delivery);
                 return (
                   <tr key={delivery.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">{delivery.id}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(delivery.data.createdAt)}
+                      {delivery.id}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(delivery?.data?.updatedAt ?? "")}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <div className="font-medium">
-                        {delivery.data.shippingInfo.firstname} {delivery.data.shippingInfo.surname}
+                        {delivery.data.shippingInfo.firstname}{" "}
+                        {delivery.data.shippingInfo.surname}
                       </div>
                       <div className="text-gray-500 text-xs">
                         {delivery.data.shippingInfo.email}
@@ -460,7 +583,10 @@ const Deliveries = () => {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       <div className="space-y-1">
                         <div>{delivery.data.shippingInfo.address}</div>
-                        <div>{delivery.data.shippingInfo.city}, {delivery.data.shippingInfo.state}</div>
+                        <div>
+                          {delivery.data.shippingInfo.city},{" "}
+                          {delivery.data.shippingInfo.state}
+                        </div>
                         <div>{delivery.data.shippingInfo.country}</div>
                         <div>{delivery.data.shippingInfo.phonenumber}</div>
                       </div>
@@ -475,48 +601,75 @@ const Deliveries = () => {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {delivery.data.items.map((item: any, index: number) => {
-                        const measurementStr = getMeasurementString(item.item?.measurement)
-                        const color = item.item?.color?.name || item?.color?.name || "Standard"
-                        const length = item.item?.measurement?.length || "N/A"
-                        
+                        const measurementStr = getMeasurementString(
+                          item.item?.measurement
+                        );
+                        const color =
+                          item.item?.color?.name ||
+                          item?.color?.name ||
+                          "Standard";
+                        const length = item.item?.measurement?.length || "N/A";
+
                         return (
                           <div key={index} className="mb-2 last:mb-0">
-                            <div><span className="font-semibold">Size:</span> <br /> {measurementStr}</div>
-                            <div><span className="font-semibold">Color:</span> <br /> {color}</div>
-                            <div><span className="font-semibold">Price:</span> <br /> {formatCurrency(item.item.price)}</div>
+                            <div>
+                              <span className="font-semibold">Size:</span>{" "}
+                              <br /> {measurementStr}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Color:</span>{" "}
+                              <br /> {color}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Price:</span>{" "}
+                              <br /> {formatCurrency(item.item.price)}
+                            </div>
                             {length !== "N/A" && (
-                              <div><span className="font-semibold">Length:</span> {length}</div>
+                              <div>
+                                <span className="font-semibold">Length:</span>{" "}
+                                {length}
+                              </div>
                             )}
                           </div>
-                        )
+                        );
                       })}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        delivery.data.status === "ready" ? "bg-yellow-100 text-yellow-800" :
-                        delivery.data.status === "transit" ? "bg-blue-100 text-blue-800" :
-                        delivery.data.status === "delivered" ? "bg-green-100 text-green-800" :
-                        "bg-red-100 text-red-800"
-                      }`}>
-                       {delivery.data.status.charAt(0).toUpperCase() + delivery.data.status.slice(1)}
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          delivery.data.status === "ready"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : delivery.data.status === "transit"
+                            ? "bg-blue-100 text-blue-800"
+                            : delivery.data.status === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {delivery.data.status.charAt(0).toUpperCase() +
+                          delivery.data.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <button
                         onClick={statusButton.action}
                         className={statusButton.className}
-                        disabled={["delivered", "canceled"].includes(delivery.data.status.toLowerCase())}
+                        disabled={["delivered", "canceled"].includes(
+                          delivery.data.status.toLowerCase()
+                        )}
                       >
                         {statusButton.text}
                       </button>
                     </td>
                   </tr>
-                )
+                );
               })
             ) : (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                  {isLoading ? "Loading deliveries..." : "No deliveries found matching your criteria"}
+                  {isLoading
+                    ? "Loading deliveries..."
+                    : "No deliveries found matching your criteria"}
                 </td>
               </tr>
             )}
@@ -528,7 +681,7 @@ const Deliveries = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="px-4 py-2 rounded bg-gray-100 text-sm disabled:opacity-50"
           >
@@ -538,7 +691,9 @@ const Deliveries = () => {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="px-4 py-2 rounded bg-gray-100 text-sm disabled:opacity-50"
           >
@@ -555,7 +710,7 @@ const Deliveries = () => {
         setDeliveryInfo={setDeliveryInfo}
       />
     </div>
-  )
-}
+  );
+};
 
-export default Deliveries
+export default Deliveries;
