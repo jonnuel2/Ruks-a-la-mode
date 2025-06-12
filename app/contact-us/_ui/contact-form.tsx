@@ -86,7 +86,7 @@ export default function ContactForm() {
       <p className="lg:text-5xl text-2xl">Contact Us</p>
       <p className="mt-3 opacity-90 lg:text-base text-sm text-dark">
         For issues with the website, ordering or general support, fill the form
-        below our team will get back to you within 24-48 hrs.
+        below AND our team will get back to you within 24-48 hrs.
       </p>
       <div className="flex flex-col items-start space-y-5 lg:my-10 my-6">
         <input

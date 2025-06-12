@@ -67,9 +67,9 @@ export default function Footer() {
                       />
                     ))}
                   </div>
-                  <p className="opacity-90 leading-relaxed lg:text-base text-sm">
+                  {/* <p className="opacity-90 leading-relaxed lg:text-base text-sm">
                     Attainable, Comfortable & Chic.
-                  </p>
+                  </p> */}
                 </div>
               </div>
               <div className="lg:w-[36%] w-3/4 flex items-start justify-between mr-10 text-lg lg:mb-0 mb-8">
@@ -106,7 +106,7 @@ export default function Footer() {
                   CONTACT US
                 </p>
 
-                <div className="mb-4">
+                <div className="mb-4 space-y-2">
                   {/* phone number */}
                   <div className="flex items-center space-x-2">
                     <svg
