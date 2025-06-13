@@ -473,6 +473,8 @@ export default function Page(props: { params: Params }) {
     }
   };
 
+
+
   if (isLoading) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
@@ -487,7 +489,7 @@ export default function Page(props: { params: Params }) {
 
   const handlePrev = () => {
     if (!swiperRef.current) return;
-
+    
     if (swiperRef.current.isBeginning) {
       // If at first slide, go to last
       swiperRef.current.slideTo(product?.data?.images?.length - 1, 500);
@@ -496,10 +498,10 @@ export default function Page(props: { params: Params }) {
       swiperRef.current.slidePrev(500);
     }
   };
-
+  
   const handleNext = () => {
     if (!swiperRef.current) return;
-
+    
     if (swiperRef.current.isEnd) {
       // If at last slide, go to first
       swiperRef.current.slideTo(0, 500);
@@ -557,6 +559,7 @@ export default function Page(props: { params: Params }) {
               e.stopPropagation();
               // Handle previous slide
               handlePrev();
+              
             }}
             aria-label="Previous slide"
           >
@@ -578,6 +581,7 @@ export default function Page(props: { params: Params }) {
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
+             
             }}
             aria-label="Next slide"
           >
@@ -850,7 +854,15 @@ const CustomMeasurement = ({
             onChange={(e) => {
               const inputValue = e.target.value;
               // Allow decimals (e.g., 0.4, 12.75)
-              if (/^\d+'\s?\d{0,2}"?$/.test(inputValue)) {
+            //   if (/^[\d'.]*$/.test(inputValue)) {
+            //     setMeasurement({
+            //       ...measurement,
+            //       custom: { ...measurement?.custom, [m]: inputValue },
+            //     });
+            //   }
+            // }}
+
+            if (/^\d+'\s?\d{0,2}"?$/.test(inputValue) || inputValue === '' || /^\d+'?$/.test(inputValue)) {
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: inputValue },
