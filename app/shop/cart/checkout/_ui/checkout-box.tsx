@@ -29,10 +29,11 @@ export default function CheckoutBox({
   const context = useAppContext();
   const { cart, setcart } = context;
 
-  const subtotal = cart?.items?.reduce(
-    (sum, item) => item.item.price * item.quantity + sum,
-    0
-  ) * rate;
+  const subtotal =
+    cart?.items?.reduce(
+      (sum, item) => item.item.price * item.quantity + sum,
+      0
+    ) * rate;
 
   const discountAmount = (discount / 100) * subtotal;
   const discountedSubtotal = subtotal - discountAmount;
