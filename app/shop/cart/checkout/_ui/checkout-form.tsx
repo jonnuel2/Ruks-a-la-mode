@@ -233,6 +233,9 @@ const CheckoutForm = ({
             </div>
           </div>
           <div className="flex gap-4">
+                        <p className="text-xs lg:text-sm font-medium text-coffee">
+              Delivery Method
+            </p>
             {shippingInfo.state?.trim().toLowerCase() !== "abuja" ? (
               shippingInfo?.country?.toLowerCase() === "nigeria" ? (
                 types.map((option) => (

@@ -129,6 +129,7 @@ export default function Page() {
           currency={currency}
           rate={exchangeRates[currency.toLowerCase()]}
           shippingFee={shippingFee}
+          deliveryType={deliveryType}
         />
       </div>
     </div>
