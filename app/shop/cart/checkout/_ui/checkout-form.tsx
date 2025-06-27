@@ -376,39 +376,39 @@ const CheckoutForm = ({
         ) : (
           <></>
         )}
-        <div
-          onClick={() => {
-            if (
-              shippingInfo.email === "" ||
-              shippingInfo.address === "" ||
-              shippingInfo.city === "" ||
-              shippingInfo.firstname === "" ||
-              shippingInfo.surname === "" ||
-              shippingInfo.state === "" ||
-              shippingInfo.phonenumber === ""
-            ) {
-              // return alert("We need some information to process your delivery.")
-              toast.error(
-                "We need some information to process your delivery.",
-                {
-                  position: "top-right",
-                  autoClose: 3000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                }
-              );
-              return; // Make sure to keep the return statement to prevent further execution
-            }
-            checkoutCart(shippingInfo);
-          }}
-          className={`lg:w-[49%] w-full p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
-        >
-          <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
-            {shippingFee === undefined ? "Get Shipping Fee" : "Check out"}
-          </p>
-        </div>
+       <div
+  onClick={() => {
+    if (
+      shippingInfo.email === "" ||
+      shippingInfo.address === "" ||
+      shippingInfo.city === "" ||
+      shippingInfo.firstname === "" ||
+      shippingInfo.surname === "" ||
+      shippingInfo.state === "" ||
+      shippingInfo.phonenumber === ""
+    ) {
+      toast.error("We need some information to process your delivery.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    // Update this line to include deliveryType:
+    checkoutCart({
+      ...shippingInfo,
+      deliveryType, // <-- Add this line
+    });
+  }}
+  className={`lg:w-[49%] w-full p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
+>
+  <p className="text-[#f5f5f5] lg:text-sm text-xs uppercase">
+    {shippingFee === undefined ? "Get Shipping Fee" : "Check out"}
+  </p>
+</div>
       </form>
     </>
   );

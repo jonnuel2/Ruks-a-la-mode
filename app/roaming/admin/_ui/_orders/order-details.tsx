@@ -1,15 +1,21 @@
 import { formatPrice } from "@/helpers/functions";
 import React, { useState } from "react";
-import AddTailorModal from "./add-tailor"
-
-import { editTailor } from "@/helpers/api-controller"; // Make sure this path is correct
+import AddTailorModal from "./add-tailor";
+import { editTailor } from "@/helpers/api-controller";
 
 type OrderDetailsProps = {
   order: any;
   onClose: () => void;
+  currency: string;
+  exchangeRate?: number;
 };
 
-const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
+const OrderDetails: React.FC<OrderDetailsProps> = ({
+  order,
+  onClose,
+  currency = "NGN",
+  exchangeRate = 0.000647,
+}) => {
   const [isTailorModalOpen, setTailorModalOpen] = useState(false);
   const [assignedTailors, setAssignedTailors] = useState(
     order?.data?.tailors || []
@@ -35,6 +41,22 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
     );
   };
 
+  const getDisplayPrice = (item: any) => {
+    if (currency === "NGN") {
+      return item?.item?.originalPrice || item?.item?.price || 0;
+    } else {
+      return (
+        item?.item?.priceInUsd ||
+        (item?.item?.originalPrice || item?.item?.price || 0) * exchangeRate
+      );
+    }
+  };
+
+  const orderTotal =
+    order?.data?.items?.reduce((sum: number, item: any) => {
+      return sum + getDisplayPrice(item) * item.quantity;
+    }, 0) || 0;
+
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded shadow-md lg:w-3/4 w-full max-h-[90vh] overflow-y-auto">
@@ -54,10 +76,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           <span className="font-bold">Number:</span>{" "}
           {order?.data?.shippingInfo?.phonenumber || "N/A"}
         </p>
-        <p className="mb-2 text-sm">
-          <span className="font-bold">Delivery Method:</span>{" "}
-          {order?.data?.shippingInfo?.deliveryType || "N/A"}
-        </p>
+
         <p className="mb-2 text-sm">
           <span className="font-bold">Order Date:</span>{" "}
           {order?.data?.createdAt || "N/A"}
@@ -66,8 +85,17 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           <span className="font-bold">Status:</span>{" "}
           {order?.data?.status || "N/A"}
         </p>
+        {/* Add Delivery Type display */}
+        <p className="mb-2 text-sm capitalize">
+          <span className="font-bold">Shipping Method:</span>{" "}
+          {order?.data?.shippingInfo?.deliveryType
+            ? order.data.shippingInfo?.deliveryType === "standard"
+              ? "Standard Shipping"
+              : "Express Shipping"
+            : "N/A"}
+        </p>
         <p className="mb-4 text-sm font-bold">
-          Total: {formatPrice("NGN", order?.data?.price || 0)}
+          Total: {formatPrice(currency, orderTotal)}
         </p>
 
         {assignedTailors.length > 0 && (
@@ -76,7 +104,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
               Assigned Tailors
               <button
                 onClick={() => setTailorModalOpen(true)}
-                className="text-xs  border rounded-md px-2 py-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                className="text-xs border rounded-md px-2 py-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 disabled={assignedTailors.length === 0}
               >
                 Edit
@@ -85,7 +113,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
             <ol className="list-decimal list-inside text-sm">
               {assignedTailors.map((t: any, i: number) => (
                 <li key={i}>
-                  <span className="font-medium">{t.name}</span> – {t.description}
+                  <span className="font-medium">{t.name}</span> –{" "}
+                  {t.description}
                 </li>
               ))}
             </ol>
@@ -114,7 +143,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
                     {item?.quantity || "N/A"}
                   </td>
                   <td className="px-4 py-2 border text-sm">
-                    {formatPrice("NGN", item?.item?.price || 0)}
+                    {formatPrice(currency, getDisplayPrice(item))}
                   </td>
                   <td className="px-4 py-2 border text-sm">
                     {getMeasurementString(item?.item?.measurement)}
@@ -136,7 +165,6 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
         </button>
       </div>
 
-      {/* Tailor Modal */}
       <AddTailorModal
         isOpen={isTailorModalOpen}
         onClose={() => setTailorModalOpen(false)}

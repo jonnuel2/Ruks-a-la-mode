@@ -22,7 +22,7 @@ export default function ProductTable({
   const [currency, setCurrency] = useState<"NGN" | "USD">("NGN");
 
     useEffect(() => {
-    // Fetch the user's IP-based location
+    // Fetch the user's IP-based location whether nigeria or usa
     const fetchUserLocation = async () => {
       try {
         const response = await fetch("https://ipapi.co/json/");
@@ -31,7 +31,7 @@ export default function ProductTable({
           setCurrency("USD");
         }
       } catch (error) {
-        console.error("Error fetching location:", error);
+        console.error("Error fetching location:", error); 
       }
     };
 

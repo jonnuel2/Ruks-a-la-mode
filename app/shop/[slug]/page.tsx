@@ -34,7 +34,8 @@ export default function Page(props: { params: Params }) {
   const { slug } = params;
   const router = useRouter();
   const context = useAppContext();
-  const { cart, setcart, all_products, currency, exchangeRates } = context;
+  const { cart, setcart, all_products, currency, exchangeRates, setCurrency } =
+    context;
 
   const {
     data: productData,
@@ -358,111 +359,17 @@ export default function Page(props: { params: Params }) {
   // };
 
   const addToBag = () => {
-    if (product) {
-      console.log("adding");
-      const { size, custom, length } = measurement;
+  if (product) {
+    console.log("adding");
+    const { size, custom, length } = measurement;
 
-      // Validate measurements
-      if (
-        !size &&
-        !length &&
-        !Object?.entries(custom)?.some(([_, value]) => value !== "")
-      ) {
-        toast.error("Incomplete Measurement Parameters", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      }
-
-      // Validate color selection for multi-color products
-      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
-        toast.warning("Please choose a color", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        return;
-      }
-
-      // Prepare measurements
-      let filteredMeasurement;
-      if (
-        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
-      ) {
-        filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement?.custom).filter(
-            ([_, value]) => value !== ""
-          )
-        );
-      } else {
-        filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement).filter(
-            ([_, value]) => typeof value !== "object"
-          )
-        );
-      }
-
-      // Use the SELECTED color, not the first one
-      const color =
-        product?.data?.colors?.length > 1
-          ? selectedColor
-          : product?.data?.colors[0]; // Fallback to first color if product has only one color
-
-      // Prepare cart item
-      const itemData: any = {
-        item: {
-          name: product?.data?.name,
-          price: getPrice(),
-          id: product?.id,
-          image: product?.data?.images[0],
-          stock: color?.stock ?? 10,
-          measurement: filteredMeasurement,
-          color: {
-            // Store the complete color object
-            name: color?.name,
-            hexCode: color?.hexCode,
-            stock: color?.stock,
-          },
-          weight: product?.data?.weight,
-        },
-        quantity: orderDetails?.quantity,
-      };
-
-      // Add part info if selected
-      if (selectedPart?.name) {
-        itemData.item["selectedPart"] = selectedPart;
-        itemData.item["name"] += ` (${selectedPart?.name})`;
-      }
-
-      // Add material info if selected
-      if (selectedMaterial?.name) {
-        itemData.item["selectedMaterial"] = selectedMaterial;
-        itemData.item["name"] += ` (${selectedMaterial?.name})`;
-      }
-
-      // Add color to name if multiple colors exist
-      // if (product?.data?.colors?.length > 1) {
-      //   itemData.item["name"] += ` (${color?.name})`;
-      // }
-
-      // Update cart
-      const updatedCart = {
-        ...cart,
-        items: [...cart?.items, itemData],
-      };
-
-      setcart(updatedCart);
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-      toast.success("Cart Updated Successfully!", {
+    // Validate measurements
+    if (
+      !size &&
+      !length &&
+      !Object?.entries(custom)?.some(([_, value]) => value !== "")
+    ) {
+      toast.error("Incomplete Measurement Parameters", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -470,10 +377,121 @@ export default function Page(props: { params: Params }) {
         pauseOnHover: true,
         draggable: true,
       });
+      return;
     }
-  };
 
+    // Validate color selection for multi-color products
+    if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+      toast.warning("Please choose a color", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
 
+    // Prepare measurements
+    let filteredMeasurement;
+    if (
+      Object.entries(measurement?.custom).some(([_, value]) => value !== "")
+    ) {
+      filteredMeasurement = Object.fromEntries(
+        Object.entries(measurement?.custom).filter(
+          ([_, value]) => value !== ""
+        )
+      );
+    } else {
+      filteredMeasurement = Object.fromEntries(
+        Object.entries(measurement).filter(
+          ([_, value]) => typeof value !== "object"
+        )
+      );
+    }
+
+    // Use the SELECTED color, not the first one
+    const color =
+      product?.data?.colors?.length > 1
+        ? selectedColor
+        : product?.data?.colors[0]; // Fallback to first color if product has only one color
+
+    // Calculate price based on currency
+    const price = getPrice();
+    const priceInUsd = product?.data?.priceInUsd || price * exchangeRates["usd"];
+
+    // Prepare cart item
+    const itemData: any = {
+      item: {
+        name: product?.data?.name,
+        price: currency === "NGN" ? price : priceInUsd, // Store the correct price based on currency
+        priceInUsd: product?.data?.priceInUsd, // Always store the manual USD price if available
+        originalPrice: price, // Store the original NGN price
+        id: product?.id,
+        image: product?.data?.images[0],
+        stock: color?.stock ?? 10,
+        measurement: filteredMeasurement,
+        color: {
+          name: color?.name,
+          hexCode: color?.hexCode,
+          stock: color?.stock,
+        },
+        weight: product?.data?.weight,
+      },
+      quantity: orderDetails?.quantity,
+    };
+
+    // Add part info if selected
+    if (selectedPart?.name) {
+      itemData.item["selectedPart"] = selectedPart;
+      itemData.item["name"] += ` (${selectedPart?.name})`;
+    }
+
+    // Add material info if selected
+    if (selectedMaterial?.name) {
+      itemData.item["selectedMaterial"] = selectedMaterial;
+      itemData.item["name"] += ` (${selectedMaterial?.name})`;
+    }
+
+    // Update cart
+    const updatedCart = {
+      ...cart,
+      items: [...cart?.items, itemData],
+    };
+
+    setcart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    toast.success("Cart Updated Successfully!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  }
+};
+
+  // to detect location
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
+        if (data.country_code !== "NG") {
+          setCurrency("USD");
+        } else {
+          setCurrency("NGN");
+        }
+      } catch (error) {
+        console.error("Error detecting location:", error);
+      }
+    };
+
+    fetchUserLocation();
+  }, [setCurrency]);
 
   if (isLoading) {
     return (
@@ -489,7 +507,7 @@ export default function Page(props: { params: Params }) {
 
   const handlePrev = () => {
     if (!swiperRef.current) return;
-    
+
     if (swiperRef.current.isBeginning) {
       // If at first slide, go to last
       swiperRef.current.slideTo(product?.data?.images?.length - 1, 500);
@@ -498,10 +516,10 @@ export default function Page(props: { params: Params }) {
       swiperRef.current.slidePrev(500);
     }
   };
-  
+
   const handleNext = () => {
     if (!swiperRef.current) return;
-    
+
     if (swiperRef.current.isEnd) {
       // If at last slide, go to first
       swiperRef.current.slideTo(0, 500);
@@ -559,7 +577,6 @@ export default function Page(props: { params: Params }) {
               e.stopPropagation();
               // Handle previous slide
               handlePrev();
-              
             }}
             aria-label="Previous slide"
           >
@@ -581,7 +598,6 @@ export default function Page(props: { params: Params }) {
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
-             
             }}
             aria-label="Next slide"
           >
@@ -607,14 +623,32 @@ export default function Page(props: { params: Params }) {
             {product?.data?.name}
           </p>
           {/* price */}
-          <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+          {/* <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
             {formatPrice(
               currency,
               getPrice() *
                 exchangeRates[currency.toLowerCase()] *
                 orderDetails.quantity
             )}
+          </p> */}
+          <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+            {formatPrice(
+              currency,
+              currency === "NGN"
+                ? getPrice() * orderDetails.quantity
+                : (product?.data?.priceInUsd ||
+                    getPrice() * exchangeRates["usd"]) * orderDetails.quantity
+            )}
           </p>
+
+          {/* <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+            {formatPrice(
+              currency,
+              getPrice() *
+                (currency === "USD" ? exchangeRates["usd"] : 1) *
+                orderDetails.quantity
+            )}
+          </p> */}
           {/* Description */}
           <p className="mt-6 tracking-wider lg:text-base font-medium text-sm">
             {product?.data?.description
@@ -854,15 +888,19 @@ const CustomMeasurement = ({
             onChange={(e) => {
               const inputValue = e.target.value;
               // Allow decimals (e.g., 0.4, 12.75)
-            //   if (/^[\d'.]*$/.test(inputValue)) {
-            //     setMeasurement({
-            //       ...measurement,
-            //       custom: { ...measurement?.custom, [m]: inputValue },
-            //     });
-            //   }
-            // }}
+              //   if (/^[\d'.]*$/.test(inputValue)) {
+              //     setMeasurement({
+              //       ...measurement,
+              //       custom: { ...measurement?.custom, [m]: inputValue },
+              //     });
+              //   }
+              // }}
 
-            if (/^\d+'\s?\d{0,2}"?$/.test(inputValue) || inputValue === '' || /^\d+'?$/.test(inputValue)) {
+              if (
+                /^\d+'\s?\d{0,2}"?$/.test(inputValue) ||
+                inputValue === "" ||
+                /^\d+'?$/.test(inputValue)
+              ) {
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: inputValue },

@@ -19,7 +19,6 @@ export default function Page() {
   const getMeasurementString = (measurement: any) => {
     if (!measurement) return null;
 
-    // Handle both standard measurements (size/length) and custom measurements
     const entries = measurement.custom
       ? Object.entries(measurement.custom)
       : Object.entries(measurement).filter(([key]) => key !== "custom");
@@ -50,7 +49,6 @@ export default function Page() {
     router.push(`/shop/${id}`);
   };
 
-  // delete items
   const handleDeleteItem = (index: number, itemName: string) => {
     const newItems = [...cart.items];
     newItems.splice(index, 1);
@@ -71,20 +69,16 @@ export default function Page() {
     });
   };
 
-  // Improved checkout function to handle authentication properly
   const handleCheckout = () => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
-    
-    // Check if user is authenticated
+
     if (!token || !user) {
-      // Store the checkout path as the redirect destination
       localStorage.setItem("postLoginRedirect", "/shop/cart/checkout");
-      
-      // Redirect to login with checkout as redirect parameter
-      router.push(`/Auth/login?redirect=${encodeURIComponent("/shop/cart/checkout")}`);
+      router.push(
+        `/Auth/login?redirect=${encodeURIComponent("/shop/cart/checkout")}`
+      );
     } else {
-      // User is authenticated, proceed to checkout
       router.push("/shop/cart/checkout");
     }
   };
@@ -141,7 +135,7 @@ export default function Page() {
                             priority
                             width={120}
                             height={280}
-                            src={c.item.image}
+                            src={c.item.image || "/placeholder.svg"}
                             alt="Product Image"
                             className="mr-4"
                           />
@@ -227,7 +221,7 @@ export default function Page() {
                                 if (modifiedCart.items[i].quantity > 1) {
                                   modifiedCart.items[i].quantity -= 1;
                                 } else {
-                                  modifiedCart.items.splice(i, 1); // Remove just this specific item
+                                  modifiedCart.items.splice(i, 1);
                                 }
                                 setcart(modifiedCart);
                                 localStorage.setItem(
@@ -257,9 +251,11 @@ export default function Page() {
                       <td className="px-4 mt-3 font-light text-xs lg:text-sm lg:w-1/5">
                         {formatPrice(
                           currency,
-                          c.item?.price *
-                            exchangeRates[currency.toLowerCase()] *
-                            c.quantity
+                          currency === "NGN"
+                            ? c.item?.originalPrice * c.quantity
+                            : (c.item?.priceInUsd ||
+                                c.item?.originalPrice * exchangeRates["usd"]) *
+                                c.quantity
                         )}
                       </td>
                       <td className="px-4 mt-3 font-light text-xs lg:text-sm lg:w-1/12">
@@ -296,9 +292,13 @@ export default function Page() {
                     currency,
                     cart?.items?.reduce(
                       (sum: any, item: any) =>
-                        item.item?.price * item.quantity + sum,
+                        (currency === "NGN"
+                          ? item.item?.originalPrice * item.quantity
+                          : (item.item?.priceInUsd ||
+                              item.item?.originalPrice * exchangeRates["usd"]) *
+                            item.quantity) + sum,
                       0
-                    ) * exchangeRates[currency.toLowerCase()]
+                    )
                   )}
                 </p>
               </span>

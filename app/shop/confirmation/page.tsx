@@ -22,6 +22,7 @@ interface ShippingInfo {
   firstname: string;
   surname: string;
   zipCode: string;
+  deliveryType: string;
 }
 
 function Confirmation() {
