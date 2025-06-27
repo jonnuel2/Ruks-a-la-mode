@@ -16,6 +16,7 @@ export default function CheckoutBox({
   setDiscount,
   shippingFee,
   price,
+  deliveryType
 }: {
   currency: string;
   rate: number;
@@ -23,6 +24,7 @@ export default function CheckoutBox({
   setDiscount: (value: number) => void;
   shippingFee: number | undefined;
   price: number;
+  deliveryType: "standard" | "express";
 }) {
   const [code, setcode] = useState("");
 
@@ -97,6 +99,7 @@ export default function CheckoutBox({
             )
             .join(", ");
           return (
+            <>
             <div
               className="flex lg:flex-row flex-col lg:items-center items-start lg:justify-between w-full lg:mb-2 mb-3"
               key={c?.item?.id}
@@ -140,6 +143,15 @@ export default function CheckoutBox({
                 {formatPrice(currency, c?.item?.price * c?.quantity * rate)}
               </p>
             </div>
+        <div className="flex items-center justify-between w-full mt-8">
+          <p className="font-medium tracking-wide lg:text-base text-xs">
+            Delivery Type
+          </p>
+          <p className="font-light tracking-wide lg:text-base text-xs">
+            {deliveryType ? deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1): "Not specified"}
+          </p>
+        </div>
+            </>
           );
         })}
 
