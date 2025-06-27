@@ -56,7 +56,10 @@ export default function ProductTable({
               <td className="p-2 text-xs">{product.id}</td>
               <td className="p-2 text-xs uppercase">{product.name}</td>
               <td className="p-2 text-xs">
-                {formatPrice(currency, product.price)}
+                {/* {formatPrice(currency, product.price)} */}
+                                {currency === "NGN"
+                  ? formatPrice("NGN", product.price)
+                  : formatPrice("USD", product.priceInUsd)}
               </td>
               <td className="p-2 text-xs uppercase">{product.category}</td>
               <td className="p-2">
