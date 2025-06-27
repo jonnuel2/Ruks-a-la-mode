@@ -397,7 +397,7 @@ export default function Orders() {
           </div>
 
           {/* Order Details Modal */}
-          {selectedOrder && <OrderDetails order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
+          {selectedOrder && <OrderDetails order={selectedOrder} onClose={() => setSelectedOrder(null)} currency={""} />}
 
           {/* No Results Message */}
           {filteredOrders?.length === 0 && (
