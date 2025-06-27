@@ -16,7 +16,7 @@ export default function CheckoutBox({
   setDiscount,
   shippingFee,
   price,
-  deliveryType
+  deliveryType,
 }: {
   currency: string;
   rate: number;
@@ -100,57 +100,49 @@ export default function CheckoutBox({
             .join(", ");
           return (
             <>
-            <div
-              className="flex lg:flex-row flex-col lg:items-center items-start lg:justify-between w-full lg:mb-2 mb-3"
-              key={c?.item?.id}
-            >
-              <div className="flex items-center w-full justify-start">
-                {c?.item.image && (
-                  <Image
-                    priority
-                    width={100}
-                    height={150}
-                    src={c?.item.image}
-                    alt="Product Image"
-                    className=" mr-4"
-                  />
-                )}
-                <div>
-                  <p className="tracking-wide lg:text-base text-sm font-medium lg:font-bold uppercase">
-                    {c?.item?.name}
-                  </p>
-                  <p className="font-extralight tracking-wide text-[9px]">
-                    {formattedMeasurementString}
-                  </p>
-                  <p className="font-extralight tracking-wide text-[9px]">
-                    Color - {c?.item?.color?.name}
-                  </p>
-                  <p className="font-medium tracking-wide text-xs mt-1">
-                    Weight:{" "}
-                    <span className="font-semibold">
-                      {c?.item?.weight
-                        ? `${c?.item?.weight * c?.quantity} kg`
-                        : "N/A"}
-                    </span>
-                  </p>
-                  <p className="font-medium tracking-wide text-xs mt-1">
-                    Quantity:{" "}
-                    <span className="font-semibold">{c?.quantity}</span>
-                  </p>
+              <div
+                className="flex lg:flex-row flex-col lg:items-center items-start lg:justify-between w-full lg:mb-2 mb-3"
+                key={c?.item?.id}
+              >
+                <div className="flex items-center w-full justify-start">
+                  {c?.item.image && (
+                    <Image
+                      priority
+                      width={100}
+                      height={150}
+                      src={c?.item.image}
+                      alt="Product Image"
+                      className=" mr-4"
+                    />
+                  )}
+                  <div>
+                    <p className="tracking-wide lg:text-base text-sm font-medium lg:font-bold uppercase">
+                      {c?.item?.name}
+                    </p>
+                    <p className="font-extralight tracking-wide text-[9px]">
+                      {formattedMeasurementString}
+                    </p>
+                    <p className="font-extralight tracking-wide text-[9px]">
+                      Color - {c?.item?.color?.name}
+                    </p>
+                    <p className="font-medium tracking-wide text-xs mt-1">
+                      Weight:{" "}
+                      <span className="font-semibold">
+                        {c?.item?.weight
+                          ? `${c?.item?.weight * c?.quantity} kg`
+                          : "N/A"}
+                      </span>
+                    </p>
+                    <p className="font-medium tracking-wide text-xs mt-1">
+                      Quantity:{" "}
+                      <span className="font-semibold">{c?.quantity}</span>
+                    </p>
+                  </div>
                 </div>
+                <p className="lg:text-base text-sm lg:mt-0 mt-4">
+                  {formatPrice(currency, c?.item?.price * c?.quantity * rate)}
+                </p>
               </div>
-              <p className="lg:text-base text-sm lg:mt-0 mt-4">
-                {formatPrice(currency, c?.item?.price * c?.quantity * rate)}
-              </p>
-            </div>
-        <div className="flex items-center justify-between w-full mt-8">
-          <p className="font-medium tracking-wide lg:text-base text-xs">
-            Delivery Type
-          </p>
-          <p className="font-light tracking-wide lg:text-base text-xs">
-            {deliveryType ? deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1): "Not specified"}
-          </p>
-        </div>
             </>
           );
         })}
@@ -205,6 +197,16 @@ export default function CheckoutBox({
           </p>
           <p className="font-light tracking-wide lg:text-base text-xs">
             {formatPrice(currency, vat)}
+          </p>
+        </div>
+        <div className="flex items-center justify-between w-full mt-8">
+          <p className="font-medium tracking-wide lg:text-base text-xs">
+            Delivery Type
+          </p>
+          <p className="font-light tracking-wide lg:text-base text-xs">
+            {deliveryType
+              ? deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1)
+              : "Not specified"}
           </p>
         </div>
 

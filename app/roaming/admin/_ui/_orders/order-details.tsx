@@ -55,6 +55,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onClose }) => {
           {order?.data?.shippingInfo?.phonenumber || "N/A"}
         </p>
         <p className="mb-2 text-sm">
+          <span className="font-bold">Delivery Method:</span>{" "}
+          {order?.data?.shippingInfo?.deliveryType || "N/A"}
+        </p>
+        <p className="mb-2 text-sm">
           <span className="font-bold">Order Date:</span>{" "}
           {order?.data?.createdAt || "N/A"}
         </p>
