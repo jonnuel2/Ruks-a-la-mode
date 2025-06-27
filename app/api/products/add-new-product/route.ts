@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       name: body.name,
       description: body.description || "",
       price: body.price,
+      priceInUsd: body.priceInUsd ,
       images: body.images || [],
       category: body.category,
       colors: body.colors || [],

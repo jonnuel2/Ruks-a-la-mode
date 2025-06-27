@@ -28,6 +28,7 @@ export default function ProductModal({
     colors: [],
     components: [],
     weight: "",
+    priceInUsd: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,7 @@ export default function ProductModal({
         materialOptions: [],
         components: [],
         weight: "",
+        priceInUsd: "",
       });
     }
   }, [product]);
@@ -101,6 +103,9 @@ export default function ProductModal({
         if (updatedFields?.hasOwnProperty("price")) {
           updatedFields["price"] = parseInt(updatedFields?.price);
         }
+        if (updatedFields?.hasOwnProperty("priceInUsd")) {
+          updatedFields["priceInUsd"] = parseFloat(updatedFields?.priceInUsd);
+        }
         if (updatedFields?.hasOwnProperty("quantity")) {
           updatedFields["quantity"] = parseInt(updatedFields?.quantity);
         }
@@ -117,6 +122,7 @@ export default function ProductModal({
           colors: [],
           components: [],
           weight: "",
+          priceInUsd: "",
         });
       }
     } else {
@@ -130,6 +136,7 @@ export default function ProductModal({
 
       let product = { ...formData };
       product.price = parseInt(product.price);
+      product.priceInUsd = parseFloat(product.priceInUsd);
       product.weight = parseFloat(product.weight);
       product.images = imageUrls;
       if (product?.components) {
@@ -146,6 +153,7 @@ export default function ProductModal({
         colors: [],
         components: [],
         weight: "",
+        priceInUsd: "",
       });
     }
     setLoading(false);
@@ -231,7 +239,7 @@ export default function ProductModal({
       ...formData,
       components: [
         ...(formData.components ?? []),
-        { name: "", price: "", stock: "", id: "", weight: "" },
+        { name: "", price: "", stock: "", id: "", weight: "",priceInUsd: "" } // Ensure it matches ComponentProps,
       ],
     });
   };
@@ -288,6 +296,22 @@ export default function ProductModal({
             }
           }}
           placeholder="Enter price"
+          className="w-full p-2 border text-xs rounded"
+          required
+        />
+      </div>
+            <div>
+        <label className="block text-xs mb-1">Price ($)</label>
+        <input
+          type="text"
+          value={formData.priceInUsd}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            if (/^\d*$/.test(inputValue)) {
+              setFormData({ ...formData, priceInUsd: inputValue });
+            }
+          }}
+          placeholder="Enter price in USD"
           className="w-full p-2 border text-xs rounded"
           required
         />
