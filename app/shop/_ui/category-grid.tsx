@@ -20,7 +20,7 @@ export default function CategoryGrid({
             setSelectedProduct(m);
             viewProduct(m.id);
           }} // Pass viewProduct function
-          // addToBag={() => {}}
+          addToBag={() => {}}
         />
       ))}
     </div>

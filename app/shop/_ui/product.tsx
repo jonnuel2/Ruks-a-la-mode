@@ -9,6 +9,7 @@ import { useEffect } from "react";
 type ProductComponentProps = {
   product: any;
   viewProduct?: () => void;
+  addToBag?: () => void;
 };
 
 export default function Product({
