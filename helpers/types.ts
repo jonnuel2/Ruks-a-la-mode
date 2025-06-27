@@ -107,6 +107,7 @@ export interface ProductProps {
   collection?: string;
   quantity: number;
   weight?: number;
+  priceInUsd: number; // Optional price in USD
 }
 
 export interface ColorProps {
