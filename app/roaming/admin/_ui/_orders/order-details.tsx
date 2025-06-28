@@ -1,4 +1,5 @@
 import { formatPrice } from "@/helpers/functions";
+
 import React, { useState } from "react";
 import AddTailorModal from "./add-tailor";
 import { editTailor } from "@/helpers/api-controller";

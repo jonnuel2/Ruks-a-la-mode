@@ -60,13 +60,26 @@ const isFreeShippingPeriod = () => {
   return now.getTime() - FREE_SHIPPING_START_DATE.getTime() < SIX_WEEKS_IN_MS;
 };
 
+// export const formatPrice = (currency: string, price: number) => {
+//   const validCurrency = currency || "NGN"; // fallback to NGN
+//   const formatter = new Intl.NumberFormat("en-US", {
+//     style: "currency",
+//     currency: validCurrency,
+//   });
+//   return formatter.format(price);
+// };
+
 export const formatPrice = (currency: string, price: number) => {
+  const safeCurrency = currency && currency.trim() !== "" ? currency : "NGN";
+
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: safeCurrency,
   });
+
   return formatter.format(price);
 };
+
 
 export function groupMerchByCategory(
   merch: any[]
