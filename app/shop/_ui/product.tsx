@@ -131,14 +131,14 @@ export default function Product({
         </p>
       </div>
 
-      {!isOutOfStock && (
+      {/* {!isOutOfStock && (
         <button
           onClick={addToBag}
           className="mt-3 px-4 py-2 text-xs bg-black text-white rounded hover:opacity-70"
         >
           Add to Bag
         </button>
-      )}
+      )} */}
     </div>
   );
 }

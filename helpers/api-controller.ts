@@ -1,8 +1,7 @@
 import axios from "axios";
 import { ProductProps } from "./types";
 import { signOut } from "firebase/auth";
-import { useRouter } from 'next/navigation';
-
+import { useRouter } from "next/navigation";
 
 //discounts
 export async function getDiscount(code: string) {
@@ -36,10 +35,13 @@ export async function createDiscount(discount: any) {
 
 export async function updateDiscount(code: string, data: any) {
   try {
-    const response = await axios.put(`/api/discounts/update-discount?code=${code}`, data);
+    const response = await axios.put(
+      `/api/discounts/update-discount?code=${code}`,
+      data
+    );
     return response.data;
   } catch (error) {
-    console.error('Error updating discount:', error);
+    console.error("Error updating discount:", error);
     throw error;
   }
 }
@@ -127,15 +129,13 @@ export async function updateOrder(data: any) {
   }
 }
 
-
-
 export async function addTailor(data: any) {
   try {
-    console.log("Sending tailor data:", data) // Add logging
-    return await axios.put(`/api/orders/add-tailor`, data)
+    console.log("Sending tailor data:", data); // Add logging
+    return await axios.put(`/api/orders/add-tailor`, data);
   } catch (error) {
-    console.error("Error adding tailor:", error) // Add error logging
-    return error
+    console.error("Error adding tailor:", error); // Add error logging
+    return error;
   }
 }
 
@@ -223,7 +223,6 @@ export const deleteBanner = async (id: string) => {
 
   return data;
 };
-
 
 //admins
 export async function getAdmins() {
@@ -328,12 +327,12 @@ export async function getAllUsers(): Promise<{
     return {
       success: false,
       message,
-      users: []
+      users: [],
     };
   }
 }
 
-//login 
+//login
 export async function login(email: string, password: string) {
   try {
     const response = await axios.post(`/api/auth/login`, {
@@ -346,12 +345,11 @@ export async function login(email: string, password: string) {
   }
 }
 
-
 export const logout = () => {
   const router = useRouter();
-  localStorage.removeItem('loggedInUser'); // Remove user session
-  localStorage.setItem('forceLogin', 'true'); // Mark that user logged out intentionally
-  router.push('/login'); // Redirect to login page
+  localStorage.removeItem("loggedInUser"); // Remove user session
+  localStorage.setItem("forceLogin", "true"); // Mark that user logged out intentionally
+  router.push("/login"); // Redirect to login page
 };
 
 export async function forgotPassword(email: string) {
@@ -368,7 +366,7 @@ export async function forgotPassword(email: string) {
       message: error.response?.data?.message || "Something went wrong.",
     };
   }
-};
+}
 
 export async function resetPassword(
   token: string,
@@ -386,9 +384,7 @@ export async function resetPassword(
     console.error("Error in resetPassword:", error);
     return error;
   }
-};
-
-
+}
 
 //signup
 export async function signup(
@@ -399,7 +395,7 @@ export async function signup(
   confirmPassword: string
 ) {
   try {
-    const response = await axios.post(`/api/auth/signup`, {
+    const response = await axios.post("/api/auth/signup", {
       firstName,
       lastName,
       email,
@@ -407,9 +403,12 @@ export async function signup(
       confirmPassword,
     });
     return response.data;
-  } catch (error) {
-    return error;
+  } catch (error: any) {
+    // Properly forward the backend message
+    const message = error?.response?.data?.message || "Signup failed.";
+    const err = new Error(message);
+    err.name = "SignupError";
+    throw err;
   }
 }
-
 

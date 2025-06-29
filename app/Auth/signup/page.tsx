@@ -112,7 +112,7 @@ export default function Page() {
     } catch (error: any) {
       console.error("Error during signup:", error);
       toast.error(
-        error.response?.data?.message || "An error occurred during signup."
+        error?.message || "An error occurred during signup."
       );
     } finally {
       setLoading(false);
