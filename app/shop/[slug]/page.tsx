@@ -475,23 +475,23 @@ export default function Page(props: { params: Params }) {
 };
 
   // to detect location
-  useEffect(() => {
-    const fetchUserLocation = async () => {
-      try {
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
-        if (data.country_code !== "NG") {
-          setCurrency("USD");
-        } else {
-          setCurrency("NGN");
-        }
-      } catch (error) {
-        console.error("Error detecting location:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserLocation = async () => {
+  //     try {
+  //       const response = await fetch("https://ipapi.co/json/");
+  //       const data = await response.json();
+  //       if (data.country_code !== "NG") {
+  //         setCurrency("USD");
+  //       } else {
+  //         setCurrency("NGN");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error detecting location:", error);
+  //     }
+  //   };
 
-    fetchUserLocation();
-  }, [setCurrency]);
+  //   fetchUserLocation();
+  // }, [setCurrency]);
 
   if (isLoading) {
     return (

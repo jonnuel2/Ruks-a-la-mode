@@ -22,6 +22,8 @@ export default function Header() {
     keyword: "",
   });
 
+
+  
   const context = useAppContext();
   const router = useRouter();
   const { currencies, currency, setCurrency } = context;

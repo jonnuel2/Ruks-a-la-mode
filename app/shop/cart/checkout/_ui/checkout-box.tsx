@@ -272,11 +272,11 @@ export default function CheckoutBox({
           </p>
         </div>
 
-        {currency !== "NGN" && (
+        {/* {currency !== "NGN" && (
           <p className="text-xs text-gray-600 mt-1 text-right">
             ≈ {formatPrice("NGN", total * rate)} (Payable in Naira)
           </p>
-        )}
+        )} */}
       </div>
     </div>
   );

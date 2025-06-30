@@ -23,23 +23,23 @@ export default function Product({
   const isOutOfStock = product?.data?.totalStock <= 0;
 
   // Detect user location and update currency
-  useEffect(() => {
-    const fetchUserLocation = async () => {
-      try {
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
-        if (data.country_code !== "NG") {
-          setCurrency("USD");
-        } else {
-          setCurrency("NGN");
-        }
-      } catch (error) {
-        console.error("Error detecting location:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserLocation = async () => {
+  //     try {
+  //       const response = await fetch("https://ipapi.co/json/");
+  //       const data = await response.json();
+  //       if (data.country_code !== "NG") {
+  //         setCurrency("USD");
+  //       } else {
+  //         setCurrency("NGN");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error detecting location:", error);
+  //     }
+  //   };
 
-    fetchUserLocation();
-  }, [setCurrency]);
+  //   fetchUserLocation();
+  // }, [setCurrency]);
 
   // Add product to cart with proper price preservation
   const addToBag = () => {
