@@ -13,6 +13,8 @@ export default function Page() {
   const { user, setuser, cart, currency, exchangeRates, setcart } = context;
   const router = useRouter();
 
+  // console.log(exchangeRates, "exchange", currency,)
+
   const [shippingFee, setShippingFee] = useState<number | undefined>(undefined);
   type ShippingType = "standard" | "express";
   const [deliveryType, setDeliveryType] = useState<ShippingType>("standard");
@@ -68,33 +70,71 @@ export default function Page() {
     //   setShippingFee(fee);
     // }
     if (fee !== undefined && fee !== null) {
-  setShippingFee(fee);
-}
-  };
-
-  const handleCheckout = async (shippingInfo: any) => {
-    if (shippingFee === undefined) return;
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
-
-    const response = await makePayment({
-      email: shippingInfo?.email,
-      price: discountPrice + shippingFee,
-      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
-      // callbackUrl: `http://localhost:3001/shop/confirmation/?email=${
-        shippingInfo?.email
-      }&quantity=${cart?.items?.reduce(
-        (sum, item) => item.quantity + sum,
-        0
-      )}&price=${discountPrice + shippingFee}&currency=${currency}`,
-      currency,
-    });
-
-    if (response["status"]) {
-      router.push(response["data"]["authorization_url"]);
+      setShippingFee(fee);
     }
   };
+
+  // const handleCheckout = async (shippingInfo: any) => {
+  //   if (shippingFee === undefined) return;
+
+  //   localStorage.setItem("cart", JSON.stringify(cart));
+  //   localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
+
+  //   const response = await makePayment({
+  //     email: shippingInfo?.email,
+  //     price: discountPrice + shippingFee,
+  //     callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
+  //       // callbackUrl: `http://localhost:3001/shop/confirmation/?email=${
+  //       shippingInfo?.email
+  //     }&quantity=${cart?.items?.reduce(
+  //       (sum, item) => item.quantity + sum,
+  //       0
+  //     )}&price=${discountPrice + shippingFee}&currency=${currency}`,
+  //     currency,
+  //   });
+
+  //   if (response["status"]) {
+  //     router.push(response["data"]["authorization_url"]);
+  //   }
+  // };
+
+  const handleCheckout = async (shippingInfo: any) => {
+  if (shippingFee === undefined) return;
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
+
+  const vat = 0.075 * discountPrice; // 🧮 Add VAT
+  const totalUSD = discountPrice + vat + (shippingFee ?? 0); // 🧮 Final total
+
+  let finalAmountInNGN = totalUSD;
+
+  if (currency !== "NGN") {
+    const rate = exchangeRates?.[currency.toLowerCase()] || 1;
+    finalAmountInNGN = Math.round(totalUSD * rate);
+    console.log(">>>>, newFinalAmount", finalAmountInNGN)
+  }
+console.log({totalUSD} )
+  const quantity = cart?.items?.reduce((sum, item) => item.quantity + sum, 0);
+console.log(finalAmountInNGN, "final")
+
+  const response = await makePayment({
+    email: shippingInfo?.email,
+    price: finalAmountInNGN,
+    callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
+    currency: "NGN",
+  });
+
+  // console.log(response.data, "response")
+
+  if (response?.status) {
+    router.push(response.data.authorization_url);
+  }
+};
+
+
+
+
 
   // While waiting for user info
   if (!user) {
@@ -122,7 +162,7 @@ export default function Page() {
             setDeliveryType={(d) => setDeliveryType(d as ShippingType)}
           />
         </div>
-        <CheckoutBox
+        {/* <CheckoutBox
           price={discountPrice}
           discount={discount}
           setDiscount={setDiscount}
@@ -130,7 +170,31 @@ export default function Page() {
           rate={exchangeRates[currency.toLowerCase()]}
           shippingFee={shippingFee}
           deliveryType={deliveryType}
+        /> */}
+        <CheckoutBox
+          price={discountPrice}
+          discount={discount}
+          setDiscount={setDiscount}
+          currency={currency}
+          rate={exchangeRates[currency.toLowerCase()]} // 🟢 This must return NGN equivalent of 1 unit of `currency`
+          shippingFee={shippingFee}
+          deliveryType={deliveryType}
         />
+      </div>
+      {/* notice */}
+      <div className="mt-2 bg-green-50 border border-green-200 p-4 rounded-md text-sm text-green-900">
+        <p>
+          Prefer to pick up your order? Send us a request via{" "}
+          <a
+            href="https://wa.me/2349012101539"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-green-700 font-semibold underline"
+          >
+            WhatsApp
+          </a>{" "}
+          and we’ll arrange it for you.
+        </p>
       </div>
     </div>
   );

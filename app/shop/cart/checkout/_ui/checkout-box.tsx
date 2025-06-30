@@ -107,11 +107,31 @@ export default function CheckoutBox({
             .join(", ");
 
           // Calculate item price based on currency
+          // const itemPrice =
+          //   currency === "NGN"
+          //     ? c.item.originalPrice || c.item.price
+          //     : c.item.priceInUsd ||
+          //       (c.item.originalPrice || c.item.price) * rate;
+          // Define a default NGN price
+          const ngnPrice = c.item.originalPrice ?? c.item.price ?? 0;
+
+          // Fallback exchange rates (as of mid-2024, you should update these periodically)
+          const fallbackRates: { [key: string]: number } = {
+            usd: 1480,
+            gbp: 1850,
+            eur: 1650,
+            cad: 1100,
+          };
+
+          // Get the effective rate: from API or fallback
+          const effectiveRate =
+            rate ?? fallbackRates[currency.toLowerCase()] ?? 1;
+
+          // Final item price calculation
           const itemPrice =
             currency === "NGN"
-              ? c.item.originalPrice || c.item.price
-              : c.item.priceInUsd ||
-                (c.item.originalPrice || c.item.price) * rate;
+              ? ngnPrice
+              : c.item.priceInUsd ?? ngnPrice * effectiveRate;
 
           return (
             <div
@@ -160,9 +180,33 @@ export default function CheckoutBox({
           );
         })}
 
-        {/* ... discount code section remains the same ... */}
+       {discount > 0 ? (
+          <p className="font-medium text-xs tracking-wider text-green-500">
+            {discount}% discount added
+          </p>
+        ) : (
+          <div className="w-full flex items-center justify-between mt-8">
+            <input
+              className="w-3/4 border border-dark bg-transparent text-xs outline-none p-1 lg:h-11 h-9"
+              type="text"
+              placeholder="Coupon or Discount Code"
+              id="discountCode"
+              name="discountCode"
+              value={code}
+              onChange={(e) => setcode(e.target.value)}
+            />
+            <div
+              onClick={() => (code ? getDiscountMutation.mutate() : null)}
+              className="p-2 lg:h-11 h-9 bg-dark border border-dark w-28 flex items-center justify-center cursor-pointer hover:opacity-80"
+            >
+              <p className="text-[#F5f5f5] uppercase text-xs">Apply</p>
+            </div>
+          </div>
+        )}
 
-        <div className="flex items-center justify-between w-full mt-8">
+        <div className={`flex items-center justify-between w-full ${
+            discount > 0 ? "mt-4" : "mt-8"
+          }`}>
           <p className="font-medium tracking-wide lg:text-base text-xs">
             Subtotal
           </p>
@@ -211,6 +255,14 @@ export default function CheckoutBox({
           </p>
         </div>
 
+        {/* <div className="flex items-center justify-between w-full mt-3">
+          <p className="font-semibold tracking-wide lg:text-lg text-sm">
+            Total
+          </p>
+          <p className="font-medium tracking-wide lg:text-lg text-sm">
+            {formatPrice(currency, total)}
+          </p>
+        </div> */}
         <div className="flex items-center justify-between w-full mt-3">
           <p className="font-semibold tracking-wide lg:text-lg text-sm">
             Total
@@ -219,6 +271,12 @@ export default function CheckoutBox({
             {formatPrice(currency, total)}
           </p>
         </div>
+
+        {currency !== "NGN" && (
+          <p className="text-xs text-gray-600 mt-1 text-right">
+            ≈ {formatPrice("NGN", total * rate)} (Payable in Naira)
+          </p>
+        )}
       </div>
     </div>
   );

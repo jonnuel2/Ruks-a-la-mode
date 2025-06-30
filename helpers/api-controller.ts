@@ -91,6 +91,8 @@ export const getExchangeRates = async () => {
   }
 };
 
+
+
 export async function verifyTransaction(txref: string) {
   try {
     const transaction = await axios.get(
@@ -411,4 +413,3 @@ export async function signup(
     throw err;
   }
 }
-

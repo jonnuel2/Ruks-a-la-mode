@@ -27,7 +27,7 @@ export default function Page() {
             At{" "}
             <span className=" font-semibold text-gray-900">Ruks Á La Mode</span>
             , we blend fashion with comfort, making chic style accessible to
-            all! Established in 2017 and proudly Designed & Crafted in Abuja, Nigeria,
+            all! Established in 2017 and proudly designed and crafted in Abuja, Nigeria,
             we strive to provide you with the finest in style. With over 5,000
             satisfied customers and 1M+ items sold in more than 20 countries.
             Every item is custom made to order, guaranteeing a flawless fit and
