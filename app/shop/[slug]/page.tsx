@@ -359,120 +359,152 @@ export default function Page(props: { params: Params }) {
   // };
 
   const addToBag = () => {
-  if (product) {
-    console.log("adding");
-    const { size, custom, length } = measurement;
+    if (product) {
+      console.log("adding");
+      const { size, custom, length } = measurement;
 
-    // Validate measurements
-    if (
-      !size &&
-      !length &&
-      !Object?.entries(custom)?.some(([_, value]) => value !== "")
-    ) {
-      toast.error("Incomplete Measurement Parameters", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      return;
-    }
+      // Validate measurements
+      // if (
+      //   !size &&
+      //   !length &&
+      //   !Object?.entries(custom)?.some(([_, value]) => value !== "")
+      // ) {
+      //   toast.error("Incomplete Measurement Parameters", {
+      //     position: "top-right",
+      //     autoClose: 3000,
+      //     hideProgressBar: false,
+      //     closeOnClick: true,
+      //     pauseOnHover: true,
+      //     draggable: true,
+      //   });
+      //   return;
+      // }
 
-    // Validate color selection for multi-color products
-    if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
-      toast.warning("Please choose a color", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      return;
-    }
+      // Validate custom size fields if custom size section is open
+      if (openCustom) {
+        const customValues = Object.values(custom);
+        const allCustomFilled = customValues.every((val) => val.trim() !== "");
 
-    // Prepare measurements
-    let filteredMeasurement;
-    if (
-      Object.entries(measurement?.custom).some(([_, value]) => value !== "")
-    ) {
-      filteredMeasurement = Object.fromEntries(
-        Object.entries(measurement?.custom).filter(
-          ([_, value]) => value !== ""
-        )
-      );
-    } else {
-      filteredMeasurement = Object.fromEntries(
-        Object.entries(measurement).filter(
-          ([_, value]) => typeof value !== "object"
-        )
-      );
-    }
+        if (!allCustomFilled) {
+          toast.error("Please fill all custom size fields", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          return;
+        }
+      } else {
+        // If not using custom size, ensure either size or length is selected
+        if (!size || !length) {
+          toast.error("Please select both size and length", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          return;
+        }
+      }
 
-    // Use the SELECTED color, not the first one
-    const color =
-      product?.data?.colors?.length > 1
-        ? selectedColor
-        : product?.data?.colors[0]; // Fallback to first color if product has only one color
+      // Validate color selection for multi-color products
+      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+        toast.warning("Please choose a color", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
 
-    // Calculate price based on currency
-    const price = getPrice();
-    const priceInUsd = product?.data?.priceInUsd || price * exchangeRates["usd"];
+      // Prepare measurements
+      let filteredMeasurement;
+      if (
+        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
+      ) {
+        filteredMeasurement = Object.fromEntries(
+          Object.entries(measurement?.custom).filter(
+            ([_, value]) => value !== ""
+          )
+        );
+      } else {
+        filteredMeasurement = Object.fromEntries(
+          Object.entries(measurement).filter(
+            ([_, value]) => typeof value !== "object"
+          )
+        );
+      }
 
-    // Prepare cart item
-    const itemData: any = {
-      item: {
-        name: product?.data?.name,
-        price: currency === "NGN" ? price : priceInUsd, // Store the correct price based on currency
-        priceInUsd: product?.data?.priceInUsd, // Always store the manual USD price if available
-        originalPrice: price, // Store the original NGN price
-        id: product?.id,
-        image: product?.data?.images[0],
-        stock: color?.stock ?? 10,
-        measurement: filteredMeasurement,
-        color: {
-          name: color?.name,
-          hexCode: color?.hexCode,
-          stock: color?.stock,
+      // Use the SELECTED color, not the first one
+      const color =
+        product?.data?.colors?.length > 1
+          ? selectedColor
+          : product?.data?.colors[0]; // Fallback to first color if product has only one color
+
+      // Calculate price based on currency
+      const price = getPrice();
+      const priceInUsd =
+        product?.data?.priceInUsd || price * exchangeRates["usd"];
+
+      // Prepare cart item
+      const itemData: any = {
+        item: {
+          name: product?.data?.name,
+          price: currency === "NGN" ? price : priceInUsd, // Store the correct price based on currency
+          priceInUsd: product?.data?.priceInUsd, // Always store the manual USD price if available
+          originalPrice: price, // Store the original NGN price
+          id: product?.id,
+          image: product?.data?.images[0],
+          stock: color?.stock ?? 10,
+          measurement: filteredMeasurement,
+          color: {
+            name: color?.name,
+            hexCode: color?.hexCode,
+            stock: color?.stock,
+          },
+          weight: product?.data?.weight,
         },
-        weight: product?.data?.weight,
-      },
-      quantity: orderDetails?.quantity,
-    };
+        quantity: orderDetails?.quantity,
+      };
 
-    // Add part info if selected
-    if (selectedPart?.name) {
-      itemData.item["selectedPart"] = selectedPart;
-      itemData.item["name"] += ` (${selectedPart?.name})`;
+      // Add part info if selected
+      if (selectedPart?.name) {
+        itemData.item["selectedPart"] = selectedPart;
+        itemData.item["name"] += ` (${selectedPart?.name})`;
+      }
+
+      // Add material info if selected
+      if (selectedMaterial?.name) {
+        itemData.item["selectedMaterial"] = selectedMaterial;
+        itemData.item["name"] += ` (${selectedMaterial?.name})`;
+      }
+
+      // Update cart
+      const updatedCart = {
+        ...cart,
+        items: [...cart?.items, itemData],
+      };
+
+      setcart(updatedCart);
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+      toast.success("Cart Updated Successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
-
-    // Add material info if selected
-    if (selectedMaterial?.name) {
-      itemData.item["selectedMaterial"] = selectedMaterial;
-      itemData.item["name"] += ` (${selectedMaterial?.name})`;
-    }
-
-    // Update cart
-    const updatedCart = {
-      ...cart,
-      items: [...cart?.items, itemData],
-    };
-
-    setcart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    toast.success("Cart Updated Successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  }
-};
+  };
 
   // to detect location
   // useEffect(() => {

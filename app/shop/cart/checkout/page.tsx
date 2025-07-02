@@ -74,63 +74,63 @@ export default function Page() {
     }
   };
 
-  const handleCheckout = async (shippingInfo: any) => {
-    if (shippingFee === undefined) return;
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
-
-    const response = await makePayment({
-      email: shippingInfo?.email,
-      price: discountPrice + shippingFee,
-      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
-        // callbackUrl: `http://localhost:3001/shop/confirmation/?email=${
-        shippingInfo?.email
-      }&quantity=${cart?.items?.reduce(
-        (sum, item) => item.quantity + sum,
-        0
-      )}&price=${discountPrice + shippingFee}&currency=${currency}`,
-      currency,
-    });
-
-    if (response["status"]) {
-      router.push(response["data"]["authorization_url"]);
-    }
-  };
-
   // const handleCheckout = async (shippingInfo: any) => {
   //   if (shippingFee === undefined) return;
 
   //   localStorage.setItem("cart", JSON.stringify(cart));
   //   localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
 
-  //   const vat = 0.075 * discountPrice; // 🧮 Add VAT
-  //   const totalUSD = discountPrice + vat + (shippingFee ?? 0); // 🧮 Final total
-
-  //   let finalAmountInNGN = totalUSD;
-
-  //   if (currency !== "NGN") {
-  //     const rate = exchangeRates?.[currency.toLowerCase()] || 1;
-  //     finalAmountInNGN = Math.round(totalUSD * rate);
-  //     console.log(">>>>, newFinalAmount", finalAmountInNGN);
-  //   }
-  //   console.log({ totalUSD });
-  //   const quantity = cart?.items?.reduce((sum, item) => item.quantity + sum, 0);
-  //   console.log(finalAmountInNGN, "final");
-
   //   const response = await makePayment({
   //     email: shippingInfo?.email,
-  //     price: totalUSD,
-  //     callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
-  //     currency: "NGN",
+  //     price: discountPrice + shippingFee,
+  //     callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
+  //       // callbackUrl: `http://localhost:3001/shop/confirmation/?email=${
+  //       shippingInfo?.email
+  //     }&quantity=${cart?.items?.reduce(
+  //       (sum, item) => item.quantity + sum,
+  //       0
+  //     )}&price=${discountPrice + shippingFee}&currency=${currency}`,
+  //     currency,
   //   });
 
-  //   // console.log(response.data, "response")
-
-  //   if (response?.status) {
-  //     router.push(response.data.authorization_url);
+  //   if (response["status"]) {
+  //     router.push(response["data"]["authorization_url"]);
   //   }
   // };
+  
+  const handleCheckout = async (shippingInfo: any) => {
+    if (shippingFee === undefined) return;
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem("shippingInfo", JSON.stringify(shippingInfo));
+
+    // 🧮 Step 1: Add VAT (7.5%)
+    const vat = 0.075 * discountPrice;
+
+    // 🧮 Step 2: Calculate total in user's currency
+    const totalPrice = discountPrice + vat + shippingFee;
+
+    // 🧮 Step 3: If currency is not NGN, convert to NGN
+    let finalAmountInNGN = totalPrice;
+    if (currency !== "NGN") {
+      const rate = exchangeRates?.[currency.toLowerCase()] || 1;
+      finalAmountInNGN = Math.round(totalPrice * rate);
+    }
+
+    const quantity = cart?.items?.reduce((sum, item) => item.quantity + sum, 0);
+
+    // ✅ Step 4: Pass the correct NGN price to Paystack
+    const response = await makePayment({
+      email: shippingInfo?.email,
+      price: finalAmountInNGN, // Always payable in NGN
+      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
+      currency: "NGN",
+    });
+
+    if (response["status"]) {
+      router.push(response["data"]["authorization_url"]);
+    }
+  };
 
   // While waiting for user info
   if (!user) {

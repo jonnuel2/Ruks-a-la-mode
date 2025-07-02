@@ -220,7 +220,7 @@ export default function CheckoutBox({
             <p className="font-medium tracking-wide lg:text-base text-xs">
               Discount
             </p>
-            <p className="font-light tracking-wide lg:text-base text-xs">
+            <p className="font-light tracking-wide lg:text-base text-xs text-red-500">
               -{formatPrice(currency, discountAmount)}
             </p>
           </div>

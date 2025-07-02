@@ -71,7 +71,7 @@ export async function editTailor(discount: any) {
 }
 
 //payments
-export async function makePayment(data: any) {
+export async function makePayment(data: any, $: any, p0: number, p1: any, https: any) {
   try {
     const transaction = await axios.post("/api/payments/make-payment", data);
     return transaction.data;
