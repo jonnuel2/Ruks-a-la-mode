@@ -97,7 +97,7 @@ export default function Page() {
   //     router.push(response["data"]["authorization_url"]);
   //   }
   // };
-  
+
   const handleCheckout = async (shippingInfo: any) => {
     if (shippingFee === undefined) return;
 
@@ -120,12 +120,14 @@ export default function Page() {
     const quantity = cart?.items?.reduce((sum, item) => item.quantity + sum, 0);
 
     // ✅ Step 4: Pass the correct NGN price to Paystack
-    const response = await makePayment({
+    const data = {
       email: shippingInfo?.email,
-      price: finalAmountInNGN, // Always payable in NGN
-      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
+      price: finalAmountInNGN,
       currency: "NGN",
-    });
+      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
+      metadata: { quantity },
+    };
+    const response = await makePayment(data);
 
     if (response["status"]) {
       router.push(response["data"]["authorization_url"]);
