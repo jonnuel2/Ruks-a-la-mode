@@ -916,22 +916,13 @@ const CustomMeasurement = ({
         <div className="flex items-center justify-start">
           <input
             className="bg-transparent lg:text-sm text-xs h-[24px] border-dark border mr-3 px-3 outline-none"
-            value={measurement[m]}
+            value={measurement.custom[m] || ""}
             onChange={(e) => {
               const inputValue = e.target.value;
-              // Allow decimals (e.g., 0.4, 12.75)
-              //   if (/^[\d'.]*$/.test(inputValue)) {
-              //     setMeasurement({
-              //       ...measurement,
-              //       custom: { ...measurement?.custom, [m]: inputValue },
-              //     });
-              //   }
-              // }}
-
+              // Allow feet/inches format (e.g., 5', 5'11, 5'11") or empty input
               if (
-                /^\d+'\s?\d{0,2}"?$/.test(inputValue) ||
-                inputValue === "" ||
-                /^\d+'?$/.test(inputValue)
+                /^\d+'?\s?\d{0,2}"?$/.test(inputValue) ||
+                inputValue === ""
               ) {
                 setMeasurement({
                   ...measurement,
@@ -939,6 +930,18 @@ const CustomMeasurement = ({
                 });
               }
             }}
+            onBlur={(e) => {
+              let normalizedValue = e.target.value.trim();
+              // Append inch symbol if inches are provided but no inch symbol
+              if (normalizedValue.match(/^\d+'\s?\d{1,2}$/)) {
+                normalizedValue += '"';
+                setMeasurement({
+                  ...measurement,
+                  custom: { ...measurement?.custom, [m]: normalizedValue },
+                });
+              }
+            }}
+            placeholder={'e.g., 5\'11"'}
           />
           <p className="text-xs">in</p>
         </div>
