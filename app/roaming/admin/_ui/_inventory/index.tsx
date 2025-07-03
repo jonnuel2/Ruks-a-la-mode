@@ -335,10 +335,10 @@ const Inventory = () => {
                         </tr>
                         {product.data.components.length > 0 ? (
                           product.data.components.map((component, idx) => {
-                            const componentStock = typeof component.stock === 'string' ? 
-                              parseInt(component.stock) || 0 : 
-                              component.stock || 0;
-                            const componentStatus = getStatus(componentStock, product.originalQuantity);
+                            // const componentStock = typeof component.stock === 'string' ? 
+                              // parseInt(component.stock) || 0 : 
+                              // component.stock || 0;
+                            // const componentStatus = getStatus(componentStock, product.originalQuantity);
                             
                             return (
                               <tr key={`${product.id}-component-${idx}`} className="border-t border-gray-200 bg-blue-50">
@@ -351,13 +351,13 @@ const Inventory = () => {
                                     component.price || 0)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-800">
-                                  {componentStock}
+                                  {/* {componentStock} */}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-800">
                                   {/* Sold count for components would go here if available */}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span
+                                  {/* <span
                                     className={`px-2 py-1 rounded text-xs font-medium ${
                                       componentStatus === "In Stock"
                                         ? "bg-green-100 text-green-800"
@@ -367,7 +367,7 @@ const Inventory = () => {
                                     }`}
                                   >
                                     {componentStatus}
-                                  </span>
+                                  </span> */}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                   <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">

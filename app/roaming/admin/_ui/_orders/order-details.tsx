@@ -44,14 +44,18 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
 
   const getDisplayPrice = (item: any) => {
     if (currency === "NGN") {
-      return item?.item?.originalPrice || item?.item?.price || 0;
+      return item?.item?.price || 0;
     } else {
       return (
         item?.item?.priceInUsd ||
-        (item?.item?.originalPrice || item?.item?.price || 0) * exchangeRate
+        (item?.item?.price || item?.item?.price || 0) * exchangeRate
       );
     }
   };
+
+  console.log("Order Details Rendered", getDisplayPrice);
+
+  
 
   const orderTotal =
     order?.data?.items?.reduce((sum: number, item: any) => {
@@ -76,6 +80,22 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
         <p className="mb-2 text-sm">
           <span className="font-bold">Number:</span>{" "}
           {order?.data?.shippingInfo?.phonenumber || "N/A"}
+          
+        </p>
+        <p className="mb-2 text-sm">
+          <span className="font-bold">Country:</span>{" "}
+          {order?.data?.shippingInfo?.country || "N/A"}
+          
+        </p>
+        <p className="mb-2 text-sm">
+          <span className="font-bold">City:</span>{" "}
+          {order?.data?.shippingInfo?.city || "N/A"}
+          
+        </p>
+        <p className="mb-2 text-sm">
+          <span className="font-bold">Address:</span>{" "}
+          {order?.data?.shippingInfo?.address || "N/A"}
+          
         </p>
 
         <p className="mb-2 text-sm">
@@ -96,7 +116,14 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
             : "N/A"}
         </p>
         <p className="mb-4 text-sm font-bold">
-          Total: {formatPrice(currency, orderTotal)}
+          Total:
+          {/* {formatPrice(currency, orderTotal)} */}
+          {order?.data?.price
+            ? order.data.price.toLocaleString("en-US", {
+                style: "currency",
+                currency: order.data.currency || "NGN",
+              })
+            : "N/A"}
         </p>
 
         {assignedTailors.length > 0 && (
@@ -131,6 +158,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
                 <th className="px-4 py-2 border text-sm text-left">Quantity</th>
                 <th className="px-4 py-2 border text-sm text-left">Price</th>
                 <th className="px-4 py-2 border text-sm text-left">Size</th>
+                {/* <th className="px-4 py-2 border text-sm text-left">Measurement</th> */}
                 <th className="px-4 py-2 border text-sm text-left">Color</th>
               </tr>
             </thead>
@@ -144,8 +172,17 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
                     {item?.quantity || "N/A"}
                   </td>
                   <td className="px-4 py-2 border text-sm">
-                    {formatPrice(currency, getDisplayPrice(item))}
+                    {/* {formatPrice(currency, getDisplayPrice(item))} */}
+                    {item?.item?.price
+                      ? item.item.price.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: item.item.currency || "NGN",
+                        })
+                      : "N/A"}
                   </td>
+                  {/* <td className="px-4 py-2 border text-sm">
+                    {item?.item?.size?.name || "N/A"}
+                  </td> */}
                   <td className="px-4 py-2 border text-sm">
                     {getMeasurementString(item?.item?.measurement)}
                   </td>

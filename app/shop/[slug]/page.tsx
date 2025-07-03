@@ -888,20 +888,22 @@ export default function Page(props: { params: Params }) {
   );
 }
 
+type CustomMeasurementProps = {
+  measurement: any;
+  setMeasurement: (measurement: any) => void;
+  setOpenCustom: (open: boolean) => void;
+};
+
 const CustomMeasurement = ({
   measurement,
   setMeasurement,
   setOpenCustom,
-}: {
-  measurement: any;
-  setMeasurement: any;
-  setOpenCustom: any;
-}) => (
+}: CustomMeasurementProps) => (
   <div className="flex flex-col lg:items-start items-center w-full">
     <div className="flex items-start w-full">
       <button
         onClick={() => setOpenCustom(false)}
-        className="mb-3 py-2 px-4 border border-gray-300 text-gray-600 hover:bg-gray-100 font-medium "
+        className="mb-3 py-2 px-4 border border-gray-300 text-gray-600 hover:bg-gray-100 font-medium"
       >
         X
       </button>
@@ -919,7 +921,6 @@ const CustomMeasurement = ({
             value={measurement.custom[m] || ""}
             onChange={(e) => {
               const inputValue = e.target.value;
-              // Allow feet/inches format (e.g., 5', 5'11, 5'11") or empty input
               if (
                 /^\d+'?\s?\d{0,2}"?$/.test(inputValue) ||
                 inputValue === ""
@@ -932,7 +933,6 @@ const CustomMeasurement = ({
             }}
             onBlur={(e) => {
               let normalizedValue = e.target.value.trim();
-              // Append inch symbol if inches are provided but no inch symbol
               if (normalizedValue.match(/^\d+'\s?\d{1,2}$/)) {
                 normalizedValue += '"';
                 setMeasurement({
@@ -941,7 +941,7 @@ const CustomMeasurement = ({
                 });
               }
             }}
-            placeholder={'e.g., 5\'11"'}
+            placeholder={m === "height" ? "e.g 5'11" : ""}
           />
           <p className="text-xs">in</p>
         </div>

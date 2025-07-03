@@ -305,7 +305,8 @@ export default function Orders() {
                       </div>
                     </td>
                     <td className="px-4 py-2 text-xs border">
-                      {order?.data?.createdAt ? formatDate(order?.data?.createdAt) : ""}
+                      {/* {order?.data?.createdAt ? formatDate(order?.data?.createdAt) : ""} */}
+                      {order?.data?.createdAt || "N/A"}
                     </td>
                     <td className="px-4 py-2 text-xs border">
                       {order?.data?.price

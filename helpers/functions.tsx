@@ -80,7 +80,6 @@ export const formatPrice = (currency: string, price: number) => {
   return formatter.format(price);
 };
 
-
 export function groupMerchByCategory(
   merch: any[]
 ): Record<string, ProductProps[]> {
