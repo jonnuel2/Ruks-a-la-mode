@@ -921,27 +921,43 @@ const CustomMeasurement = ({
             value={measurement.custom[m] || ""}
             onChange={(e) => {
               const inputValue = e.target.value;
-              if (
-                /^\d+'?\s?\d{0,2}"?$/.test(inputValue) ||
-                inputValue === ""
-              ) {
-                setMeasurement({
-                  ...measurement,
-                  custom: { ...measurement?.custom, [m]: inputValue },
-                });
-              }
+              // Allow all characters during typing for better UX
+              setMeasurement({
+                ...measurement,
+                custom: { ...measurement?.custom, [m]: inputValue },
+              });
             }}
             onBlur={(e) => {
               let normalizedValue = e.target.value.trim();
-              if (normalizedValue.match(/^\d+'\s?\d{1,2}$/)) {
-                normalizedValue += '"';
+              // Validate and normalize on blur
+              if (/^\d+'?\s?\d{0,2}"?$/.test(normalizedValue)) {
+                // Add quotes for valid formats like "5'" or "5'11"
+                if (normalizedValue.match(/^\d+'?\s?\d{1,2}$/)) {
+                  normalizedValue += '"';
+                } else if (normalizedValue.match(/^\d+$/)) {
+                  // Handle single number (e.g., "5" -> "5'")
+                  normalizedValue += "'";
+                }
                 setMeasurement({
                   ...measurement,
                   custom: { ...measurement?.custom, [m]: normalizedValue },
                 });
+              } else if (normalizedValue !== "") {
+                // Reset to previous valid value or empty if invalid
+                setMeasurement({
+                  ...measurement,
+                  custom: {
+                    ...measurement?.custom,
+                    [m]: measurement.custom[m] || "",
+                  },
+                });
               }
             }}
-            placeholder={m === "height" ? "e.g 5'11" : ""}
+            placeholder={m === "height" ? "e.g. 5'11\"" : ""}
+            // Ensure iOS compatibility
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
           />
           <p className="text-xs">in</p>
         </div>
