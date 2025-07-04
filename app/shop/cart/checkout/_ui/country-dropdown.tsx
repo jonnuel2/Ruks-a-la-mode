@@ -233,29 +233,25 @@ const CountryDropdown: React.FC<CountryDropdownProps> = ({
     setFilteredCountries(filtered);
     
     // Show dropdown when typing
-    if (value.length > 0) {
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
+    setShowDropdown(true);
   };
 
   const handleCountrySelect = (selectedCountry: string) => {
     setCountry(selectedCountry);
     setInputValue(selectedCountry);
     setShowDropdown(false);
+    setFilteredCountries(country_list); // Reset filtered list to full list
   };
 
   const handleInputFocus = () => {
-    if (inputValue.length > 0) {
-      setShowDropdown(true);
-    }
+    setShowDropdown(true); // Show dropdown on focus
   };
 
   const handleInputBlur = () => {
     // Delay hiding to allow click on dropdown items
     setTimeout(() => {
       setShowDropdown(false);
+      setFilteredCountries(country_list); // Reset filtered list when closing
     }, 200);
   };
 

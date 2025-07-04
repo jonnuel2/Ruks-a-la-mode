@@ -73,8 +73,8 @@ export default function Page() {
       roles: ["super", "inventory"],
     },
     {
-      key: "orders",
-      label: "Orders",
+      key: "Production",
+      label: "Production",
       icon: <FaShoppingCart />,
       roles: ["super", "production"],
     },
@@ -122,7 +122,7 @@ export default function Page() {
       case "analytics":
         return <Analytics />;
       //
-      case "orders":
+      case "Production":
         return <Orders />;
       //
       case "products":

@@ -66,7 +66,7 @@ export default function Orders() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("oldest")
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest")
   const [addingTailor, setAddingTailor] = useState(false)
   const itemsPerPage = 12
 

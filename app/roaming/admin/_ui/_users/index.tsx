@@ -175,9 +175,9 @@ export default function Users() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Phone
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Joined
               </th>
@@ -214,9 +214,9 @@ export default function Users() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.phoneNumber || "N/A"}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(user.createdAt)}
                   </td>

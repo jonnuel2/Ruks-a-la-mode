@@ -38,7 +38,7 @@ export default function PartSelector({
             }
             className="hidden"
           />
-          Full Set
+          Original Set
         </label>
         {components?.map((component) => (
           <label
