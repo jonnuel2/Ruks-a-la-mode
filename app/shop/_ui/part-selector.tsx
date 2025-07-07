@@ -38,7 +38,7 @@ export default function PartSelector({
             }
             className="hidden"
           />
-          Long pants with halter neck top
+          Full Set
         </label>
         {components?.map((component) => (
           <label
