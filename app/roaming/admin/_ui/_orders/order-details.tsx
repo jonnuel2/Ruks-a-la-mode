@@ -88,6 +88,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
           
         </p>
         <p className="mb-2 text-sm">
+          <span className="font-bold">Zipcode:</span>{" "}
+          {order?.data?.shippingInfo?.zipCode || "N/A"}
+          
+        </p>
+        <p className="mb-2 text-sm">
           <span className="font-bold">State:</span>{" "}
           {order?.data?.shippingInfo?.state || "N/A"}
           
