@@ -588,6 +588,8 @@ const Deliveries = () => {
                           {delivery.data.shippingInfo.state}
                         </div>
                         <div>{delivery.data.shippingInfo.country}</div>
+                        <div>{delivery.data.shippingInfo.zipCode}</div>
+
                         <div>{delivery.data.shippingInfo.phonenumber}</div>
                       </div>
                     </td>

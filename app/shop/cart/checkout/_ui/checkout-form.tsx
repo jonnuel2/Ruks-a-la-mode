@@ -385,6 +385,8 @@ const CheckoutForm = ({
       shippingInfo.firstname === "" ||
       shippingInfo.surname === "" ||
       shippingInfo.state === "" ||
+      shippingInfo.country === "" ||
+      shippingInfo.zipCode === "" ||
       shippingInfo.phonenumber === ""
     ) {
       toast.error("We need some information to process your delivery.", {
@@ -397,10 +399,10 @@ const CheckoutForm = ({
       });
       return;
     }
-    // Update this line to include deliveryType:
+    
     checkoutCart({
       ...shippingInfo,
-      deliveryType, // <-- Add this line
+      deliveryType, 
     });
   }}
   className={`lg:w-[49%] w-full p-3 bg-black/85 flex items-center font-medium justify-center hover:opacity-70 ${"cursor-pointer"}`}
