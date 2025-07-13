@@ -55,9 +55,12 @@ export const slugify = (text: string) => {
 
 const FREE_SHIPPING_START_DATE = new Date("2025-06-01T00:00:00Z");
 const SIX_WEEKS_IN_MS = 6 * 7 * 24 * 60 * 60 * 1000;
+// const isFreeShippingPeriod = () => {
+//   const now = new Date();
+//   return now.getTime() - FREE_SHIPPING_START_DATE.getTime() < SIX_WEEKS_IN_MS;
+// };
 const isFreeShippingPeriod = () => {
-  const now = new Date();
-  return now.getTime() - FREE_SHIPPING_START_DATE.getTime() < SIX_WEEKS_IN_MS;
+  return true; // Free shipping is always active
 };
 
 // export const formatPrice = (currency: string, price: number) => {
