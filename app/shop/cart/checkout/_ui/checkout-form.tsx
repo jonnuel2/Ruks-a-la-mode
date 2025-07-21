@@ -389,7 +389,7 @@ const CheckoutForm = ({
       shippingInfo.zipCode === "" ||
       shippingInfo.phonenumber === ""
     ) {
-      toast.error("We need some information to process your delivery.", {
+      toast.error("Please fill in all fields to process your delivery.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,

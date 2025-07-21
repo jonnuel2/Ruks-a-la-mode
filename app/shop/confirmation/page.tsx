@@ -45,57 +45,65 @@ function Confirmation() {
 
   // Format price as currency
   const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN'
-    }).format(parseInt(amount || '0'));
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(parseInt(amount || "0"));
   };
 
   // Helper function to extract measurement/size information
   const getMeasurementString = (measurement: any) => {
     if (!measurement) return null;
-    
+
     // Check for direct size property first
     if (measurement.size) {
       return measurement.size;
     }
-    
+
     // Check for custom measurements
-    if (measurement.custom && typeof measurement.custom === 'object') {
+    if (measurement.custom && typeof measurement.custom === "object") {
       const entries = Object.entries(measurement.custom);
       if (entries.length > 0) {
-        return entries.map(([key, value]) => 
-          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-        ).join(", ");
+        return entries
+          .map(
+            ([key, value]) =>
+              `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+          )
+          .join(", ");
       }
     }
-    
+
     // Check for direct measurements (like length, width, etc.)
     const standardMeasurements = Object.entries(measurement)
-      .filter(([key]) => !['custom'].includes(key))
-      .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`);
-    
+      .filter(([key]) => !["custom"].includes(key))
+      .map(
+        ([key, value]) =>
+          `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+      );
+
     if (standardMeasurements.length > 0) {
       return standardMeasurements.join(", ");
     }
-    
+
     return null;
   };
 
-  const orderItemsHTML = cart?.items?.map((item: any) => {
-    const measurement = getMeasurementString(item.item?.measurement);
-    const color = item.item?.color?.name || item?.color?.name;
-    
-    return `
+  const orderItemsHTML = cart?.items
+    ?.map((item: any) => {
+      const measurement = getMeasurementString(item.item?.measurement);
+      const color = item.item?.color?.name || item?.color?.name;
+
+      return `
       <tr>
-        <td>${item.item?.name || 'N/A'}</td>
-        <td>${measurement || 'One Size'}</td>
-        <td>${color || 'Standard'}</td>
+        <td>${item.item?.name || "N/A"}</td>
+        <td>${measurement || "One Size"}</td>
+        <td>${color || "Standard"}</td>
         <td>${item.quantity || 1}</td>
-        <td>${item.item?.price ? formatCurrency(item.item.price) : 'N/A'}</td>
+        <td>${item.item?.price ? formatCurrency(item.item.price) : "N/A"}</td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   const templateParams = {
     user_name: shippingInfo?.firstname + " " + shippingInfo?.surname,
@@ -109,8 +117,10 @@ function Confirmation() {
       shippingInfo?.city,
       shippingInfo?.state,
       shippingInfo?.country,
-      shippingInfo?.zipCode
-    ].filter(Boolean).join(", "),
+      shippingInfo?.zipCode,
+    ]
+      .filter(Boolean)
+      .join(", "),
     customer_email: shippingInfo?.email || email || "N/A",
     customer_phone: shippingInfo?.phonenumber || "N/A",
     order_items: orderItemsHTML,
@@ -127,7 +137,7 @@ function Confirmation() {
         throttle: 10000,
       },
     });
-    
+
     try {
       await emailjs.send(
         process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID ?? "",
@@ -164,7 +174,11 @@ function Confirmation() {
       console.log(verificationResponse);
 
       if (verificationResponse?.message === "Verification successful") {
-        if (shippingInfo?.address && shippingInfo?.city && shippingInfo?.phonenumber) {
+        if (
+          shippingInfo?.address &&
+          shippingInfo?.city &&
+          shippingInfo?.phonenumber
+        ) {
           createOrderMutation.mutate({
             items: cart?.items,
             shippingInfo,
@@ -188,14 +202,20 @@ function Confirmation() {
       if (storedCart) {
         const parsedCart = JSON.parse(storedCart);
         setCart(parsedCart);
-        console.log("Cart items with measurements:", parsedCart.items.map((item: any) => ({
-          name: item.item?.name,
-          measurement: item.item?.measurement,
-          color: item.item?.color || item.color
-        })));
-        localStorage.setItem("cart", JSON.stringify({ items: [], discount: "" }));
+        console.log(
+          "Cart items with measurements:",
+          parsedCart.items.map((item: any) => ({
+            name: item.item?.name,
+            measurement: item.item?.measurement,
+            color: item.item?.color || item.color,
+          }))
+        );
+        localStorage.setItem(
+          "cart",
+          JSON.stringify({ items: [], discount: "" })
+        );
       }
-      
+
       const storedInfo = localStorage.getItem("shippingInfo");
       if (storedInfo) {
         setShippingInfo(JSON.parse(storedInfo));
@@ -222,13 +242,81 @@ function Confirmation() {
   }
 
   return (
-    <div className="flex flex-col items-center lg:pb-16">
-      <p className="text-center lg:text-6xl text-3xl mt-28 capitalize">
-        Thank you for your purchase! 
+    // <div className="flex flex-col items-center lg:pb-16">
+    //   <p className="text-center lg:text-6xl text-3xl mt-28 capitalize">
+    //     Thank you for your purchase!
+    //   </p>
+    //   <p className="text-center text-lg font-semibold mt-8 lg:w-2/3">
+    //     A confirmation email has been sent to {email} with your order details. We appreciate you!
+    //   </p>
+    // </div>
+    //
+    // <div className="flex flex-col items-center lg:pb-16">
+    //   <p className="text-center lg:text-6xl text-3xl mt-28 capitalize">
+    //     Thank you for your purchase!
+    //   </p>
+    //   <p className="text-center text-lg font-medium text-gray-500 mt-8 lg:w-2/3">
+    //     We've sent a confirmation email to{" "}
+    //     <span className="font-bold text-gray-900">{email}</span> with your order details. If
+    //     you don't see it in your inbox, please check your spam or junk folder.
+    //   </p>
+    // </div>
+
+    <div className="flex flex-col items-center px-4 lg:px-0 lg:pb-24 bg-gradient-to-b from-gray-100 to-white min-h-screen">
+      <p className="text-center text-4xl lg:text-7xl font-bold mt-32 bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-900 animate-fade-in">
+        Thank You for Your Purchase!
       </p>
-      <p className="text-center text-lg font-semibold mt-8 lg:w-2/3">
-        A confirmation email has been sent to {email} with your order details. We appreciate you! 
+
+      <p className="text-center text-base lg:text-xl font-medium mt-6 lg:mt-10 lg:w-3/5 text-gray-600 leading-relaxed">
+        We've sent a confirmation email to{" "}
+        <span className="font-bold text-gray-800">{email}</span> with your order
+        details. If it’s not in your inbox, kindly check your spam or junk
+        folder.
       </p>
+
+      <div className="mt-12 w-full max-w-3xl rounded-3xl border border-gray-200 bg-white shadow-xl p-8 lg:p-12 space-y-6">
+        <h3 className="text-2xl lg:text-3xl font-semibold text-gray-900 text-center mb-4">
+          What to Expect
+        </h3>
+
+        <p className="text-center text-sm lg:text-base text-gray-500 leading-relaxed">
+          All items are{" "}
+          <span className="font-medium text-gray-700">
+            custom-made to order
+          </span>
+          . Below are our estimated timelines:
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm lg:text-base text-gray-600 mt-6">
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <p className="font-medium text-gray-900 mb-2">Production:</p>
+            <p>• 6–9 working days</p>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <p className="font-medium text-gray-900 mb-2">
+              Delivery within Abuja:
+            </p>
+            <p>• 1–2 working days</p>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <p className="font-medium text-gray-900 mb-2">
+              Delivery outside Abuja:
+            </p>
+            <p>• 3–5 working days (Standard)</p>
+            <p>• 1–3 working days (Express)</p>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <p className="font-medium text-gray-900 mb-2">
+              Delivery outside Nigeria:
+            </p>
+            <p>• 7–9 working days – Aramex (US, UK, CAN, FRA)</p>
+            <p>• 3–5 working days – DHL (Worldwide)</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -124,7 +124,9 @@ export default function Page() {
       email: shippingInfo?.email,
       price: finalAmountInNGN,
       currency: "NGN",
-      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
+      callbackUrl: `https://ruksalamode.com/shop/confirmation/?email=${
+        // callbackUrl: `http://localhost:3000/shop/confirmation/?email=${
+        shippingInfo?.email}&quantity=${quantity}&price=${finalAmountInNGN}&currency=NGN`,
       metadata: { quantity },
     };
     const response = await makePayment(data);
