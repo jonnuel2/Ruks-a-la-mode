@@ -116,7 +116,7 @@ export default function Page() {
     };
 
     checkStockStatus();
-  }, [cart]); // Changed dependency to full cart object
+  }, [cart]); // Dependency on full cart object
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -291,7 +291,7 @@ export default function Page() {
                             </span>
                             <div className="flex flex-col">
                               <p className="font-medium tracking-wide text-xs">
-                                Color: {c?.item?.color?.name || c?.color?.name}
+                                Color: {c?.item?.color?.name}
                               </p>
                               {getMeasurementString(c?.item?.measurement)}
                               <p className="font-medium tracking-wide text-xs mt-1">
