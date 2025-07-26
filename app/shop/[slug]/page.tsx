@@ -358,62 +358,64 @@ export default function Page(props: { params: Params }) {
   //   }
   // };
 
-  const addToBag = () => {
-    if (product) {
-      console.log("adding");
-      const { size, custom, length } = measurement;
+const addToBag = async () => {
+  if (product) {
+    console.log("adding");
+    const { size, custom, length } = measurement;
 
-      // Validate measurements
-      // if (
-      //   !size &&
-      //   !length &&
-      //   !Object?.entries(custom)?.some(([_, value]) => value !== "")
-      // ) {
-      //   toast.error("Incomplete Measurement Parameters", {
-      //     position: "top-right",
-      //     autoClose: 3000,
-      //     hideProgressBar: false,
-      //     closeOnClick: true,
-      //     pauseOnHover: true,
-      //     draggable: true,
-      //   });
-      //   return;
-      // }
-
-      // Validate custom size fields if custom size section is open
-      if (openCustom) {
-        const customValues = Object.values(custom);
-        const allCustomFilled = customValues.every((val) => val.trim() !== "");
-
-        if (!allCustomFilled) {
-          toast.error("Please fill all custom size fields", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-          return;
-        }
-      } else {
-        // If not using custom size, ensure either size or length is selected
-        if (!size || !length) {
-          toast.error("Please select both size and length", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-          return;
-        }
+    // Validate custom size fields if custom size section is open
+    if (openCustom) {
+      const customValues = Object.values(custom);
+      const allCustomFilled = customValues.every((val) => val.trim() !== "");
+      if (!allCustomFilled) {
+        toast.error("Please fill all custom size fields", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
       }
+    } else {
+      // If not using custom size, ensure either size or length is selected
+      if (!size || !length) {
+        toast.error("Please select both size and length", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
+    }
 
-      // Validate color selection for multi-color products
-      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
-        toast.warning("Please choose a color", {
+    // Validate color selection for multi-color products
+    if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+      toast.warning("Please choose a color", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    // Fetch latest product data to ensure stock is up-to-date
+    try {
+      const latestProductData = await getProduct(product.id);
+      const latestProduct = latestProductData?.product;
+      const color = latestProduct?.data?.colors?.find(
+        (c: any) => c.name === (product?.data?.colors?.length > 1 ? selectedColor?.name : product?.data?.colors[0]?.name)
+      );
+
+      if (!color?.stock || color?.stock <= 0) {
+        toast.error(`Selected color ${color?.name || "item"} is out of stock`, {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -426,50 +428,58 @@ export default function Page(props: { params: Params }) {
 
       // Prepare measurements
       let filteredMeasurement;
-      if (
-        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
-      ) {
+      if (Object.entries(measurement?.custom).some(([_, value]) => value !== "")) {
         filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement?.custom).filter(
-            ([_, value]) => value !== ""
-          )
+          Object.entries(measurement?.custom).filter(([_, value]) => value !== "")
         );
       } else {
         filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement).filter(
-            ([_, value]) => typeof value !== "object"
-          )
+          Object.entries(measurement).filter(([_, value]) => typeof value !== "object")
         );
       }
 
-      // Use the SELECTED color, not the first one
-      const color =
-        product?.data?.colors?.length > 1
-          ? selectedColor
-          : product?.data?.colors[0]; // Fallback to first color if product has only one color
+      // Calculate total quantity of all items with the same product ID and color
+      const existingItems = cart?.items?.filter(
+        (item: any) => item.item.id === product?.id && item.item.color.name === color?.name
+      );
+      const currentTotalQuantity = existingItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+
+      if (currentTotalQuantity + orderDetails.quantity > color?.stock) {
+        toast.error(
+          `Only ${color?.stock} ${color?.name} items available in stock across all measurements`,
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+        return;
+      }
 
       // Calculate price based on currency
       const price = getPrice();
-      const priceInUsd =
-        product?.data?.priceInUsd || price * exchangeRates["usd"];
+      const priceInUsd = latestProduct?.data?.priceInUsd || price * exchangeRates["usd"];
 
       // Prepare cart item
       const itemData: any = {
         item: {
-          name: product?.data?.name,
-          price: currency === "NGN" ? price : priceInUsd, // Store the correct price based on currency
-          priceInUsd: product?.data?.priceInUsd, // Always store the manual USD price if available
-          originalPrice: price, // Store the original NGN price
-          id: product?.id,
-          image: product?.data?.images[0],
-          stock: color?.stock ?? 10,
+          name: latestProduct?.data?.name,
+          price: currency === "NGN" ? price : priceInUsd,
+          priceInUsd: latestProduct?.data?.priceInUsd,
+          originalPrice: price,
+          id: latestProduct?.id,
+          image: latestProduct?.data?.images[0],
+          stock: color?.stock ?? 0,
           measurement: filteredMeasurement,
           color: {
             name: color?.name,
             hexCode: color?.hexCode,
             stock: color?.stock,
           },
-          weight: product?.data?.weight,
+          weight: latestProduct?.data?.weight,
         },
         quantity: orderDetails?.quantity,
       };
@@ -487,10 +497,25 @@ export default function Page(props: { params: Params }) {
       }
 
       // Update cart
-      const updatedCart = {
-        ...cart,
-        items: [...cart?.items, itemData],
-      };
+      let updatedCart;
+      const existingItemIndex = cart?.items?.findIndex(
+        (item: any) =>
+          item.item.id === product?.id &&
+          item.item.color.name === color?.name &&
+          JSON.stringify(item.item.measurement) === JSON.stringify(filteredMeasurement)
+      );
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        const newItems = [...cart.items];
+        newItems[existingItemIndex].quantity += orderDetails.quantity;
+        updatedCart = { ...cart, items: newItems };
+      } else {
+        // Add new item
+        updatedCart = {
+          ...cart,
+          items: [...cart?.items, itemData],
+        };
+      }
 
       setcart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -503,8 +528,19 @@ export default function Page(props: { params: Params }) {
         pauseOnHover: true,
         draggable: true,
       });
+    } catch (error) {
+      console.error("Error fetching latest product data:", error);
+      toast.error("Unable to verify stock. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
-  };
+  }
+};
 
   // to detect location
   // useEffect(() => {
