@@ -507,6 +507,20 @@ const Analytics = () => {
             className="border px-4 py-2 rounded w-full"
           />
         </div>
+<<<<<<< HEAD
+      </div> */}
+
+      {/* Sales Overview */}
+      {/* <div className="mb-8 lg:w-2/3 mt-16">
+        <h3 className="text-xl font-bold mb-4">Sales Overview</h3>
+        <Bar data={salesData} />
+      </div> */}
+
+      {/* Product Performance */}
+      <div className="mb-8 lg:w-1/3">
+        <h3 className="text-xl font-bold mb-4">Product Performance</h3>
+        {productPerformanceData ? <Pie data={productPerformanceData} /> : <></>}
+=======
         <button
           onClick={resetDateRange}
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
@@ -525,6 +539,7 @@ const Analytics = () => {
             </div>
           </div>
         )}
+>>>>>>> main
       </div>
 
       {/* Loading and Error States */}
