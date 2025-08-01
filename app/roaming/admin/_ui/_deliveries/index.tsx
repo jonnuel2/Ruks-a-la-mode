@@ -1,17 +1,47 @@
 "use client";
 
 import { getDeliveries, updateOrder } from "@/helpers/api-controller";
-import { Delivery } from "@/helpers/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import type { Delivery } from "@/helpers/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import DeliveryInfoModal from "./delivery-info";
 import emailjs from "@emailjs/browser";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Configure dayjs with proper plugins and locale
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const Deliveries = () => {
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [isMessageSending, setIsMessageSending] = useState(false);
 
+  // State management
+  const [sortField, setSortField] = useState<"date" | "name">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [filter, setFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
+
+  const {
+    data: deliveriesData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["orders"],
+    queryFn: getDeliveries,
+    staleTime: 0,
+  });
+
+  // Delivery info state
   const [deliveryInfo, setDeliveryInfo] = useState({
     id: "",
     status: "",
@@ -24,29 +54,73 @@ const Deliveries = () => {
       state: "",
       country: "",
       email: "",
+      phonenumber: "",
     },
     trackingId: "",
     items: [],
   });
 
-  const {
-    data: deliveriesData,
-    isLoading,
-    isError,
-    refetch: refetchDeliveries,
-  } = useQuery({
-    queryKey: ["orders"],
-    queryFn: () => getDeliveries(),
-  });
+  // Calculate status counts
+  const statusCounts = useMemo(() => {
+    const counts = {
+      ready: 0,
+      transit: 0,
+      delivered: 0,
+      canceled: 0,
+    };
 
-  const deliveries = deliveriesData?.deliveries;
+    deliveriesData?.deliveries?.forEach((delivery: any) => {
+      const status = (delivery?.data?.status || "").toLowerCase();
+      if (status in counts) {
+        counts[status as keyof typeof counts]++;
+      }
+    });
 
+    return counts;
+  }, [deliveriesData]);
+
+  // Update order mutation with optimistic updates
   const updateOrderStatusMutation = useMutation({
-    mutationFn: (data: any) => updateOrder(data),
-    onSuccess: (d, v) => {
-      if (v?.status === "transit") sendEmail();
+    mutationFn: updateOrder,
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ["orders"] });
 
-      refetchDeliveries();
+      const previousDeliveries = queryClient.getQueryData(["orders"]);
+
+      queryClient.setQueryData(["orders"], (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          deliveries: old.deliveries.map((delivery: any) =>
+            delivery.id === variables.id
+              ? {
+                  ...delivery,
+                  data: {
+                    ...delivery.data,
+                    status: variables.status,
+                    updatedAt: new Date().toISOString(),
+                  },
+                }
+              : delivery
+          ),
+        };
+      });
+
+      return { previousDeliveries };
+    },
+    onSuccess: (data, variables) => {
+      toast.success(`Status updated to ${variables.status}`);
+      if (variables.status === "transit") {
+        sendEmail();
+      }
+    },
+    onError: (error, variables, context) => {
+      toast.error(`Failed to update status: ${error.message}`);
+      queryClient.setQueryData(["orders"], context?.previousDeliveries);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 
@@ -55,55 +129,93 @@ const Deliveries = () => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
-    }).format(parseInt(amount || "0"));
+    }).format(Number.parseInt(amount || "0"));
   };
 
+  // Fixed measurement string function
   const getMeasurementString = (measurement: any) => {
-    if (!measurement) return null;
+    if (!measurement || typeof measurement !== "object") return "One Size";
 
-    // Check for direct size property first
-    if (measurement.size) {
-      return measurement.size;
-    }
+    const measurements = [];
 
-    // Check for custom measurements
-    if (measurement.custom && typeof measurement.custom === "object") {
-      const entries = Object.entries(measurement.custom);
-      if (entries.length > 0) {
-        return entries
-          .map(
-            ([key, value]) =>
-              `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-          )
-          .join(", ");
-      }
-    }
-
-    // Check for direct measurements (like length, width, etc.)
+    // Standard measurements
     const standardMeasurements = Object.entries(measurement)
-      .filter(([key]) => !["custom"].includes(key))
+      .filter(([key, value]) => value && key !== "custom")
       .map(
         ([key, value]) =>
           `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
       );
 
-    if (standardMeasurements.length > 0) {
-      return standardMeasurements.join(", ");
+    measurements.push(...standardMeasurements);
+
+    // Custom measurements
+    if (measurement.custom && typeof measurement.custom === "object") {
+      const customMeasurements = Object.entries(measurement.custom)
+        .filter(([key, value]) => value)
+        .map(
+          ([key, value]) =>
+            `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
+        );
+
+      measurements.push(...customMeasurements);
     }
 
-    return null;
+    return measurements.length > 0 ? measurements.join(", ") : "One Size";
   };
 
+  // Fixed date formatting function
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+
+    // Parse the date and format it consistently
+    const date = dayjs(dateString);
+
+    // Check if date is valid
+    if (!date.isValid()) {
+      console.warn(`Invalid date: ${dateString}`);
+      return "Invalid Date";
+    }
+
+    // Get the day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+    const day = date.date();
+    let dayWithSuffix;
+    if (day > 3 && day < 21) {
+      dayWithSuffix = `${day}th`;
+    } else {
+      switch (day % 10) {
+        case 1:
+          dayWithSuffix = `${day}st`;
+          break;
+        case 2:
+          dayWithSuffix = `${day}nd`;
+          break;
+        case 3:
+          dayWithSuffix = `${day}rd`;
+          break;
+        default:
+          dayWithSuffix = `${day}th`;
+      }
+    }
+    // Return formatted date as "DD/MM/YYYY"
+    return `${dayWithSuffix} ${date.format("MMMM, YYYY")}`;
+
+    // Format as DD/MM/YYYY to avoid confusion
+    // return date.format("DD/MM/YYYY")
+  };
+
+  // Email template with proper measurement handling
   const orderItemsHTML = deliveryInfo?.items
     ?.map((item: any) => {
       const measurement = getMeasurementString(item.item?.measurement);
-      const color = item.item?.color?.name || item?.color?.name;
+      const color = item.item?.color?.name || item?.color?.name || "Standard";
+      const length = item.item?.measurement?.length || "N/A";
 
       return `
           <tr>
             <td>${item.item?.name || "N/A"}</td>
-            <td>${measurement || "One Size"}</td>
-            <td>${color || "Standard"}</td>
+            <td>${measurement}</td>
+            <td>${length}</td>
+            <td>${color}</td>
             <td>${item.quantity || 1}</td>
             <td>${
               item.item?.price ? formatCurrency(item.item.price) : "N/A"
@@ -114,250 +226,484 @@ const Deliveries = () => {
     .join("");
 
   const templateParams = {
-    user_name:
-      deliveryInfo?.shippingInfo?.firstname +
-      " " +
-      deliveryInfo?.shippingInfo?.surname,
+    user_name: `${deliveryInfo?.shippingInfo?.firstname} ${deliveryInfo?.shippingInfo?.surname}`,
+    customer_email: deliveryInfo?.shippingInfo?.email,
+    customer_phone: deliveryInfo?.shippingInfo?.phonenumber,
     delivery_id: deliveryInfo?.id,
     delivery_date: deliveryInfo?.deliveryDate,
     tracking_id: deliveryInfo?.trackingId,
-    delivery_address:
-      deliveryInfo?.shippingInfo?.address +
-      " " +
-      deliveryInfo?.shippingInfo?.city +
-      " " +
+    delivery_address: [
+      deliveryInfo?.shippingInfo?.address,
+      deliveryInfo?.shippingInfo?.city,
       deliveryInfo?.shippingInfo?.country,
+    ]
+      .filter(Boolean)
+      .join(" "),
     order_items: orderItemsHTML,
     to_mail: deliveryInfo?.shippingInfo?.email,
   };
 
   const sendEmail = async () => {
     setIsMessageSending(true);
-    emailjs.init({
-      publicKey: process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY,
-      // Do not allow headless browsers
-      blockHeadless: true,
-      limitRate: {
-        // Set the limit rate for the application
-        id: "app",
-        // Allow 1 request per 10s
-        throttle: 10000,
-      },
-    });
-    await emailjs
-      .send(
+    try {
+      await emailjs.send(
         process.env.NEXT_PUBLIC_EMAIL_JS_SERVICE_ID ?? "",
         process.env.NEXT_PUBLIC_EMAIL_JS_DELIVERY_TEMPLATE_ID ?? "",
         templateParams,
-        {
-          publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
-        }
-      )
-      .then(
-        () => {
-          setIsMessageSending(false);
-          console.log("SUCCESS!");
-        },
-        (error) => {
-          console.log("FAILED...", error);
-        }
+        { publicKey: process.env.NEXT_PUBLIC_EMAIL_JS_PUBLIC_KEY }
       );
+      toast.success("Delivery email sent successfully");
+    } catch (error) {
+      toast.error("Failed to send delivery email");
+      console.error("Email send failed:", error);
+    } finally {
+      setIsMessageSending(false);
+    }
   };
 
-  const [filter, setFilter] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
+  // Fixed sorting logic
+  // const processedDeliveries = useMemo(() => {
+  //   if (!deliveriesData?.deliveries) return [];
 
-  // Filtered and searched deliveries
-  const filteredDeliveries = deliveries?.filter((delivery: any) => {
-    const matchesFilter =
-      filter === "" ||
-      delivery?.data?.status.toLowerCase() === filter.toLowerCase();
-    let fullname =
-      delivery?.data?.shippingInfo?.firstname +
-      " " +
-      delivery?.data?.shippingInfo?.surname;
-    const matchesSearch =
-      fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  //   return [...deliveriesData.deliveries]
+  //     .filter((delivery) => {
+  //       const deliveryStatus = (delivery.data?.status || "").toLowerCase();
+  //       const filterStatus = filter.toLowerCase();
+  //       const statusMatches =
+  //         !filter || filter === "all" || deliveryStatus === filterStatus;
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredDeliveries?.length / itemsPerPage);
-  const displayedDeliveries: any = filteredDeliveries?.slice(
+  //       const searchTerm = searchQuery.toLowerCase();
+  //       const fullname =
+  //         `${delivery.data?.shippingInfo?.firstname} ${delivery.data?.shippingInfo?.surname}`.toLowerCase();
+  //       const matchesSearch =
+  //         fullname.includes(searchTerm) ||
+  //         delivery.id.toLowerCase().includes(searchTerm) ||
+  //         delivery.data?.shippingInfo?.email
+  //           ?.toLowerCase()
+  //           .includes(searchTerm);
+
+  //       return statusMatches && matchesSearch;
+  //     })
+  //     .sort((a, b) => {
+  //       if (sortField === "date") {
+  //         // Fixed date sorting - use proper date comparison
+  //         const dateA = dayjs(a.data?.createdAt || a.data?.updatedAt);
+  //         const dateB = dayjs(b.data?.createdAt || b.data?.updatedAt);
+
+  //         // For delivered items, prioritize by updatedAt (when they were marked as delivered)
+  //         if (filter === "delivered") {
+  //           const updatedA = dayjs(a.data?.updatedAt);
+  //           const updatedB = dayjs(b.data?.updatedAt);
+  //           return sortDirection === "asc"
+  //             ? updatedA.diff(updatedB)
+  //             : updatedB.diff(updatedA);
+  //         }
+
+  //         // For other statuses, sort by creation date
+  //         return sortDirection === "asc"
+  //           ? dateA.diff(dateB)
+  //           : dateB.diff(dateA);
+  //       } else {
+  //         const nameA =
+  //           `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase();
+  //         const nameB =
+  //           `${b.data?.shippingInfo?.firstname} ${b.data?.shippingInfo?.surname}`.toLowerCase();
+  //         return sortDirection === "asc"
+  //           ? nameA.localeCompare(nameB)
+  //           : nameB.localeCompare(nameA);
+  //       }
+  //     });
+  // }, [deliveriesData, filter, searchQuery, sortField, sortDirection]);
+
+
+  const processedDeliveries = useMemo(() => {
+  if (!deliveriesData?.deliveries) return [];
+
+  return [...deliveriesData.deliveries]
+    .filter((delivery) => {
+      const deliveryStatus = (delivery.data?.status || "").toLowerCase();
+      const filterStatus = filter.toLowerCase();
+      const statusMatches =
+        !filter || filter === "all" || deliveryStatus === filterStatus;
+
+      const searchTerm = searchQuery.toLowerCase();
+      const fullname =
+        `${delivery.data?.shippingInfo?.firstname} ${delivery.data?.shippingInfo?.surname}`.toLowerCase();
+      const matchesSearch =
+        fullname.includes(searchTerm) ||
+        delivery.id.toLowerCase().includes(searchTerm) ||
+        delivery.data?.shippingInfo?.email
+          ?.toLowerCase()
+          .includes(searchTerm);
+
+      return statusMatches && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortField === "date") {
+        // Always use updatedAt for sorting if available, fall back to createdAt
+        const dateA = dayjs(a.data?.updatedAt || a.data?.createdAt);
+        const dateB = dayjs(b.data?.updatedAt || b.data?.createdAt);
+
+        // Handle invalid dates by placing them at the end
+        if (!dateA.isValid()) return sortDirection === "asc" ? 1 : -1;
+        if (!dateB.isValid()) return sortDirection === "asc" ? -1 : 1;
+
+        return sortDirection === "asc"
+          ? dateA.diff(dateB)
+          : dateB.diff(dateA);
+      } else {
+        const nameA =
+          `${a.data?.shippingInfo?.firstname} ${a.data?.shippingInfo?.surname}`.toLowerCase();
+        const nameB =
+          `${b.data?.shippingInfo?.firstname} ${b.data?.shippingInfo?.surname}`.toLowerCase();
+        return sortDirection === "asc"
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      }
+    });
+}, [deliveriesData, filter, searchQuery, sortField, sortDirection]);
+
+  // Pagination
+  const totalPages = Math.ceil(processedDeliveries.length / itemsPerPage);
+  const displayedDeliveries = processedDeliveries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Update delivery status
-  const updateStatus = (id: string, status: Delivery["status"]) => {
-    updateOrderStatusMutation.mutate({ id, status });
-  };
+  // Action handlers
+  const updateStatus = useCallback(
+    (id: string, status: Delivery["status"]) => {
+      updateOrderStatusMutation.mutate({ id, status });
+    },
+    [updateOrderStatusMutation]
+  );
 
-  const handleDeliverySubmit = () => {
+  const handleDeliverySubmit = useCallback(() => {
     updateStatus(deliveryInfo.id, deliveryInfo.status);
-  };
+    setIsModalOpen(false);
+  }, [deliveryInfo, updateStatus]);
+
+  const getStatusButton = useCallback(
+    (delivery: any) => {
+      const status = (delivery.data?.status || "").toLowerCase();
+
+      switch (status) {
+        case "ready":
+          return {
+            text: "Mark In Transit",
+            action: () => {
+              setDeliveryInfo({
+                id: delivery.id,
+                status: "transit",
+                shippingInfo: delivery.data.shippingInfo,
+                items: delivery.data.items,
+                deliveryDate: "",
+                trackingId: "",
+              });
+              setIsModalOpen(true);
+            },
+            className:
+              "bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-nowrap text-sm",
+          };
+        case "transit":
+          return {
+            text: "Mark Delivered",
+            action: () => updateStatus(delivery.id, "delivered"),
+            className:
+              "bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-nowrap text-sm",
+          };
+        case "delivered":
+          return {
+            text: "Delivered",
+            action: () => {},
+            className:
+              "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed",
+          };
+        default:
+          return {
+            text: "Update Status",
+            action: () => {},
+            className:
+              "bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-nowrap text-sm cursor-not-allowed",
+          };
+      }
+    },
+    [updateStatus]
+  );
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Delivery</h2>
-      {/* Filters and Search */}
-      <div className="flex lg:flex-row flex-col items-start lg:items-center lg:justify-between mb-4">
-        {/* <div className="flex gap-2">
-          {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
-            <button
-              key={status.toLowerCase()}
-              onClick={() =>
-                setFilter(
-                  status?.toLowerCase() === filter ? "" : status?.toLowerCase()
-                )
-              }
-              className={`px-4 py-2 rounded text-xs ${
-                filter.toLowerCase() === status.toLowerCase()
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
+    <div className="container mx-auto p-4">
+      <ToastContainer position="top-right" autoClose={3000} />
+
+      <h1 className="text-2xl font-bold mb-6">Delivery Management</h1>
+
+      {/* Controls Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div>
+            <label className="mr-2 font-medium text-sm">
+              Filter by Status:
+            </label>
+            <select
+              className="border rounded px-3 py-1.5 text-sm"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value.toLowerCase());
+                setCurrentPage(1);
+              }}
             >
-              {status}
-            </button>
-          ))}
-        </div> */}
-        <div>
-          <label className="mr-2 font-medium lg:text-sm text-xs">
-            Filter by Status:
-          </label>
-          <select
-            className="border rounded px-2 py-1 lg:text-sm text-xs"
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value.toLowerCase());
-              setCurrentPage(1);
-            }}
-          >
-            <option value="" className="">All</option>
-            {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
-              <option key={status} value={status.toLowerCase()}>
-                {status}
-              </option>
-            ))}
-          </select>
+              <option value="all">All Statuses</option>
+              {["Ready", "Transit", "Delivered", "Canceled"].map((status) => (
+                <option key={status} value={status.toLowerCase()}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mr-2 font-medium text-sm">Sort by:</label>
+            <select
+              className="border rounded px-3 py-1.5 text-sm"
+              value={`${sortField}-${sortDirection}`}
+              onChange={(e) => {
+                const [field, direction] = e.target.value.split("-") as [
+                  "date" | "name",
+                  "asc" | "desc"
+                ];
+                setSortField(field);
+                setSortDirection(direction);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="date-desc">Date (Newest First)</option>
+              <option value="date-asc">Date (Oldest First)</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+            </select>
+          </div>
         </div>
 
         <input
           type="text"
-          placeholder="Search by ID or Customer"
+          placeholder="Search deliveries..."
+          className="border rounded px-3 py-1.5 text-sm flex-grow"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border px-4 py-2 rounded lg:w-1/3 text-xs lg:mt-0 mt-4"
         />
       </div>
-      {/* Deliveries Table */}
-      <table className="min-w-full table-auto bg-white shadow rounded">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="px-4 py-2 border text-xs text-left">Delivery ID</th>
-            <th className="px-4 py-2 border text-xs text-left">
-              Customer Name
-            </th>
-            <th className="px-4 py-2 border text-xs text-left">
-              Delivery Information
-            </th>
-            <th className="px-4 py-2 border text-xs text-left">Product</th>
-            <th className="px-4 py-2 border text-xs text-left">Details</th>
-            <th className="px-4 py-2 border text-xs text-left">Status</th>
-            <th className="px-4 py-2 border text-xs text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayedDeliveries?.map((delivery: any) => (
-            <tr key={delivery.id}>
-              <td className="px-4 py-2 border text-xs">{delivery.id}</td>
-              <td className="px-4 py-2 border text-xs">
-                {delivery?.data?.shippingInfo?.firstname +
-                  " " +
-                  delivery?.data?.shippingInfo?.surname}
-              </td>
-              <td className="px-4 py-2 border text-xs">
-                {delivery?.data?.shippingInfo?.address}, <br />
-                {delivery?.data?.shippingInfo?.city}, <br />
-                {delivery?.data?.shippingInfo?.state}, <br />
-                {delivery?.data?.shippingInfo?.country}, <br />
-                {delivery?.data?.shippingInfo?.phonenumber}
-              </td>
-              {/* Products Column */}
-              <td className="px-4 py-2 border text-xs">
-                {delivery.data.items.map((item: any, index: number) => (
-                  <div key={index} className="mb-2 last:mb-0">
-                    <div className="font-medium">{item.item.name}</div>
-                    <div>Qty: {item.quantity}</div>
-                  </div>
-                ))}
-              </td>
-              {/* Details Column */}
-              <td className="px-4 py-2 border text-xs">
-                {delivery.data.items.map((item: any, index: number) => (
-                  <div key={index} className="mb-2 last:mb-0">
-                    <div>Size: {item.item.measurement?.size || "N/A"}</div>
-                    <div>Color: {item.item.color?.name || "N/A"}</div>
-                    <div>Price: {item.item.price}</div>
-                  </div>
-                ))}
-              </td>
-              <td className="px-4 py-2 border text-xs capitalize">
-                <span className={`px-2 py-1 rounded text-yellow-500`}>
-                  {delivery?.data?.status}
-                </span>
-              </td>
-              <td className="px-4 py-2 border text-xs">
-                <button
-                  onClick={() => {
-                    if (delivery?.data?.status === "ready") {
-                      setDeliveryInfo({
-                        id: delivery?.id,
-                        status: "transit",
-                        shippingInfo: delivery?.data?.shippingInfo,
-                        items: delivery?.data?.items,
-                        deliveryDate: "",
-                        trackingId: "",
-                      });
-                      setIsModalOpen(true);
-                    } else {
-                      updateStatus(delivery?.id, "delivered");
-                    }
-                  }}
-                  className="bg-blue-500 text-white px-3 py-1 rounded"
-                >
-                  Update Status
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {/* Pagination */}
-      <div className="flex items-center justify-between mt-4">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 rounded bg-gray-200 text-xs disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-xs">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 rounded bg-gray-200 text-xs disabled:opacity-50"
-        >
-          Next
-        </button>
+
+      {/* Status Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {Object.entries(statusCounts).map(([status, count]) => (
+          <div
+            key={status}
+            className={`p-3 rounded-lg cursor-pointer transition-colors ${
+              filter === status ? "ring-2 ring-blue-500" : ""
+            } ${
+              status === "ready"
+                ? "bg-yellow-50"
+                : status === "transit"
+                ? "bg-blue-50"
+                : status === "delivered"
+                ? "bg-green-50"
+                : "bg-red-50"
+            }`}
+            onClick={() => setFilter(filter === status ? "all" : status)}
+          >
+            <div className="text-sm font-medium capitalize">{status}</div>
+            <div className="text-xl font-bold">{count}</div>
+          </div>
+        ))}
       </div>
+
+      {/* Deliveries Table */}
+      <div className="overflow-x-auto rounded-lg border shadow">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ID
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                onClick={() => {
+                  setSortField("name");
+                  setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+                }}
+              >
+                Customer{" "}
+                {sortField === "name"
+                  ? sortDirection === "asc"
+                    ? "↑"
+                    : "↓"
+                  : ""}
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Shipping Info
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Details
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {displayedDeliveries.length > 0 ? (
+              displayedDeliveries.map((delivery: any) => {
+                const statusButton = getStatusButton(delivery);
+                return (
+                  <tr key={delivery.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {delivery.id}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(delivery?.data?.updatedAt ?? "")}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="font-medium">
+                        {delivery.data.shippingInfo.firstname}{" "}
+                        {delivery.data.shippingInfo.surname}
+                      </div>
+                      <div className="text-gray-500 text-xs">
+                        {delivery.data.shippingInfo.email}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      <div className="space-y-1">
+                        <div>{delivery.data.shippingInfo.address}</div>
+                        <div>
+                          {delivery.data.shippingInfo.city},{" "}
+                          {delivery.data.shippingInfo.state}
+                        </div>
+                        <div>{delivery.data.shippingInfo.country}</div>
+                        <div>{delivery.data.shippingInfo.zipCode}</div>
+
+                        <div>{delivery.data.shippingInfo.phonenumber}</div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {delivery.data.items.map((item: any, index: number) => (
+                        <div key={index} className="mb-2 last:mb-0">
+                          <div className="font-medium">{item.item.name}</div>
+                          <div>Qty: {item.quantity}</div>
+                        </div>
+                      ))}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {delivery.data.items.map((item: any, index: number) => {
+                        const measurementStr = getMeasurementString(
+                          item.item?.measurement
+                        );
+                        const color =
+                          item.item?.color?.name ||
+                          item?.color?.name ||
+                          "Standard";
+                        const length = item.item?.measurement?.length || "N/A";
+
+                        return (
+                          <div key={index} className="mb-2 last:mb-0">
+                            <div>
+                              <span className="font-semibold">Size:</span>{" "}
+                              <br /> {measurementStr}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Color:</span>{" "}
+                              <br /> {color}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Price:</span>{" "}
+                              <br /> {formatCurrency(item.item.price)}
+                            </div>
+                            {length !== "N/A" && (
+                              <div>
+                                <span className="font-semibold">Length:</span>{" "}
+                                {length}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          delivery.data.status === "ready"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : delivery.data.status === "transit"
+                            ? "bg-blue-100 text-blue-800"
+                            : delivery.data.status === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {delivery.data.status.charAt(0).toUpperCase() +
+                          delivery.data.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        onClick={statusButton.action}
+                        className={statusButton.className}
+                        disabled={["delivered", "canceled"].includes(
+                          delivery.data.status.toLowerCase()
+                        )}
+                      >
+                        {statusButton.text}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                  {isLoading
+                    ? "Loading deliveries..."
+                    : "No deliveries found matching your criteria"}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded bg-gray-100 text-sm disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded bg-gray-100 text-sm disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
       <DeliveryInfoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

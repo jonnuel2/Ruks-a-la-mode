@@ -34,7 +34,8 @@ export default function Page(props: { params: Params }) {
   const { slug } = params;
   const router = useRouter();
   const context = useAppContext();
-  const { cart, setcart, all_products, currency, exchangeRates } = context;
+  const { cart, setcart, all_products, currency, exchangeRates, setCurrency } =
+    context;
 
   const {
     data: productData,
@@ -357,18 +358,17 @@ export default function Page(props: { params: Params }) {
   //   }
   // };
 
-  const addToBag = () => {
-    if (product) {
-      console.log("adding");
-      const { size, custom, length } = measurement;
+const addToBag = async () => {
+  if (product) {
+    console.log("adding");
+    const { size, custom, length } = measurement;
 
-      // Validate measurements
-      if (
-        !size &&
-        !length &&
-        !Object?.entries(custom)?.some(([_, value]) => value !== "")
-      ) {
-        toast.error("Incomplete Measurement Parameters", {
+    // Validate custom size fields if custom size section is open
+    if (openCustom) {
+      const customValues = Object.values(custom);
+      const allCustomFilled = customValues.every((val) => val.trim() !== "");
+      if (!allCustomFilled) {
+        toast.error("Please fill all custom size fields", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -378,10 +378,44 @@ export default function Page(props: { params: Params }) {
         });
         return;
       }
+    } else {
+      // If not using custom size, ensure either size or length is selected
+      if (!size || !length) {
+        toast.error("Please select both size and length", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return;
+      }
+    }
 
-      // Validate color selection for multi-color products
-      if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
-        toast.warning("Please choose a color", {
+    // Validate color selection for multi-color products
+    if (product?.data?.colors?.length > 1 && !selectedColor?.name) {
+      toast.warning("Please choose a color", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    // Fetch latest product data to ensure stock is up-to-date
+    try {
+      const latestProductData = await getProduct(product.id);
+      const latestProduct = latestProductData?.product;
+      const color = latestProduct?.data?.colors?.find(
+        (c: any) => c.name === (product?.data?.colors?.length > 1 ? selectedColor?.name : product?.data?.colors[0]?.name)
+      );
+
+      if (!color?.stock || color?.stock <= 0) {
+        toast.error(`Selected color ${color?.name || "item"} is out of stock`, {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -394,44 +428,58 @@ export default function Page(props: { params: Params }) {
 
       // Prepare measurements
       let filteredMeasurement;
-      if (
-        Object.entries(measurement?.custom).some(([_, value]) => value !== "")
-      ) {
+      if (Object.entries(measurement?.custom).some(([_, value]) => value !== "")) {
         filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement?.custom).filter(
-            ([_, value]) => value !== ""
-          )
+          Object.entries(measurement?.custom).filter(([_, value]) => value !== "")
         );
       } else {
         filteredMeasurement = Object.fromEntries(
-          Object.entries(measurement).filter(
-            ([_, value]) => typeof value !== "object"
-          )
+          Object.entries(measurement).filter(([_, value]) => typeof value !== "object")
         );
       }
 
-      // Use the SELECTED color, not the first one
-      const color =
-        product?.data?.colors?.length > 1
-          ? selectedColor
-          : product?.data?.colors[0]; // Fallback to first color if product has only one color
+      // Calculate total quantity of all items with the same product ID and color
+      const existingItems = cart?.items?.filter(
+        (item: any) => item.item.id === product?.id && item.item.color.name === color?.name
+      );
+      const currentTotalQuantity = existingItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
+
+      if (currentTotalQuantity + orderDetails.quantity > color?.stock) {
+        toast.error(
+          `Only ${color?.stock} ${color?.name} items available in stock across all measurements`,
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+        return;
+      }
+
+      // Calculate price based on currency
+      const price = getPrice();
+      const priceInUsd = latestProduct?.data?.priceInUsd || price * exchangeRates["usd"];
 
       // Prepare cart item
       const itemData: any = {
         item: {
-          name: product?.data?.name,
-          price: getPrice(),
-          id: product?.id,
-          image: product?.data?.images[0],
-          stock: color?.stock ?? 10,
+          name: latestProduct?.data?.name,
+          price: currency === "NGN" ? price : priceInUsd,
+          priceInUsd: latestProduct?.data?.priceInUsd,
+          originalPrice: price,
+          id: latestProduct?.id,
+          image: latestProduct?.data?.images[0],
+          stock: color?.stock ?? 0,
           measurement: filteredMeasurement,
           color: {
-            // Store the complete color object
             name: color?.name,
             hexCode: color?.hexCode,
             stock: color?.stock,
           },
-          weight: product?.data?.weight,
+          weight: latestProduct?.data?.weight,
         },
         quantity: orderDetails?.quantity,
       };
@@ -448,16 +496,26 @@ export default function Page(props: { params: Params }) {
         itemData.item["name"] += ` (${selectedMaterial?.name})`;
       }
 
-      // Add color to name if multiple colors exist
-      // if (product?.data?.colors?.length > 1) {
-      //   itemData.item["name"] += ` (${color?.name})`;
-      // }
-
       // Update cart
-      const updatedCart = {
-        ...cart,
-        items: [...cart?.items, itemData],
-      };
+      let updatedCart;
+      const existingItemIndex = cart?.items?.findIndex(
+        (item: any) =>
+          item.item.id === product?.id &&
+          item.item.color.name === color?.name &&
+          JSON.stringify(item.item.measurement) === JSON.stringify(filteredMeasurement)
+      );
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        const newItems = [...cart.items];
+        newItems[existingItemIndex].quantity += orderDetails.quantity;
+        updatedCart = { ...cart, items: newItems };
+      } else {
+        // Add new item
+        updatedCart = {
+          ...cart,
+          items: [...cart?.items, itemData],
+        };
+      }
 
       setcart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -470,10 +528,38 @@ export default function Page(props: { params: Params }) {
         pauseOnHover: true,
         draggable: true,
       });
+    } catch (error) {
+      console.error("Error fetching latest product data:", error);
+      toast.error("Unable to verify stock. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
-  };
+  }
+};
 
+  // to detect location
+  // useEffect(() => {
+  //   const fetchUserLocation = async () => {
+  //     try {
+  //       const response = await fetch("https://ipapi.co/json/");
+  //       const data = await response.json();
+  //       if (data.country_code !== "NG") {
+  //         setCurrency("USD");
+  //       } else {
+  //         setCurrency("NGN");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error detecting location:", error);
+  //     }
+  //   };
 
+  //   fetchUserLocation();
+  // }, [setCurrency]);
 
   if (isLoading) {
     return (
@@ -489,7 +575,7 @@ export default function Page(props: { params: Params }) {
 
   const handlePrev = () => {
     if (!swiperRef.current) return;
-    
+
     if (swiperRef.current.isBeginning) {
       // If at first slide, go to last
       swiperRef.current.slideTo(product?.data?.images?.length - 1, 500);
@@ -498,10 +584,10 @@ export default function Page(props: { params: Params }) {
       swiperRef.current.slidePrev(500);
     }
   };
-  
+
   const handleNext = () => {
     if (!swiperRef.current) return;
-    
+
     if (swiperRef.current.isEnd) {
       // If at last slide, go to first
       swiperRef.current.slideTo(0, 500);
@@ -514,7 +600,7 @@ export default function Page(props: { params: Params }) {
   return (
     <div className={`flex flex-col w-full lg:px-24 px-4  text-black/80 `}>
       <ToastContainer />
-      <div className="flex lg:flex-row  flex-col lg:items-start lg:justify-center items-center lg:space-x-4 w-full lg:mt-10">
+      <div className="flex lg:flex-row   flex-col lg:items-start lg:justify-center items-center lg:space-x-12 w-full lg:mt-10">
         <div className="relative lg:w-[570px] w-full">
           <Swiper
             modules={[Navigation, Pagination, Autoplay]}
@@ -559,7 +645,6 @@ export default function Page(props: { params: Params }) {
               e.stopPropagation();
               // Handle previous slide
               handlePrev();
-              
             }}
             aria-label="Previous slide"
           >
@@ -581,7 +666,6 @@ export default function Page(props: { params: Params }) {
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
-             
             }}
             aria-label="Next slide"
           >
@@ -599,20 +683,40 @@ export default function Page(props: { params: Params }) {
             </svg>
           </button>
         </div>
+
+        {/*  */}
         <div className="flex flex-col items-start lg:w-2/5 w-full lg:mt-0 mt-10">
           {/* name */}
           <p className="lg:text-4xl text-2xl font-medium tracking-wider lg:text-left text-center">
             {product?.data?.name}
           </p>
           {/* price */}
-          <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+          {/* <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
             {formatPrice(
               currency,
               getPrice() *
                 exchangeRates[currency.toLowerCase()] *
                 orderDetails.quantity
             )}
+          </p> */}
+          <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+            {formatPrice(
+              currency,
+              currency === "NGN"
+                ? getPrice() * orderDetails.quantity
+                : (product?.data?.priceInUsd ||
+                    getPrice() * exchangeRates["usd"]) * orderDetails.quantity
+            )}
           </p>
+
+          {/* <p className={`mt-4 lg:text-lg font-medium tracking-wide`}>
+            {formatPrice(
+              currency,
+              getPrice() *
+                (currency === "USD" ? exchangeRates["usd"] : 1) *
+                orderDetails.quantity
+            )}
+          </p> */}
           {/* Description */}
           <p className="mt-6 tracking-wider lg:text-base font-medium text-sm">
             {product?.data?.description
@@ -820,20 +924,22 @@ export default function Page(props: { params: Params }) {
   );
 }
 
+type CustomMeasurementProps = {
+  measurement: any;
+  setMeasurement: (measurement: any) => void;
+  setOpenCustom: (open: boolean) => void;
+};
+
 const CustomMeasurement = ({
   measurement,
   setMeasurement,
   setOpenCustom,
-}: {
-  measurement: any;
-  setMeasurement: any;
-  setOpenCustom: any;
-}) => (
+}: CustomMeasurementProps) => (
   <div className="flex flex-col lg:items-start items-center w-full">
     <div className="flex items-start w-full">
       <button
         onClick={() => setOpenCustom(false)}
-        className="mb-3 py-2 px-4 border border-gray-300 text-gray-600 hover:bg-gray-100 font-medium "
+        className="mb-3 py-2 px-4 border border-gray-300 text-gray-600 hover:bg-gray-100 font-medium"
       >
         X
       </button>
@@ -848,17 +954,46 @@ const CustomMeasurement = ({
         <div className="flex items-center justify-start">
           <input
             className="bg-transparent lg:text-sm text-xs h-[24px] border-dark border mr-3 px-3 outline-none"
-            value={measurement[m]}
+            value={measurement.custom[m] || ""}
             onChange={(e) => {
               const inputValue = e.target.value;
-              // Allow decimals (e.g., 0.4, 12.75)
-              if (/^[\d'.]*$/.test(inputValue)) {
+              // Allow all characters during typing for better UX
+              setMeasurement({
+                ...measurement,
+                custom: { ...measurement?.custom, [m]: inputValue },
+              });
+            }}
+            onBlur={(e) => {
+              let normalizedValue = e.target.value.trim();
+              // Validate and normalize on blur
+              if (/^\d+'?\s?\d{0,2}"?$/.test(normalizedValue)) {
+                // Add quotes for valid formats like "5'" or "5'11"
+                if (normalizedValue.match(/^\d+'?\s?\d{1,2}$/)) {
+                  normalizedValue += '"';
+                } else if (normalizedValue.match(/^\d+$/)) {
+                  // Handle single number (e.g., "5" -> "5'")
+                  normalizedValue += "'";
+                }
                 setMeasurement({
                   ...measurement,
-                  custom: { ...measurement?.custom, [m]: inputValue },
+                  custom: { ...measurement?.custom, [m]: normalizedValue },
+                });
+              } else if (normalizedValue !== "") {
+                // Reset to previous valid value or empty if invalid
+                setMeasurement({
+                  ...measurement,
+                  custom: {
+                    ...measurement?.custom,
+                    [m]: measurement.custom[m] || "",
+                  },
                 });
               }
             }}
+            placeholder={m === "height" ? "e.g. 5'11\"" : ""}
+            // Ensure iOS compatibility
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
           />
           <p className="text-xs">in</p>
         </div>

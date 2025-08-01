@@ -1,7 +1,7 @@
 // app/admin/products/components/ProductTable.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { ProductProps } from "@/helpers/types";
 import ExtraInfoAccordion from "./extra-info-accordion";
 import EditProductModal from "./product-modal";
@@ -19,6 +19,24 @@ export default function ProductTable({
   onDelete,
 }: ProductTableProps) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<"NGN" | "USD">("NGN");
+
+    useEffect(() => {
+    // Fetch the user's IP-based location whether nigeria or usa
+    const fetchUserLocation = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        const data = await response.json();
+        if (data.country_code !== "NG") {
+          setCurrency("USD");
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error); 
+      }
+    };
+
+    fetchUserLocation();
+  }, []);
 
   return (
     <table className="w-full border-collapse">
@@ -38,7 +56,10 @@ export default function ProductTable({
               <td className="p-2 text-xs">{product.id}</td>
               <td className="p-2 text-xs uppercase">{product.name}</td>
               <td className="p-2 text-xs">
-                {formatPrice("NGN", product.price)}
+                {/* {formatPrice(currency, product.price)} */}
+                                {currency === "NGN"
+                  ? formatPrice("NGN", product.price)
+                  : formatPrice("USD", product.priceInUsd)}
               </td>
               <td className="p-2 text-xs uppercase">{product.category}</td>
               <td className="p-2">

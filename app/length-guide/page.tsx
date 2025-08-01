@@ -104,7 +104,7 @@ export default function LengthGuide() {
                 <span className="font-medium">Note:</span> All measurements are
                 in inches from waist to hem. For a longer fit, select the next
                 height category. Measurements may vary by 0.5" due to fabric
-                drape.
+                drape. Not sure of length? Input custom length.
               </p>
             </div>
           </div>
@@ -155,15 +155,13 @@ export default function LengthGuide() {
         </div>
 
         {/* Closing */}
-        <div className="text-center mt-16">
+        {/* <div className="text-center mt-16">
           <div className="w-16 h-px bg-gray-300 mx-auto mb-4"></div>
           <p className="text-gray-600 text-sm">
-            For personalized length recommendations, contact our{" "}
-            <span className="text-amber-700 font-medium">
-              style consultants
-            </span>
+            "Not sure of length? Input custom length." in notes
+            
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

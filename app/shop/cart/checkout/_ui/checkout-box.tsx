@@ -3,7 +3,6 @@
 import { getDiscount } from "@/helpers/api-controller";
 import { formatPrice } from "@/helpers/functions";
 import { useAppContext } from "@/helpers/store";
-import { CartItemProps } from "@/helpers/types";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -17,24 +16,43 @@ export default function CheckoutBox({
   setDiscount,
   shippingFee,
   price,
+  deliveryType,
 }: {
   currency: string;
   rate: number;
   discount: number;
   setDiscount: (value: number) => void;
-  shippingFee: number | undefined;
+  shippingFee: number | undefined; // This should be in Naira
   price: number;
+  deliveryType: "standard" | "express";
 }) {
   const [code, setcode] = useState("");
-
   const context = useAppContext();
-
   const { cart, setcart } = context;
+
+  // Calculate prices based on currency and manual USD price if available
+  const subtotal = cart?.items?.reduce((sum, item) => {
+    const itemPrice =
+      currency === "NGN"
+        ? item.item.originalPrice || item.item.price
+        : item.item.priceInUsd ||
+          (item.item.originalPrice || item.item.price) * rate;
+    return itemPrice * item.quantity + sum;
+  }, 0);
+
+  const discountAmount = (discount / 100) * subtotal;
+  const discountedSubtotal = subtotal - discountAmount;
+  const vat = 0.075 * discountedSubtotal;
+
+  // Convert shipping fee to USD if currency is USD
+  const displayShippingFee =
+    currency === "NGN" ? shippingFee ?? 0 : (shippingFee ?? 0) * rate;
+
+  const total = discountedSubtotal + vat + displayShippingFee;
 
   const handleSetDiscount = (data: any) => {
     setcart({ ...cart, discount: code });
     setDiscount(data?.discount);
-    // alert(`${data?.discount}% Discount added`);
 
     toast.success(`"${data?.discount}%" Discount Added`, {
       position: "top-right",
@@ -53,8 +71,7 @@ export default function CheckoutBox({
     onSuccess: (data) =>
       data?.hasOwnProperty("discount")
         ? handleSetDiscount(data)
-        : // : alert(data?.message),
-          toast.error(`"${data?.message}"`, {
+        : toast.error(`"${data?.message}"`, {
             position: "top-right",
             autoClose: 3000,
             hideProgressBar: false,
@@ -66,16 +83,15 @@ export default function CheckoutBox({
           }),
   });
 
-  // Retrieve items from localStorage
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
       const storedCart = localStorage.getItem("cart");
       if (storedCart) {
-        console.log(JSON.parse(storedCart));
         setcart(JSON.parse(storedCart));
       }
     }
   }, []);
+
   return (
     <div className="p-3 border border-dark lg:w-[46%] w-full lg:mb-0 mb-16">
       <ToastContainer />
@@ -89,23 +105,49 @@ export default function CheckoutBox({
                 `${key.charAt(0).toUpperCase() + key.slice(1)}-${value}`
             )
             .join(", ");
+
+          // Calculate item price based on currency
+          // const itemPrice =
+          //   currency === "NGN"
+          //     ? c.item.originalPrice || c.item.price
+          //     : c.item.priceInUsd ||
+          //       (c.item.originalPrice || c.item.price) * rate;
+          // Define a default NGN price
+          const ngnPrice = c.item.originalPrice ?? c.item.price ?? 0;
+
+          // Fallback exchange rates (as of mid-2024, you should update these periodically)
+          const fallbackRates: { [key: string]: number } = {
+            usd: 1480,
+            gbp: 1850,
+            eur: 1650,
+            cad: 1100,
+          };
+
+          // Get the effective rate: from API or fallback
+          const effectiveRate =
+            rate ?? fallbackRates[currency.toLowerCase()] ?? 1;
+
+          // Final item price calculation
+          const itemPrice =
+            currency === "NGN"
+              ? ngnPrice
+              : c.item.priceInUsd ?? ngnPrice * effectiveRate;
+
           return (
             <div
               className="flex lg:flex-row flex-col lg:items-center items-start lg:justify-between w-full lg:mb-2 mb-3"
               key={c?.item?.id}
             >
               <div className="flex items-center w-full justify-start">
-                {c?.item.image ? (
+                {c?.item.image && (
                   <Image
                     priority
                     width={100}
                     height={150}
                     src={c?.item.image}
                     alt="Product Image"
-                    className=" mr-4"
+                    className="mr-4"
                   />
-                ) : (
-                  <></>
                 )}
                 <div>
                   <p className="tracking-wide lg:text-base text-sm font-medium lg:font-bold uppercase">
@@ -132,12 +174,13 @@ export default function CheckoutBox({
                 </div>
               </div>
               <p className="lg:text-base text-sm lg:mt-0 mt-4">
-                {formatPrice(currency, c?.item?.price * c?.quantity * rate)}
+                {formatPrice(currency, itemPrice * c?.quantity)}
               </p>
             </div>
           );
         })}
-        {discount > 0 ? (
+
+       {discount > 0 ? (
           <p className="font-medium text-xs tracking-wider text-green-500">
             {discount}% discount added
           </p>
@@ -160,42 +203,80 @@ export default function CheckoutBox({
             </div>
           </div>
         )}
-        <div
-          className={`flex items-center justify-between w-full ${
+
+        <div className={`flex items-center justify-between w-full ${
             discount > 0 ? "mt-4" : "mt-8"
-          }`}
-        >
+          }`}>
           <p className="font-medium tracking-wide lg:text-base text-xs">
             Subtotal
           </p>
           <p className="font-light tracking-wide lg:text-base text-xs">
-            {formatPrice(
-              currency,
-              cart?.items?.reduce(
-                (sum, item) => item.item.price * item.quantity + sum,
-                0
-              ) * rate
-            )}
+            {formatPrice(currency, subtotal)}
           </p>
         </div>
-        <div className="flex items-center justify-between w-full">
+
+        {discount > 0 && (
+          <div className="flex items-center justify-between w-full mt-2">
+            <p className="font-medium tracking-wide lg:text-base text-xs">
+              Discount
+            </p>
+            <p className="font-light tracking-wide lg:text-base text-xs text-red-500">
+              -{formatPrice(currency, discountAmount)}
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between w-full mt-2">
+          <p className="font-medium tracking-wide lg:text-base text-xs">
+            VAT (7.5%)
+          </p>
+          <p className="font-light tracking-wide lg:text-base text-xs">
+            {formatPrice(currency, vat)}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between w-full mt-8">
+          <p className="font-medium tracking-wide lg:text-base text-xs">
+            Delivery Type
+          </p>
+          <p className="font-light tracking-wide lg:text-base text-xs">
+            {deliveryType
+              ? deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1)
+              : "Not specified"}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between w-full mt-2">
           <p className="font-medium tracking-wide lg:text-base text-xs">
             Shipping Fee
           </p>
           <p className="font-light tracking-wide lg:text-base text-xs">
-            {formatPrice(currency, shippingFee ?? 0 * rate)}
+            {formatPrice(currency, displayShippingFee)}
           </p>
         </div>
+
+        {/* <div className="flex items-center justify-between w-full mt-3">
+          <p className="font-semibold tracking-wide lg:text-lg text-sm">
+            Total
+          </p>
+          <p className="font-medium tracking-wide lg:text-lg text-sm">
+            {formatPrice(currency, total)}
+          </p>
+        </div> */}
         <div className="flex items-center justify-between w-full mt-3">
           <p className="font-semibold tracking-wide lg:text-lg text-sm">
             Total
           </p>
           <p className="font-medium tracking-wide lg:text-lg text-sm">
-            {shippingFee
-              ? formatPrice(currency, price * rate + shippingFee)
-              : formatPrice(currency, price * rate)}
+            {formatPrice(currency, total)}
           </p>
         </div>
+
+        {/* {currency !== "NGN" && (
+          <p className="text-xs text-gray-600 mt-1 text-right">
+            ≈ {formatPrice("NGN", total * rate)} (Payable in Naira)
+          </p>
+        )} */}
       </div>
     </div>
   );

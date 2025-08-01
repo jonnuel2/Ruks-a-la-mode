@@ -11,7 +11,7 @@ export default function CategoryGrid({
   const context = useAppContext();
   const { setSelectedProduct } = context;
   return (
-    <div className="w-full lg:w-[94%] grid sm:grid-cols-4 grid-cols-2 lg:gap-6 gap-5 mt-8">
+    <div className="w-full lg:w-[94%] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6 mt-8">
       {items?.map((m) => (
         <Product
           key={m.id}

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ProductProps } from "./types";
 import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 //discounts
 export async function getDiscount(code: string) {
@@ -34,10 +35,13 @@ export async function createDiscount(discount: any) {
 
 export async function updateDiscount(code: string, data: any) {
   try {
-    const response = await axios.put(`/api/discounts/update-discount?code=${code}`, data);
+    const response = await axios.put(
+      `/api/discounts/update-discount?code=${code}`,
+      data
+    );
     return response.data;
   } catch (error) {
-    console.error('Error updating discount:', error);
+    console.error("Error updating discount:", error);
     throw error;
   }
 }
@@ -50,7 +54,32 @@ export async function deleteDiscount(code: any) {
   }
 }
 
+export async function editDiscount(discount: any) {
+  try {
+    return await axios.post(`/api/discounts/edit-discount`, discount);
+  } catch (error) {
+    return error;
+  }
+}
+
+export async function editTailor(discount: any) {
+  try {
+    return await axios.post(`/api/order/edit-tailor`, discount);
+  } catch (error) {
+    return error;
+  }
+}
+
 //payments
+// export async function makePayment(data: any, $: any, p0: number, p1: any, https: any) {
+//   try {
+//     const transaction = await axios.post("/api/payments/make-payment", data);
+//     return transaction.data;
+//   } catch (error) {
+//     return error;
+//   }
+// }
+
 export async function makePayment(data: any) {
   try {
     const transaction = await axios.post("/api/payments/make-payment", data);
@@ -70,6 +99,8 @@ export const getExchangeRates = async () => {
     return error;
   }
 };
+
+
 
 export async function verifyTransaction(txref: string) {
   try {
@@ -111,8 +142,10 @@ export async function updateOrder(data: any) {
 
 export async function addTailor(data: any) {
   try {
+    console.log("Sending tailor data:", data); // Add logging
     return await axios.put(`/api/orders/add-tailor`, data);
   } catch (error) {
+    console.error("Error adding tailor:", error); // Add error logging
     return error;
   }
 }
@@ -187,6 +220,20 @@ export async function deleteProduct(id: any) {
     return error;
   }
 }
+
+// helpers/api-controller.ts
+export const deleteBanner = async (id: string) => {
+  const response = await fetch(`/api/content/delete-banner?id=${id}`, {
+    method: "DELETE",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to delete banner");
+  }
+
+  return data;
+};
 
 //admins
 export async function getAdmins() {
@@ -263,7 +310,40 @@ export async function getTopSellers() {
   }
 }
 
-//login 
+//users
+// export async function getAllUsers() {
+//   try {
+//     const response = await axios.get(`/api/users/get-users`);
+//     return response.data;
+//   } catch (err) {
+//     console.error("Error fetching users:", err);
+//     return { users: [] }; // safer default fallback
+//   }
+// }
+export async function getAllUsers(): Promise<{
+  success: boolean;
+  message: string;
+  users: any[];
+}> {
+  try {
+    const response = await axios.get(`/api/users/get-all-users`);
+    return response.data;
+  } catch (err) {
+    console.error(err);
+    let message = "Failed to fetch users";
+    if (err && typeof err === "object" && "response" in err) {
+      const errorObj = err as { response?: { data?: { message?: string } } };
+      message = errorObj.response?.data?.message || message;
+    }
+    return {
+      success: false,
+      message,
+      users: [],
+    };
+  }
+}
+
+//login
 export async function login(email: string, password: string) {
   try {
     const response = await axios.post(`/api/auth/login`, {
@@ -271,7 +351,48 @@ export async function login(email: string, password: string) {
       password,
     });
     return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}
+
+export const logout = () => {
+  const router = useRouter();
+  localStorage.removeItem("loggedInUser"); // Remove user session
+  localStorage.setItem("forceLogin", "true"); // Mark that user logged out intentionally
+  router.push("/login"); // Redirect to login page
+};
+
+export async function forgotPassword(email: string) {
+  try {
+    const response = await axios.post(`/api/users/forgot-password`, { email });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error("Error in forgotPassword:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Something went wrong.",
+    };
+  }
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+  confirmPassword: string
+) {
+  try {
+    const response = await axios.post(`/api/users/reset-password`, {
+      token,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
   } catch (error) {
+    console.error("Error in resetPassword:", error);
     return error;
   }
 }
@@ -281,23 +402,23 @@ export async function signup(
   firstName: string,
   lastName: string,
   email: string,
-  phoneNumber: string,
   password: string,
   confirmPassword: string
 ) {
   try {
-    const response = await axios.post(`/api/auth/signup`, {
+    const response = await axios.post("/api/auth/signup", {
       firstName,
       lastName,
       email,
-      phoneNumber,
       password,
       confirmPassword,
     });
     return response.data;
-  } catch (error) {
-    return error;
+  } catch (error: any) {
+    // Properly forward the backend message
+    const message = error?.response?.data?.message || "Signup failed.";
+    const err = new Error(message);
+    err.name = "SignupError";
+    throw err;
   }
 }
-
-

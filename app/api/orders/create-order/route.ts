@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
       price: body?.price,
       discount: body?.discount,
       shippingInfo: body?.shippingInfo,
-      createdAt: body?.createdAt,
+      // createdAt: body?.createdAt,
+      createdAt: new Date().toISOString(),
       status: "pending",
     };
 

@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
-import { auth } from "@/helpers/utils/auth";
+import { useState, useEffect } from "react";
+import { signup } from "@/helpers/api-controller";
 import { useAppContext } from "@/helpers/store";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Page() {
   const [signupInfo, setSignupInfo] = useState({
     firstName: "",
     lastName: "",
+    phoneNumber: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -24,36 +23,100 @@ export default function Page() {
 
   const context = useAppContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setuser } = context;
 
-  onAuthStateChanged(auth, (u) => {
-    if (u) {
-      setuser(u);
+  // Get redirect parameter if it exists
+  const redirectParam = searchParams?.get("redirect");
+
+  // Handle redirects and check for existing authentication
+  useEffect(() => {
+    const existingUser = localStorage.getItem("user");
+    const existingToken = localStorage.getItem("token");
+    
+    // Store redirect parameter if it exists
+    if (redirectParam) {
+      localStorage.setItem("postLoginRedirect", redirectParam);
     }
-  });
 
-  const handleSignUp = () => {
-    const { firstName, lastName, email, password, confirmPassword } =
-      signupInfo;
+    // If user is already logged in, redirect them
+    if (existingUser && existingToken) {
+      const redirectTo = localStorage.getItem("postLoginRedirect") || "/";
+      localStorage.removeItem("postLoginRedirect");
+      router.push(redirectTo);
+    }
+  }, [redirectParam, router]);
 
+  // Handle signup button click
+  const handleSignUp = async () => {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      confirmPassword,
+    } = signupInfo;
+
+    // Basic client-side validations
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      alert("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        router.push("/roaming/admin");
-      })
-      .catch((err) => alert(err.message))
-      .finally(() => setLoading(false));
+    try {
+      const response = await signup(
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword
+      );
+
+      if (response && response.success === true) {
+        const userData = {
+          id: response.user?.id || response.userId || "unknown",
+          firstName: response.user?.firstName || firstName,
+          lastName: response.user?.lastName || lastName,
+          email: response.user?.email || email,
+        };
+
+        // Store authentication data
+        if (response.token) {
+          localStorage.setItem("token", response.token);
+        }
+        localStorage.setItem("user", JSON.stringify(userData));
+        setuser(userData);
+
+        toast.success("Signup successful! Redirecting...");
+
+        // Get the redirect destination
+        const redirectTo = localStorage.getItem("postLoginRedirect") || "/Auth/login";
+        console.log("Signup successful, redirecting to:", redirectTo);
+        // Clear the stored redirect
+        localStorage.removeItem("postLoginRedirect");
+
+        // Wait a bit to ensure state is saved before redirect
+        setTimeout(() => {
+          router.push(redirectTo);
+        }, 800);
+      } else {
+        toast.error(response?.message || "Unexpected response from server");
+      }
+    } catch (error: any) {
+      console.error("Error during signup:", error);
+      toast.error(
+        error?.message || "An error occurred during signup."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle =
@@ -103,21 +166,29 @@ export default function Page() {
         />
         <p
           onClick={() => setHidden(!hidden)}
-          className="lg:text-xs text-[10px]"
+          className="lg:text-xs text-[10px] text-blue-600 cursor-pointer select-none"
         >
           {hidden ? "SHOW" : "HIDE"}
         </p>
       </div>
 
-      <input
-        placeholder="Confirm Password"
-        className={inputStyle}
-        value={signupInfo.confirmPassword}
-        onChange={(e) =>
-          setSignupInfo({ ...signupInfo, confirmPassword: e.target.value })
-        }
-        type={hidden ? "password" : "text"}
-      />
+      <div className="flex px-3 py-1.5 text-[#0e0e0e] items-center rounded-md justify-center space-x-2 lg:w-72 w-72 mb-6 bg-transparent border border-dark">
+        <input
+          placeholder="Confirm Password"
+          className="bg-transparent outline-none text-xs w-full"
+          value={signupInfo.confirmPassword}
+          onChange={(e) =>
+            setSignupInfo({ ...signupInfo, confirmPassword: e.target.value })
+          }
+          type={hidden ? "password" : "text"}
+        />
+        <p
+          onClick={() => setHidden(!hidden)}
+          className="lg:text-xs text-[10px] text-blue-600 cursor-pointer select-none"
+        >
+          {hidden ? "SHOW" : "HIDE"}
+        </p>
+      </div>
 
       <div
         onClick={() => {
@@ -136,10 +207,9 @@ export default function Page() {
         )}
       </div>
 
-      {/* Login Link */}
       <div className="mt-4">
-        <Link href="login">
-          <div className="flex items-center justify-center border border-dark/60 px-3 py-1.5 rounded-md cursor-pointer">
+        <Link href={`/Auth/login${redirectParam ? `?redirect=${redirectParam}` : ''}`}>
+          <div className="flex items-center justify-start cursor-pointer">
             <p className="text-xs font-bold text-dark whitespace-nowrap">
               Already have an account?{" "}
               <span className="text-blue-600">Login</span>
@@ -147,6 +217,15 @@ export default function Page() {
           </div>
         </Link>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+      />
     </div>
   );
 }

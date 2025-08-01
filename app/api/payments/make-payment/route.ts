@@ -3,8 +3,8 @@ import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
 // Use your Paystack secret key from environment variables
-// const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_API_KEY_LIVE;
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_API_KEY_TEST;
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_API_KEY_LIVE;
+// const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_API_KEY_TEST;
 
 // Initialize transaction function
 export async function POST(req: NextRequest) {
@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        amount: price * 100, // Amount in kobo
+        // amount: price * 100, // Amount in kobo
+        amount: Math.round(price * 100), // ✅ always a whole number
+
         callback_url: callbackUrl,
         currency,
       },

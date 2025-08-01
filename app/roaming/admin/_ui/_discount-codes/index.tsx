@@ -5,6 +5,7 @@ import {
   createDiscount,
   deleteDiscount,
   getDiscounts,
+  editDiscount
 } from "@/helpers/api-controller";
 import { DateTime } from "luxon";
 
@@ -42,6 +43,11 @@ export default function DiscountCodes() {
     onSuccess: () => refetch(),
   });
 
+ const editDiscountMutation = useMutation({
+    mutationFn: (data: any) => editDiscount(data),
+    onSuccess: () => refetch(),
+  });
+
   const [newDiscount, setNewDiscount] = useState<DiscountInfo>({
     code: "",
     rate: "",
@@ -62,34 +68,62 @@ export default function DiscountCodes() {
   // edit discount
   const [isEditMode, setIsEditMode] = useState(false);  
   const [editingId, setEditingId] = useState<string | null>(null);
-
-  const handleEditDiscount = (code: string) => {
-    const discountToEdit = discounts?.find((discount: any) => discount.id === code);
-    if (discountToEdit) {
-      setNewDiscount({
-        code: discountToEdit.id,
-        rate: discountToEdit.data.rate,
-        count: discountToEdit.data.count,
-        duration: discountToEdit.data.duration,
-      });
-      setEditingId(code);
-      setIsModalOpen(true);
-      setIsEditMode(true);
-    }
-  };
   
-
-
   const handleDeleteDiscount = (code: string) => {
     deleteDiscountMutation.mutate(code);
   };
 
+
   const handleSubmitDiscount = () => {
     let _discount: any = { ...newDiscount };
-    _discount.count = parseInt(_discount.count);
-    _discount.rate = parseInt(_discount.rate);
-    createDiscountMutation.mutate(_discount);
+  
+    // Parse numeric fields
+    _discount.count = parseInt(_discount.count as string);
+    _discount.rate = parseInt(_discount.rate as string);
+    _discount.duration = parseInt(_discount.duration as string);
+  
+    if (isEditMode && editingId) {
+      // Edit Discount Mode
+      editDiscountMutation.mutate({
+        code: editingId,
+        ..._discount,
+      });
+    } else {
+      // Create Discount Mode
+      createDiscountMutation.mutate(_discount);
+    }
+  
+    // Reset modal and editing state
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    setEditingId(null);
+    setNewDiscount({
+      code: "",
+      rate: "",
+      count: "",
+      duration: "",
+    });
   };
+  
+
+  const handleEditDiscount_ = (discountId: string) => {
+    const discountToEdit = discounts?.find((discount: any) => discount.id === discountId);
+    if (!discountToEdit) return;
+  
+    setNewDiscount({
+      code: discountToEdit.id,
+      rate: discountToEdit.data.rate,
+      count: discountToEdit.data.count,
+      duration: discountToEdit.data.duration,
+    });
+  
+    setIsEditMode(true);
+    setEditingId(discountId);
+    setIsModalOpen(true);
+  };
+  
+  
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Discounts</h2>
@@ -142,7 +176,7 @@ export default function DiscountCodes() {
               <td className="px-4 py-2 border text-center text-xs">
               <button
                   className="bg-blue-500 text-white px-4 py-1 rounded text-xs mr-2"
-                  onClick={() => handleEditDiscount(discount?.id)} 
+                  onClick={() => handleEditDiscount_(discount?.id)} 
                 >
                   Edit
                 </button>
@@ -186,6 +220,7 @@ export default function DiscountCodes() {
         onSubmit={handleSubmitDiscount}
         discountInfo={newDiscount}
         setDiscountInfo={setNewDiscount}
+        isEditMode={isEditMode}
       />
     </div>
   );

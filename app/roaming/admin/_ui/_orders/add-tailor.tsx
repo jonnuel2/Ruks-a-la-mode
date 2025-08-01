@@ -1,109 +1,126 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 
-interface AddTailorProps {
+type Tailor = {
+  name: string;
+  description: string;
+};
+
+type AddTailorModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (tailorInfo: any) => void;
-  tailorInfo: {
-    name: string;
-    phone: string; // Changed from message to phone
-    id?: string; // Make optional if not always needed
-  };
-  setTailorInfo: (value: any) => void;
-}
+  onSubmit: (tailors: Tailor[]) => Promise<void> | void;
+  orderId: string;
+  initialData: Tailor[];
+};
 
-export default function AddTailorModal({
+const AddTailorModal: React.FC<AddTailorModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  tailorInfo,
-  setTailorInfo,
-}: AddTailorProps) {
+  orderId,
+  initialData,
+}) => {
+  const [tailorList, setTailorList] = useState<Tailor[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setTailorList(initialData);
+      setIsAdding(false); // editing mode
+    } else {
+      setTailorList([{ name: "", description: "" }]);
+      setIsAdding(true); // adding mode
+    }
+  }, [initialData, isOpen]);
+
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Submit the current data
-    onSubmit(tailorInfo);
-    //
-    // setTailorInfo({ name: "", phone: "" });
-    onClose(); // Close the modal after submission
+  const handleAddInput = () => {
+    setTailorList([...tailorList, { name: "", description: "" }]);
+  };
+
+  const handleChange = (index: number, field: keyof Tailor, value: string) => {
+    const updated = [...tailorList];
+    updated[index][field] = value;
+    setTailorList(updated);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit(tailorList);
+      // Close modal automatically after successful submit
+      onClose();
+    } catch (error) {
+      // optionally handle error here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-6">Enter Tailor Information</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Tailor Name
-            </label>
-            <input
-              type="text"
-              value={tailorInfo?.name}
-              onChange={(e) =>
-                setTailorInfo({ ...tailorInfo, name: e.target.value })
-              }
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              required
-            />
-          </div>
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Assign / Edit Tailors</h2>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Phone Number
-            </label>
-            {/* <input
-              type="text"
-              value={tailorInfo?.message}
-              onChange={(e) =>
-                setTailorInfo({
-                  ...tailorInfo,
-                  message: e.target.value,
-                })
-              }
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              required
-            /> */}
-            <input
-              type="text"
-              value={tailorInfo?.phone}
-              onChange={(e) =>
-                setTailorInfo({
-                  ...tailorInfo,
-                  phone: e.target.value,
-                })
-              }
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              required
-            />
-          </div>
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {tailorList.map((tailor, index) => (
+            <div key={index} className="flex flex-col gap-2">
+              <label className="text-sm font-semibold">Tailor Name</label>
+              <input
+                type="text"
+                value={tailor.name}
+                onChange={(e) => handleChange(index, "name", e.target.value)}
+                placeholder="Enter tailor name"
+                className="border p-2 rounded text-sm"
+                disabled={isSubmitting}
+              />
 
-          <div className="flex justify-end gap-4 mt-6">
+              <label className="text-sm font-semibold">Description</label>
+              <input
+                type="text"
+                value={tailor.description}
+                onChange={(e) =>
+                  handleChange(index, "description", e.target.value)
+                }
+                placeholder="Enter description"
+                className="border p-2 rounded text-sm"
+                disabled={isSubmitting}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between items-center mt-6">
+          <button
+            onClick={handleAddInput}
+            className="text-blue-600 text-sm underline"
+            disabled={isSubmitting}
+          >
+            + Add Another Tailor
+          </button>
+
+          <div className="space-x-2">
             <button
-              type="button"
+              onClick={handleSubmit}
+              className="bg-gray-900 text-white px-4 py-2 text-sm rounded hover:bg-green-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (isAdding ? "Adding..." : "Saving...") : isAdding ? "Add" : "Save"}
+            </button>
+            <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
+              className="bg-gray-400 text-white px-4 py-2 text-sm rounded hover:bg-gray-500"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm text-white bg-black rounded-lg hover:bg-gray-800"
-            >
-              Submit
-            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-// Example Usage:
-// const [isModalOpen, setIsModalOpen] = useState(false);
-// const handleDeliverySubmit = (data) => console.log("Delivery Info:", data);
-// <DeliveryInfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleDeliverySubmit} />
+export default AddTailorModal;

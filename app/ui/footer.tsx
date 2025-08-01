@@ -67,9 +67,9 @@ export default function Footer() {
                       />
                     ))}
                   </div>
-                  <p className="opacity-90 leading-relaxed lg:text-base text-sm">
+                  {/* <p className="opacity-90 leading-relaxed lg:text-base text-sm">
                     Attainable, Comfortable & Chic.
-                  </p>
+                  </p> */}
                 </div>
               </div>
               <div className="lg:w-[36%] w-3/4 flex items-start justify-between mr-10 text-lg lg:mb-0 mb-8">
@@ -105,48 +105,84 @@ export default function Footer() {
                 <p className="opacity-90 mb-4 lg:text-lg tracking-wider">
                   CONTACT US
                 </p>
-                <div className="flex items-center justify-start space-x-2 mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="size-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-                    />
-                  </svg>
-                  <div className="">
-                    <p className="opacity-90 lg:text-base text-sm">
-                      support@ruksalamode.com
-                    </p>
+
+                <div className="mb-4 space-y-2">
+                  {/* phone number */}
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1}
+                      stroke="currentColor"
+                      className="size-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10.5 1.5H8.25A2.25 2.25 0 006 3.60v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"
+                      />
+                    </svg>
+                    <a
+                      href="tel:+2349012101539"
+                      className="opacity-90 text-sm lg:text-base hover:underline"
+                    >
+                      +234 901 210 1539
+                    </a>
                   </div>
-                </div>
-                <div className="flex items-center justify-start space-x-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1}
-                    stroke="currentColor"
-                    className="size-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.5 1.5H8.25A2.25 2.25 0 006 3.60v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"
-                    />
-                  </svg>
-                  <div className="">
-                    <p className="opacity-90 lg:text-base text-sm">
-                      +2349012101539
-                    </p>
+                  {/* email */}
+                  <div className="flex items-center space-x-2 mb-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="size-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                      />
+                    </svg>
+                    <a
+                      href="mailto:ruksalamode@gmail.com"
+                      className="opacity-90 text-sm lg:text-base hover:underline"
+                    >
+                      ruksalamode@gmail.com
+                    </a>
                   </div>
+                  
                 </div>
+
+                {/* <div>
+                  <p className="font-semibold opacity-90 mb-2 text-sm lg:text-base">
+                    Wholesale / Partnerships
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="size-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                      />
+                    </svg>
+                    <a
+                      href="mailto:ruksalamode@gmail.com"
+                      className="opacity-90 text-sm lg:text-base hover:underline"
+                    >
+                      ruksalamode@gmail.com
+                    </a>
+                  </div>
+                </div> */}
               </div>
             </div>
             <div className="mt-8">

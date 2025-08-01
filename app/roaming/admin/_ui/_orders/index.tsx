@@ -1,9 +1,13 @@
+"use client";
+
 import { useEffect, useState, useMemo } from "react";
 import OrderDetails from "./order-details";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { addTailor, getAllOrders, updateOrder } from "@/helpers/api-controller";
 import { Audio } from "react-loader-spinner";
 import AddTailorModal from "./add-tailor";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type Order = {
   id: string;
@@ -13,85 +17,104 @@ type Order = {
   items: { productName: string; quantity: number; price: number }[];
 };
 
+interface TailorEntry {
+  name: string;
+  description: string;
+}
+
 export default function Orders() {
-  const [tailorInfo, setTailorInfo] = useState({ name: "", phone: "", id: "" });
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
   const {
     data: allOrders,
     isLoading,
     isError,
+    error,
     refetch: refetchOrders,
   } = useQuery({
     queryKey: ["orders"],
     queryFn: () => getAllOrders(),
   });
 
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to fetch orders");
+    }
+  }, [isError]);
+
   const updateOrderStatusMutation = useMutation({
     mutationFn: (data: any) => updateOrder(data),
-    onSuccess: () => refetchOrders(),
+    onSuccess: () => {
+      refetchOrders();
+      toast.success("Order status updated successfully");
+    },
+    onError: () => toast.error("Failed to update order status"),
   });
 
   const addTailorMutation = useMutation({
     mutationFn: (data: any) => addTailor(data),
-    onSuccess: () => handleStatusChange(tailorInfo?.id, "producing"),
+    onSuccess: () => {
+      refetchOrders();
+      toast.success("Tailor added successfully");
+      if (selectedOrderId) {
+        handleStatusChange(selectedOrderId, "producing");
+      }
+    },
+    onError: () => toast.error("Failed to add tailor"),
   });
 
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("oldest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [addingTailor, setAddingTailor] = useState(false);
   const itemsPerPage = 12;
 
   const orders = allOrders?.orders;
 
-  // Improved date parsing function that handles multiple formats
-  // const parseDate = (dateString: string | undefined): Date | null => {
+  // const parseDateTime = (dateString: string | undefined): Date | null => {
   //   if (!dateString) return null;
 
-  //   // Try parsing as ISO string first
-  //   let date = new Date(dateString);
-  //   if (!isNaN(date.getTime())) return date;
-
-  //   // Handle "DD/MM/YYYY, HH:mm" format (e.g., "16/03/2025, 19:32")
+  //   // Handle European format "DD/MM/YYYY, HH:mm"
   //   const europeanFormat = dateString.match(
   //     /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/
   //   );
   //   if (europeanFormat) {
   //     const [_, day, month, year, hours, minutes] = europeanFormat;
-  //     // Construct ISO format: YYYY-MM-DDTHH:mm:00
-  //     date = new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
-  //     if (!isNaN(date.getTime())) return date;
+  //     return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
   //   }
 
-  //   // Try adding time component if missing
-  //   if (!dateString.includes("T")) {
-  //     date = new Date(`${dateString}T00:00:00`);
-  //     if (!isNaN(date.getTime())) return date;
-  //   }
-
-  //   // Try replacing space with T if it's in format "YYYY-MM-DD HH:MM:SS"
-  //   if (dateString.includes(" ")) {
-  //     date = new Date(dateString.replace(" ", "T"));
-  //     if (!isNaN(date.getTime())) return date;
-  //   }
-
-  //   // Try parsing as timestamp
-  //   const timestamp = Date.parse(dateString);
-  //   if (!isNaN(timestamp)) return new Date(timestamp);
+  //   // Handle ISO format
+  //   const date = new Date(dateString);
+  //   if (!isNaN(date.getTime())) return date;
 
   //   return null;
   // };
+
   const parseDateTime = (dateString: string | undefined): Date | null => {
     if (!dateString) return null;
 
-    // Handle European format "DD/MM/YYYY, HH:mm"
-    const europeanFormat = dateString.match(
-      /(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/
+    // Handle European format with time: "DD/MM/YYYY, HH:mm"
+    const europeanFormatWithTime = dateString.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4}), (\d{1,2}):(\d{2})$/
     );
+    if (europeanFormatWithTime) {
+      const [_, day, month, year, hours, minutes] = europeanFormatWithTime;
+      return new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(
+          2,
+          "0"
+        )}T${hours.padStart(2, "0")}:${minutes}:00`
+      );
+    }
+
+    // Handle European format without time: "DD/MM/YYYY" or "D/M/YYYY"
+    const europeanFormat = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (europeanFormat) {
-      const [_, day, month, year, hours, minutes] = europeanFormat;
-      return new Date(`${year}-${month}-${day}T${hours}:${minutes}:00`);
+      const [_, day, month, year] = europeanFormat;
+      return new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T00:00:00`
+      );
     }
 
     // Handle ISO format
@@ -119,22 +142,24 @@ export default function Orders() {
   //       return statusMatch && searchMatch;
   //     })
   //     .sort((a: any, b: any) => {
-  //       const dateA =
-  //         parseDate(a.data?.updatedAt || a.data?.createdAt)?.getTime() || 0;
-  //       const dateB =
-  //         parseDate(b.data?.updatedAt || b.data?.createdAt)?.getTime() || 0;
+  //       // Always use createdAt for true chronological order
+  //       const dateA = parseDateTime(a.data?.createdAt);
+  //       const dateB = parseDateTime(b.data?.createdAt);
 
-  //       // Secondary sort by ID if dates are equal
-  //       if (dateA === dateB) {
-  //         return sortOrder === "newest"
-  //           ? b.id.localeCompare(a.id)
-  //           : a.id.localeCompare(b.id);
+  //       if (!dateA || !dateB) return 0;
+
+  //       // For oldest first: true chronological order (first created to last created)
+  //       if (sortOrder === "oldest") {
+  //         return dateA.getTime() - dateB.getTime();
   //       }
-
-  //       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+  //       // For newest first: reverse chronological order (last created to first created)
+  //       else {
+  //         return dateB.getTime() - dateA.getTime();
+  //       }
   //     });
   // }, [orders, filter, searchQuery, sortOrder]);
 
+  // Pagination logic
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
@@ -143,34 +168,25 @@ export default function Orders() {
         const statusMatch =
           filter.toLowerCase() === "all" ||
           order?.data?.status?.toLowerCase() === filter.toLowerCase();
-
         const searchMatch =
           order?.data?.shippingInfo?.email
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           order?.id?.toLowerCase().includes(searchQuery.toLowerCase());
-
         return statusMatch && searchMatch;
       })
       .sort((a: any, b: any) => {
-        // Always use createdAt for true chronological order
-        const dateA = parseDateTime(a.data?.createdAt); // Changed from parseDate to parseDateTime
-        const dateB = parseDateTime(b.data?.createdAt); // Changed from parseDate to parseDateTime
-
+        const dateA = parseDateTime(a.data?.createdAt);
+        const dateB = parseDateTime(b.data?.createdAt);
         if (!dateA || !dateB) return 0;
-
-        // For oldest first: true chronological order (first created to last created)
         if (sortOrder === "oldest") {
           return dateA.getTime() - dateB.getTime();
-        }
-        // For newest first: reverse chronological order (last created to first created)
-        else {
+        } else {
           return dateB.getTime() - dateA.getTime();
         }
       });
   }, [orders, filter, searchQuery, sortOrder]);
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredOrders?.length / itemsPerPage);
   const paginatedOrders = filteredOrders?.slice(
     (currentPage - 1) * itemsPerPage,
@@ -179,45 +195,45 @@ export default function Orders() {
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
+    // toast.info(`Viewing details for order ${order.id}`)
   };
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    // toast.info(`Navigated to page ${newPage}`)
   };
 
   const handleStatusChange = (id: string, newStatus: string) => {
     updateOrderStatusMutation.mutate({ id, status: newStatus });
+    // toast.info(`Changing order ${id} status to ${newStatus}`)
   };
 
-  const handleAddTailor = () => {
-    addTailorMutation.mutate(tailorInfo);
+  const handleAddTailors = (tailorInfoList: TailorEntry[]) => {
+    if (!selectedOrderId) return;
+
+    // toast.info(`Adding ${tailorInfoList.length} tailor(s) to order ${selectedOrderId}`)
+
+    // Process each tailor entry
+    tailorInfoList.forEach((tailor) => {
+      addTailorMutation.mutate({
+        id: selectedOrderId,
+        name: tailor.name,
+        description: tailor.description,
+      });
+    });
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
+    // toast.info("Search cleared")
   };
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"));
     setCurrentPage(1);
+    // toast.info(`Sort order changed to ${sortOrder === "newest" ? "oldest" : "newest"}`)
   };
 
-  // Debugging effect - logs date sorting information
-  // useEffect(() => {
-  //   if (filteredOrders?.length > 0) {
-  //     console.log("Date sorting debug:");
-  //     filteredOrders.forEach((order: any, index: number) => {
-  //       const dateStr = order.data?.updatedAt || order.data?.createdAt;
-  //       console.log({
-  //         position: index + 1,
-  //         id: order.id,
-  //         date: dateStr,
-  //         parsed: parseDate(dateStr),
-  //         status: order.data?.status,
-  //       });
-  //     });
-  //   }
-  // }, [filteredOrders]);
   useEffect(() => {
     if (filteredOrders?.length > 0) {
       console.log("Sorted orders:");
@@ -225,82 +241,60 @@ export default function Orders() {
         console.log(
           `${index + 1}. ${order.id} - ${order.data?.createdAt}`,
           parseDateTime(order.data?.createdAt)
-        ); // Changed from parseDate to parseDateTime
+        );
       });
     }
   }, [filteredOrders]);
 
-  // const formatDateTime = (dateString: string) => {
-  //   const months = [
-  //     "Jan",
-  //     "Feb",
-  //     "Mar",
-  //     "Apr",
-  //     "May",
-  //     "Jun",
-  //     "Jul",
-  //     "Aug",
-  //     "Sep",
-  //     "Oct",
-  //     "Nov",
-  //     "Dec",
-  //   ];
+  // const formatDate = (dateString: string) => {
+  //   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-  //   const [datePart, timePart] = dateString.split(",");
-  //   const [day, month, year] = datePart.trim().split("/").map(Number);
-  //   const [time, period] = timePart.trim().split(" ");
-
-  //   let [hours, minutes] = time.split(":").map(Number);
+  //   const dateParts = dateString.split(",")[0].split("/")
+  //   const day = Number.parseInt(dateParts[0])
+  //   const monthIndex = Number.parseInt(dateParts[1]) - 1
+  //   const year = Number.parseInt(dateParts[2])
 
   //   const suffix =
   //     day === 1 || day === 21 || day === 31
   //       ? "st"
   //       : day === 2 || day === 22
-  //       ? "nd"
-  //       : day === 3 || day === 23
-  //       ? "rd"
-  //       : "th";
+  //         ? "nd"
+  //         : day === 3 || day === 23
+  //           ? "rd"
+  //           : "th"
 
-  //   return `${months[month - 1]} ${day}${suffix}, ${year} at ${
-  //     hours % 12 || 12
-  //   }:${minutes.toString().padStart(2, "0")} ${period}`;
-  // };
-
-  const formatDate = (dateString: string) => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    const dateParts = dateString.split(",")[0].split("/");
-    const day = parseInt(dateParts[0]);
-    const monthIndex = parseInt(dateParts[1]) - 1;
-    const year = parseInt(dateParts[2]);
-
-    const suffix =
-      day === 1 || day === 21 || day === 31
-        ? "st"
-        : day === 2 || day === 22
-        ? "nd"
-        : day === 3 || day === 23
-        ? "rd"
-        : "th";
-
-    return `${months[monthIndex]} ${day}${suffix}, ${year}`;
+  //   return `${months[monthIndex]} ${day}${suffix}, ${year}`
+  // }
+  const formatIsoDate = (isoString: string) => {
+    if (!isoString) return "N/A";
+    const date = parseDateTime(isoString);
+    if (!date || isNaN(date.getTime())) return "Invalid Date";
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const year = date.getFullYear();
+    const getSuffix = (d: number) => {
+      if (d === 1 || d === 21 || d === 31) return "st";
+      if (d === 2 || d === 22) return "nd";
+      if (d === 3 || d === 23) return "rd";
+      return "th";
+    };
+    return `${day}${getSuffix(day)} ${month}, ${year}`;
   };
 
   return (
     <div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <h1 className="text-xl font-bold mb-4">Orders</h1>
 
       {/* Filters Section */}
@@ -316,6 +310,7 @@ export default function Orders() {
             onChange={(e) => {
               setFilter(e.target.value.toLowerCase());
               setCurrentPage(1);
+              // toast.info(`Filter set to ${e.target.value.toLowerCase()}`)
             }}
           >
             <option value="all">All</option>
@@ -415,20 +410,23 @@ export default function Orders() {
                         <p className="text-xs opacity-60">
                           {order?.data?.shippingInfo?.email}
                         </p>
+                        <p className="text-xs opacity-60">
+                          {order?.data?.shippingInfo?.phonenumber}
+                        </p>
                       </div>
                     </td>
                     <td className="px-4 py-2 text-xs border">
-                      {/* {order?.data?.updatedAt || order?.data?.createdAt} */}
+                      {/* {order?.data?.createdAt ? formatDate(order?.data?.createdAt) : ""} */}
                       {order?.data?.createdAt
-                        ? formatDate(order?.data?.createdAt)
-                        : ""}
-                      {/* {formatDate(order?.data?.updatedAt || order?.data?.createdAt) || "N/A"} */}
+                        ? formatIsoDate(order?.data?.createdAt)
+                        : "N/A"}
+                      {/* {order?.data?.createdAt || "N/A"} */}
                     </td>
                     <td className="px-4 py-2 text-xs border">
                       {order?.data?.price
                         ? order.data.price.toLocaleString("en-US", {
                             style: "currency",
-                            currency: order.data.currency || "NGN", // Fallback to USD if currency is missing
+                            currency: order.data.currency || "NGN",
                           })
                         : "N/A"}
                     </td>
@@ -456,8 +454,9 @@ export default function Orders() {
                           <button
                             className="bg-green-500 text-white px-2 py-1 rounded lg:text-xs text-[10px] hover:bg-green-600"
                             onClick={() => {
-                              setTailorInfo({ ...tailorInfo, id: order?.id });
+                              setSelectedOrderId(order.id);
                               setAddingTailor(true);
+                              // toast.info(`Preparing to add tailor to order ${order.id}`)
                             }}
                           >
                             Produce
@@ -524,13 +523,15 @@ export default function Orders() {
             <OrderDetails
               order={selectedOrder}
               onClose={() => setSelectedOrder(null)}
+              currency={""}
             />
           )}
 
           {/* No Results Message */}
           {filteredOrders?.length === 0 && (
             <p className="mt-4 text-gray-500 text-xs">
-              No orders match your filter and search.
+              No orders match your filter and search. Please put a valid filter
+              or search
             </p>
           )}
         </div>
@@ -538,9 +539,9 @@ export default function Orders() {
       <AddTailorModal
         isOpen={addingTailor}
         onClose={() => setAddingTailor(false)}
-        onSubmit={handleAddTailor}
-        tailorInfo={tailorInfo}
-        setTailorInfo={setTailorInfo}
+        onSubmit={handleAddTailors}
+        orderId={selectedOrderId}
+        initialData={[]}
       />
     </div>
   );

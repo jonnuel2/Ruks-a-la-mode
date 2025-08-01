@@ -1,56 +1,84 @@
+// import { NextRequest, NextResponse } from "next/server";
+// import { db } from "@/helpers/utils/db";
+// import crypto from "crypto";
+// import bcrypt from "bcryptjs";
+
+// export async function POST(req: NextRequest) {
+//   try {
+//     const body = await req.json();
+//     const { email } = body;
+
+//     // Validate input
+//     if (!email) {
+//       return NextResponse.json(
+//         { success: false, message: "Email is required" },
+//         { status: 400 }
+//       );
+//     }
+
+//     // Check if the user exists
+//     const userQuery = await db
+//       .collection("users")
+//       .where("email", "==", email)
+//       .limit(1)
+//       .get();
+
+//     if (userQuery.empty) {
+//       return NextResponse.json(
+//         { success: false, message: "User not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     const userDoc = userQuery.docs[0];
+//     const userData = userDoc.data();
+
+//     // Generate a unique reset token
+//     const resetToken = crypto.randomBytes(32).toString("hex");
+//     const hashedToken = await bcrypt.hash(resetToken, 10);
+//     const resetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+
+//     // Update the user's document with the reset token and expiry
+//     await userDoc.ref.update({
+//       resetToken:hashedToken,
+//       resetTokenExpiry,
+//     });
+
+//     // Construct and return the reset password link
+//     const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+//    //Remove resetLink from the response once email is sent on the frontend
+//     // Here you would typically send the reset link via email
+//     return NextResponse.json(
+//       { success: true, resetLink },
+//       { status: 200 }
+//     );
+//   } catch (error) {
+//     console.error("Error during forgot password:", error);
+//     return NextResponse.json(
+//       { success: false, message: "Failed to process forgot password request." },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+// app/api/users/forgot-password/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
-import { db, firebase } from "@/helpers/utils/db";
+import { db } from "@/helpers/utils/db";
 import crypto from "crypto";
-const nodemailer = require("nodemailer");
-
-// Helper to send password reset email
-const sendResetEmail = async (email: string, resetLink: string, firstName: string) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || "587", 10),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const htmlContent = `
-      <p>Hello ${firstName},</p>
-      <p>We received a request to reset your password. Click the link below to set a new password:</p>
-      <a href="${resetLink}" style="color: #bb3a00; text-decoration: none;">Reset Password</a>
-      <p>If you didn't request this, you can safely ignore this email.</p>
-    `;
-
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || '"RUKS Á LA MODE" <no-reply@ruksalamode.com>',
-      to: email,
-      subject: "Password Reset Request",
-      html: htmlContent,
-    };
-
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.error("Failed to send password reset email:", error);
-    throw new Error("Email sending failed");
-  }
-};
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email } = body;
 
-    // Validate input
     if (!email) {
-      return NextResponse.json(
-        { success: false, message: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
     }
 
-    // Check if the user exists
     const userQuery = await db
       .collection("users")
       .where("email", "==", email)
@@ -58,41 +86,48 @@ export async function POST(req: NextRequest) {
       .get();
 
     if (userQuery.empty) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
     }
 
     const userDoc = userQuery.docs[0];
-    const userData = userDoc.data();
-    const firstName = userData.firstName || "User";
 
-    // Generate a unique reset token
+    // Generate reset token and expiration
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = Date.now() + 3600000; // Token valid for 1 hour
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
 
-    // Update the user's document with the reset token and expiry
     await userDoc.ref.update({
-      resetToken,
+      resetToken: hashedToken,
       resetTokenExpiry,
     });
 
-    // Construct the reset password link
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/Auth/password-reset?token=${resetToken}`;
 
-    // Send the password reset email
-    await sendResetEmail(email, resetLink, firstName);
+    // Send email using Nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
-    return NextResponse.json(
-      { success: true, message: "Password reset email sent successfully." },
-      { status: 200 }
-    );
+    await transporter.sendMail({
+      from: `"Ruks Á La Mode" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <h2>Password Reset</h2>
+        <p>Hello,</p>
+        <p>You requested to reset your password. Click the link below to reset it:</p>
+        <a href="${resetLink}" target="_blank">${resetLink}</a>
+        <p>This link is valid for 1 hour. If you didn't request this, please ignore this email.</p>
+      `,
+    });
+
+    return NextResponse.json({ success: true, message: "Reset email sent." }, { status: 200 });
   } catch (error) {
-    console.error("Error during forgot password:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to process forgot password request." },
-      { status: 500 }
-    );
+    console.error("Forgot password error:", error);
+    return NextResponse.json({ success: false, message: "Server error." }, { status: 500 });
   }
 }

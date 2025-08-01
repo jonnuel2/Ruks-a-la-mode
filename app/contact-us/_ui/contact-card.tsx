@@ -12,27 +12,56 @@ export default function ContactCard() {
     <div className="lg:w-[45%] w-full bg-lightgrey lg:p-14 rounded-[40px] lg:mt-0 mt-12">
       <Tab label="Location">
         <p className="lg:w-3/5 lg:text-sm text-sm text-dark">
-          Penthouse, Wing C, Deo Gracia Plaza, Utako, Abuja.
+          No. 27, Beechwood Avenue, Minfa 1 Garden Estate, Lokogoma, Abuja.
         </p>
       </Tab>
       <Tab label="Working Hours">
         <div>
           <p className="lg:text-sm text-sm text-dark">
-            Monday To Friday 11:00 AM to 5:00 PM
+            In-Store: Monday to Friday, 11:00 AM – 5:00 PM
           </p>
           <p className="lg:text-sm text-sm mt-1">
-            Our Support Team is available 9am - 9pm, everyday but Sunday.
+            Online: Monday to Saturday, 10:00 AM – 8:00 PM
           </p>
         </div>
       </Tab>
       <Tab label="Contact us">
-        <div>
-          <p className="lg:w-1/2 lg:text-sm text-sm text-dark">
-            +234 901 210 1539
-          </p>
-          <p className="mt-1 lg:text-sm text-sm text-dark">
-            support@ruksalamode.com
-          </p>
+        <div className="space-y-6 text-sm text-dark leading-relaxed lg:w-2/3">
+          <div>
+            <h3 className="font-semibold text-base mb-1">General Support</h3>
+            <p>
+              Need help? Want to partner with us? <br /> Reach out to us via:
+              <br />
+              <a href="tel:+2349012101539" className="underline font-medium">
+                +234 901 210 1539
+              </a>
+              <br />
+              <a
+                href="mailto:ruksalamode@gmail.com"
+                className="underline font-medium"
+              >
+                ruksalamode@gmail.com
+              </a>
+              .
+            </p>
+          </div>
+
+          {/* <div>
+            <h3 className="font-semibold text-base mb-1">
+              Business & Partnerships
+            </h3>
+            <p>
+              For wholesale, retail or stockist partnerships, and
+              collaborations, kindly email us at{" "}
+              <a
+                href="mailto:ruksalamode@gmail.com"
+                className="underline font-medium"
+              >
+                ruksalamode@gmail.com
+              </a>
+              .
+            </p>
+          </div> */}
         </div>
       </Tab>
 

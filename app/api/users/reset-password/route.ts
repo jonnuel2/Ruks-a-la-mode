@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, firebase } from "@/helpers/utils/db";
+import { db } from "@/helpers/utils/db";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -22,26 +22,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Query the database for the user with the given reset token
-    const userQuery = await db
-      .collection("users")
-      .where("resetToken", "==", token)
-      .limit(1)
-      .get();
+    // Query all users and find one with a matching reset token
+    const userQuery = await db.collection("users").get();
+    let matchingUser = null;
 
-    if (userQuery.empty) {
+    for (const doc of userQuery.docs) {
+      const userData = doc.data();
+      if (userData.resetToken && await bcrypt.compare(token, userData.resetToken)) {
+        matchingUser = doc;
+        break;
+      }
+    }
+
+    if (!matchingUser) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired token" },
         { status: 404 }
       );
     }
 
-    const userDoc = userQuery.docs[0];
+    const userDoc = matchingUser;
     const userData = userDoc.data();
 
     // Check if the token has expired
-    const tokenExpiry = userData.resetTokenExpiry;
-    if (Date.now() > tokenExpiry) {
+    if (Date.now() > userData.resetTokenExpiry) {
       return NextResponse.json(
         { success: false, message: "Token has expired" },
         { status: 410 }
@@ -51,12 +55,12 @@ export async function POST(req: NextRequest) {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update the user's password and clear the reset token and expiry
+    // Update user data
     await userDoc.ref.update({
       password: hashedPassword,
       resetToken: null,
       resetTokenExpiry: null,
-      passwordUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      passwordUpdatedAt: new Date().toISOString(),
     });
 
     return NextResponse.json(

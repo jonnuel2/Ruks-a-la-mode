@@ -11,12 +11,12 @@ function Questions() {
     {
       question: "How do I place an order?",
       answer:
-        "Orders can be placed via our Website, Instagram DM or WhatsApp message.",
+        "Retail orders can be placed via our Website(s) only.",
     },
     {
       question: "Do you have ready-to-wear outfits?",
       answer:
-        "No, all our pieces are custom-made and require at least 7 working days for production.",
+        "No, all our pieces are custom-made and require at least 10 working days for production.",
     },
     {
       question: "Can I visit your store to try on outfits?",
@@ -48,21 +48,21 @@ function Questions() {
       question: "Can I cancel my order after placing it?",
       answer: "Orders cannot be canceled once production has started.",
     },
-    {
-      question: "Do you accept part payments?",
-      answer:
-        "Yes, you can pay 70% upfront and the remaining 30% before delivery.",
-    },
-    {
-      question: "What transfer payment methods do you accept?",
-      answer:
-        "We accept direct bank transfers (Nigeria), Western Union, Zelle, Remitly, World Remit, Lemfi, and Tap Tap.",
-    },
-    {
-      question: "Can I stockpile my order and pick it up later?",
-      answer:
-        "Yes, you can store your order for up to 2 months, after which we will no longer be responsible for it.",
-    },
+    // {
+    //   question: "Do you accept part payments?",
+    //   answer:
+    //     "Yes, you can pay 70% upfront and the remaining 30% before delivery.",
+    // },
+    // {
+    //   question: "What transfer payment methods do you accept?",
+    //   answer:
+    //     "We accept direct bank transfers (Nigeria), Western Union, Zelle, Remitly, World Remit, Lemfi, and Tap Tap.",
+    // },
+    // {
+    //   question: "Can I stockpile my order and pick it up later?",
+    //   answer:
+    //     "Yes, you can store your order for up to 2 months, after which we will no longer be responsible for it.",
+    // },
     {
       question: "What are your delivery timelines?",
       answer:
@@ -75,7 +75,7 @@ function Questions() {
     },
     {
       question: "Can I choose a different delivery company?",
-      answer: "Yes, if you prefer a different delivery service, let us know.",
+      answer: "Yes, if you prefer a different delivery service, let us know via email.",
     },
     {
       question: "What happens if I miss the delivery?",

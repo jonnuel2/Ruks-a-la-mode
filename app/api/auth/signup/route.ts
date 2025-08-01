@@ -52,7 +52,9 @@ const sendEmail = async (email: string, verificationLink: string, firstName: str
                         </div>
                         <div class="support-section">
                             <p>If you didn't request this email, you can safely ignore it.</p>
-                            <p>Need help? Contact us at <a href="mailto:support@ruksalamode.com">support@ruksalamode.com</a></p>
+                            <p>Need help? Contact us at <a href="mailto:ruksalamode@gmail.com
+">ruksalamode@gmail.com
+</a></p>
                         </div>
                     </div>
                     <div class="email-footer">
@@ -82,10 +84,10 @@ const sendEmail = async (email: string, verificationLink: string, firstName: str
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, lastName, email, phoneNumber, password, confirmPassword } = body;
+    const { firstName, lastName, email, password, confirmPassword } = body;
 
     // Validate input
-    if (!firstName || !lastName || !email || !phoneNumber || !password || !confirmPassword) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       return NextResponse.json(
         { success: false, message: "All fields are required" },
         { status: 400 }
@@ -120,7 +122,6 @@ export async function POST(req: NextRequest) {
       firstName,
       lastName,
       email,
-      phoneNumber,
       password: hashedPassword,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       verificationToken,
@@ -131,13 +132,13 @@ export async function POST(req: NextRequest) {
     const newUserRef = await usersRef.add(newUser);
 
     // Construct the verification link
-    const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+    // const verificationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
 
     // Send the verification email
-    await sendEmail(email, verificationLink, firstName);
+    // await sendEmail(email, verificationLink, firstName);
 
     return NextResponse.json(
-      { success: true, message: "User registered successfully. Verification email sent." , Link: verificationLink},
+      { success: true, message: "User registered successfully."},
       { status: 201 }
     );
   } catch (error) {
